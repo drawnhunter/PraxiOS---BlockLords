@@ -111,6 +111,12 @@ Hat ein Fremder **vor** dem Claim Bauten im Gebiet, gelten diese als **Altbesitz
 - Tabellen: `claims, buildings, villagers, storage, ranks, wars, diplomacy, audit`.
 - Admin-Kommandos: Claim auflösen/übertragen, Refund, Audit-Log.
 
+### 6.4 Architektur-Entscheidungen (final, 2026-11-22)
+- **KEIN WorldGuard.** Gründe: (1) WG 7 für 1.21.11 benötigt WorldEdit 7.4.x = Java-25-only → läuft auf dem Java-21-Zielserver (Termux) nicht (identische Falle wie WorldEdit 7.4.6 vorher); FAWE ersetzt WorldEdit nicht als WG-Basis. (2) Die Schutz-Semantik ist eigen (Glocke unzerstörbar, Zerfall-Stufen, Kriegs-Suspendierung im Kampf-Radius, Altbesitz, Rang-Matrix) — WG-Flags abbildbar nur verbiegbar. (3) Weniger Plugin-Last auf dem Phone-Server.
+- **Schutz = eigene Implementierung** (Region-Zylinder + Interact/Block-Events + Besitzer-Map), LuckPerms-Bridge für Ränge.
+- **Alles konfigurierbar:** sämtliche Zahlen aus diesem Konzept (Limits, Radien, Kosten, Erträge, Timer, Zerfall, Krieg, Ressourcentypen, Rechte-Matrix-Zellen) liegen in `config.yml` mit Defaults; kein Wert hartkodiert.
+- Admin-Kommandos: Claim auflösen/übertragen, Refund, Audit-Log.
+
 ## 7. Phasenplan
 
 | Phase | Lieferumfang |
