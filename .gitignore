@@ -1,0 +1,9 @@
+# BlockLords
+.gradle/
+build/
+out/
+*.iml
+.idea/
+.vscode/
+*.jar
+!gradle/wrapper/gradle-wrapper.jar

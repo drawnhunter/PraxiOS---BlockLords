@@ -1,0 +1,7 @@
+name: BlockLords
+version: ${version}
+main: eu.praxios.blocklords.BlockLords
+api-version: '1.21'
+description: Dorf-Claim-, Wirtschafts-, Diplomatie- und Kriegssystem
+author: Praxios (Axon & Alexander)
+website: https://github.com/drawnhunter/PraxiOS---BlockLords

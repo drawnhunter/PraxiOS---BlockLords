@@ -1,0 +1,13 @@
+# Claim
+claim.radius-blocks: 48
+claim.cost-mayor-emeralds: 64
+claim.second-village-min-level: 3
+claim.decay-days: 14
+claim.decay-warning-days: 10
+
+# Wirtschaft (Startwerte, live tunen)
+economy.ticks-per-work-cycle: 600
+economy.storage-capacity-default: 1728
+
+# Debug
+debug: false
