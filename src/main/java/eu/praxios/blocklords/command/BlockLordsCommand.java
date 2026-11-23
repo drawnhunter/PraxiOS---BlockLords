@@ -2,6 +2,7 @@ package eu.praxios.blocklords.command;
 
 import eu.praxios.blocklords.BlockLords;
 import eu.praxios.blocklords.model.AuditEntry;
+import eu.praxios.blocklords.model.BlueprintType;
 import eu.praxios.blocklords.model.Village;
 import eu.praxios.blocklords.repository.VillageRepository;
 import eu.praxios.blocklords.service.*;
@@ -37,10 +38,12 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
     private final TaskRunner tasks;
     private final VillageRepository villageRepository;
     private final DecayService decay;
+    private final EconomyCommand economy;
 
     public BlockLordsCommand(BlockLords plugin, VillageService villages, FoundingService founding, UiService ui,
                              ProtectionService protection, AltSelectionService alt, AuditService audit,
-                             TaskRunner tasks, VillageRepository villageRepository, DecayService decay) {
+                             TaskRunner tasks, VillageRepository villageRepository, DecayService decay,
+                             EconomyCommand economy) {
         this.plugin = plugin;
         this.villages = villages;
         this.founding = founding;
@@ -51,6 +54,7 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
         this.tasks = tasks;
         this.villageRepository = villageRepository;
         this.decay = decay;
+        this.economy = economy;
     }
 
     @Override
@@ -69,6 +73,7 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
                 else Msg.error(sender, "Diese Aktion benötigt einen Spieler.");
             }
             case "found" -> found(sender, args);
+            case "build", "storage", "workers", "research", "level" -> economy.handle(sender, args);
             case "admin" -> admin(sender, args);
             default -> help(sender);
         }
@@ -124,8 +129,22 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
             }
             case "disband" -> disband(sender, args);
             case "transfer" -> transfer(sender, args);
+            case "selftest" -> selfTest(sender, args);
             case "alt" -> alt(sender, args);
             default -> adminHelp(sender);
+        }
+    }
+
+    private void selfTest(CommandSender sender, String[] args) {
+        if (args.length < 6) {
+            Msg.error(sender, "Verwendung: /bl admin selftest <Bauplantyp> <x> <y> <z>");
+            return;
+        }
+        try {
+            plugin.selfTest(sender, BlueprintType.valueOf(args[2].toUpperCase(Locale.ROOT)),
+                    Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
+        } catch (IllegalArgumentException exception) {
+            Msg.error(sender, "Unbekannter Bauplantyp oder ungültige Koordinaten.");
         }
     }
 
@@ -256,18 +275,19 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
 
     private void help(CommandSender sender) {
         Msg.info(sender, "/bl info · /bl quest · /bl found <Name>");
+        Msg.plain(sender, "/bl storage · /bl build · /bl workers · /bl research · /bl level");
         if (sender.hasPermission("blocklords.admin")) adminHelp(sender);
     }
 
     private void adminHelp(CommandSender sender) {
-        Msg.plain(sender, "/bl admin list|reload|backup|decay|audit [n]|bypass");
+        Msg.plain(sender, "/bl admin list|reload|backup|decay|audit [n]|bypass|selftest <Typ> <x> <y> <z>");
         Msg.plain(sender, "/bl admin disband <ID> confirm · transfer <ID> <Spieler>");
         Msg.plain(sender, "/bl admin alt pos1|pos2|register <Spieler|unbekannt> <Name>|remove <ID>|list");
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) return filter(List.of("info", "quest", "found", "admin"), args[0]);
+        if (args.length == 1) return filter(List.of("info", "quest", "found", "build", "storage", "workers", "research", "level", "admin"), args[0]);
         if (args.length == 2 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("blocklords.admin")) {
             return filter(List.of("list", "reload", "backup", "decay", "audit", "bypass", "disband", "transfer", "alt"), args[1]);
         }

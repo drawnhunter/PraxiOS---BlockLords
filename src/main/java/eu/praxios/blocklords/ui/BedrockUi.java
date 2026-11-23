@@ -54,6 +54,19 @@ public final class BedrockUi {
         FloodgateApi.getInstance().sendForm(player.getUniqueId(), form);
     }
 
+    public void openActions(Player player, String title, String content, java.util.List<UiAction> actions) {
+        SimpleForm.Builder builder = SimpleForm.builder().title(title).content(content);
+        actions.forEach(action -> builder.button(action.name()));
+        builder.validResultHandler((ignored, response) -> {
+            int index = response.clickedButtonId();
+            if (index >= 0 && index < actions.size()) {
+                UiAction action = actions.get(index);
+                tasks.sync(action.action());
+            }
+        });
+        FloodgateApi.getInstance().sendForm(player.getUniqueId(), builder.build());
+    }
+
     public void openVillage(Player player, Village village, String owner, String members, String stats, Runnable scan) {
         SimpleForm form = SimpleForm.builder()
                 .title("BlockLords · " + village.name())

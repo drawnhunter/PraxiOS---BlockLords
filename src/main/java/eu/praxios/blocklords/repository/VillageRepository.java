@@ -144,6 +144,59 @@ public final class VillageRepository {
         });
     }
 
+    public Village addXp(long villageId, int amount) throws Exception {
+        return database.inTransaction(connection -> {
+            Village current;
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM villages WHERE id = ?")) {
+                statement.setLong(1, villageId);
+                try (ResultSet result = statement.executeQuery()) {
+                    if (!result.next()) throw new IllegalArgumentException("Dorf " + villageId + " existiert nicht.");
+                    current = mapVillage(result);
+                }
+            }
+            int xp = current.xp() + Math.max(0, amount);
+            int level = levelForXp(xp);
+            Village updated = new Village(current.id(), current.name(), current.owner(), current.region(), level, xp,
+                    current.status(), current.createdAt(), current.lastActivity());
+            try (PreparedStatement statement = connection.prepareStatement("UPDATE villages SET xp = ?, level = ? WHERE id = ?")) {
+                statement.setInt(1, xp);
+                statement.setInt(2, level);
+                statement.setLong(3, villageId);
+                statement.executeUpdate();
+            }
+            return updated;
+        });
+    }
+
+    public void setFeature(long villageId, String key, boolean enabled) throws Exception {
+        database.inTransaction(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO village_features(village_id, feature_key, enabled, updated_at) VALUES (?, ?, ?, ?) "
+                            + "ON CONFLICT(village_id, feature_key) DO UPDATE SET enabled=excluded.enabled, updated_at=excluded.updated_at")) {
+                statement.setLong(1, villageId);
+                statement.setString(2, key);
+                statement.setInt(3, enabled ? 1 : 0);
+                statement.setLong(4, System.currentTimeMillis());
+                statement.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    public Map<String, Boolean> features(long villageId) throws Exception {
+        return database.read(connection -> {
+            Map<String, Boolean> features = new HashMap<>();
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT feature_key, enabled FROM village_features WHERE village_id = ?")) {
+                statement.setLong(1, villageId);
+                try (ResultSet result = statement.executeQuery()) {
+                    while (result.next()) features.put(result.getString(1), result.getInt(2) == 1);
+                }
+            }
+            return features;
+        });
+    }
+
     public void updateActivity(long villageId, long time) throws Exception {
         database.inTransaction(connection -> {
             try (PreparedStatement statement = connection.prepareStatement(
@@ -270,6 +323,15 @@ public final class VillageRepository {
             }
         }
         return villages;
+    }
+
+    public static int levelForXp(int xp) {
+        int[] thresholds = {0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3300};
+        int level = 1;
+        for (int threshold : thresholds) {
+            if (xp >= threshold) level++;
+        }
+        return Math.min(10, level - 1);
     }
 
     private static boolean regionsOverlap(ClaimRegion first, ClaimRegion second) {

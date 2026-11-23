@@ -1,4 +1,4 @@
-# BlockLords Phase 1 — Zahlen sind Startwerte; Schutz- und Zustimmungsinvarianten bleiben fest.
+# BlockLords Phase 2 — Zahlen sind Startwerte; Schutz- und Zustimmungsinvarianten bleiben fest.
 claims:
   radius-blocks: 48
   max-per-player: 4
@@ -32,5 +32,15 @@ ui:
   scan-cache-seconds: 60
   # Ein Scan arbeitet nur geladene Chunks ab; unvollständige Ergebnisse werden gekennzeichnet.
   chunks-per-tick: 1
+
+economy:
+  storage-base-capacity: 1728
+  storage-per-warehouse: 1728
+  production-cycle-seconds: 300
+  production-check-ticks: 1200
+  active-window-minutes: 15
+  offline-max-hours: 4
+  offline-rate-percent: 50
+  research-duration-seconds: 300
 
 debug: false

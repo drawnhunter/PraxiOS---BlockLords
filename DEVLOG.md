@@ -42,3 +42,37 @@
 - Rathaus ist in Phase 1 die Verwaltungsoberfläche; physische Blaupausen und Wirtschaft gehören zu Phase 2.
 - Dorfvermessung erfasst nur geladene Chunks und kennzeichnet unvollständige Ergebnisse ausdrücklich.
 - Offline-Produktion ist noch nicht implementiert; Ruhezustand betrifft derzeit Status und künftige Produktion.
+
+
+## 2026-11-23 — 0.2.0-alpha.1, Phase 2 Wachstum und Wirtschaft
+
+### Implementiert
+
+- Migration `V2__phase2_economy.sql` für Gebäude, Baustellen, Materialbeiträge, Lager, Arbeiter, Produktion und Forschung.
+- Acht Ressourcen mit kontrollierter Item-Zuordnung und kanonischer Rückgabe.
+- Clientseitige Bauvorschau mit Kollisions- und Claim-Prüfung; keine Weltänderung vor Bestätigung.
+- Baustellen mit Inventar- und Lagerfinanzierung, transaktionalen Beiträgen und Beitragsprotokoll mehrerer Spieler.
+- FAWE-Bau mit sortierten Blocklagen und Undo-Versuch bei Fehlern; `/bl admin selftest` als direkte Diagnose.
+- Rathaus, Wohnhaus, Farm, Mine, Lagerhaus, Bibliothek, Schmiede und Wohnhaus II als Startbaupläne.
+- Virtueller Vorrat mit physischer Ein-/Auszahlung, Lagerkapazität und keiner Vernichtung von Überschuss.
+- Sichere SQLite-Abzüge durch UPDATE-first statt negativem UPSERT; kein negativer Bestand und keine Teilbelastung bei fehlenden Kosten.
+- Villager-Zuordnung für Bauer und Minenarbeiter; Berechnung unabhängig vom NPC-Pathfinding.
+- Online-/Offline-Produktion mit Aktivitätsfenster, Vier-Stunden-Deckel, Nahrungsverbrauch und Kapazitätsgrenzen.
+- Dorf-XP und Level 1–10; Bibliotheksforschung für Wohnhaus II.
+- Gemeinsame Aktionsmenüs für Lager, Bauen, Baustellen, Arbeiter und Forschung auf Java und Bedrock; Befehle als Fallback.
+
+### Verifiziert
+
+- `./gradlew test shadowJar` und `./gradlew clean build` mit Java 21 erfolgreich.
+- **20 Unit-Tests ohne Fehler**, davon neue Tests für Produktion, Lagerkapazität, Kostenatomarität, Baustellen und Levelgrenzen.
+- Echter Start auf Paper 1.21.11 Build 132 mit FAWE 2.16.3 und Floodgate 2.2.5 Build 141.
+- Migrationen V1 und V2, Aktivierung, Adminliste, Backup, Zerfallsprüfung und sauberer Shutdown erfolgreich.
+- `/bl admin selftest RATHAUS 20 80 20` erzeugte über denselben FAWE-Baupfad wie im Spiel **99 Blöcke** und endete ohne Fehler.
+
+### Bekannte Grenzen / nächster Folgeschritt
+
+- Missionen und persönliche Parzellen sind noch nicht implementiert und bilden den nächsten Phase-2-Folgeschritt.
+- Mehr-Dorf-Claims bleiben vorerst gesperrt; die Regelprüfung ist vorbereitet.
+- Arbeiter-Laufwege sind weiterhin Vanilla-/NPC-Ambiente, keine eigene Navigationssimulation.
+- Interaktive Klicks, Menüs, Arbeiterzuweisung und Produktion müssen von Axon auf dem OnePlus getestet werden.
+- Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.

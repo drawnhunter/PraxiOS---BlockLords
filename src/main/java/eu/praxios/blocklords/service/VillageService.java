@@ -105,6 +105,16 @@ public final class VillageService {
         return legacyCache;
     }
 
+    public void updateVillage(Village village) {
+        Map<Long, Village> updated = new HashMap<>(villageCache);
+        updated.put(village.id(), village);
+        villageCache = Map.copyOf(updated);
+    }
+
+    public Map<UUID, Role> membersOf(long villageId) {
+        return memberCache.getOrDefault(villageId, Map.of());
+    }
+
     public void addVillage(Village village) {
         Map<Long, Village> updated = new HashMap<>(villageCache);
         updated.put(village.id(), village);

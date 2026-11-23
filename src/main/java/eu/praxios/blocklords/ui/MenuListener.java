@@ -15,6 +15,14 @@ public final class MenuListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
+        if (event.getInventory().getHolder() instanceof ActionMenuHolder actions) {
+            event.setCancelled(true);
+            if (event.getWhoClicked() instanceof Player player
+                    && event.getRawSlot() >= 0 && event.getRawSlot() < actions.actions().size()) {
+                actions.actions().get(event.getRawSlot()).action().run();
+            }
+            return;
+        }
         if (!(event.getInventory().getHolder() instanceof MenuHolder holder)) return;
         event.setCancelled(true);
         if (event.getWhoClicked() instanceof Player player) {
@@ -24,7 +32,7 @@ public final class MenuListener implements Listener {
 
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof MenuHolder) {
+        if (event.getInventory().getHolder() instanceof MenuHolder || event.getInventory().getHolder() instanceof ActionMenuHolder) {
             event.setCancelled(true);
         }
     }

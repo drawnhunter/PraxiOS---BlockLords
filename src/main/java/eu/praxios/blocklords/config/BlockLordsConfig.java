@@ -26,6 +26,14 @@ public final class BlockLordsConfig {
     private final boolean bedrockForms;
     private final long scanCacheMillis;
     private final int chunksPerTick;
+    private final int storageBaseCapacity;
+    private final int storagePerWarehouse;
+    private final int productionCycleSeconds;
+    private final long productionCheckTicks;
+    private final long activeWindowMillis;
+    private final long offlineMaxMillis;
+    private final double offlineRate;
+    private final long researchDurationMillis;
     private final boolean debug;
 
     public BlockLordsConfig(FileConfiguration config) {
@@ -56,6 +64,16 @@ public final class BlockLordsConfig {
         bedrockForms = config.getBoolean("ui.use-bedrock-forms", true);
         scanCacheMillis = positive(config, "ui.scan-cache-seconds", 10, 3600) * 1000L;
         chunksPerTick = positive(config, "ui.chunks-per-tick", 1, 16);
+        storageBaseCapacity = positive(config, "economy.storage-base-capacity", 1, 100_000_000);
+        storagePerWarehouse = positive(config, "economy.storage-per-warehouse", 1, 100_000_000);
+        productionCycleSeconds = positive(config, "economy.production-cycle-seconds", 30, 86_400);
+        productionCheckTicks = positive(config, "economy.production-check-ticks", 20, 72_000);
+        activeWindowMillis = positive(config, "economy.active-window-minutes", 1, 1440) * 60_000L;
+        int offlineHours = positive(config, "economy.offline-max-hours", 0, 168);
+        offlineMaxMillis = offlineHours * 3_600_000L;
+        int offlinePercent = positive(config, "economy.offline-rate-percent", 0, 100);
+        offlineRate = offlinePercent / 100.0;
+        researchDurationMillis = positive(config, "economy.research-duration-seconds", 1, 86_400) * 1000L;
         debug = config.getBoolean("debug", false);
     }
 
@@ -111,5 +129,13 @@ public final class BlockLordsConfig {
     public boolean bedrockForms() { return bedrockForms; }
     public long scanCacheMillis() { return scanCacheMillis; }
     public int chunksPerTick() { return chunksPerTick; }
+    public int storageBaseCapacity() { return storageBaseCapacity; }
+    public int storagePerWarehouse() { return storagePerWarehouse; }
+    public int productionCycleSeconds() { return productionCycleSeconds; }
+    public long productionCheckTicks() { return productionCheckTicks; }
+    public long activeWindowMillis() { return activeWindowMillis; }
+    public long offlineMaxMillis() { return offlineMaxMillis; }
+    public double offlineRate() { return offlineRate; }
+    public long researchDurationMillis() { return researchDurationMillis; }
     public boolean debug() { return debug; }
 }

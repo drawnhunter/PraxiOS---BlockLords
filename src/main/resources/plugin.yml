@@ -5,7 +5,8 @@ api-version: '1.21'
 description: Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 author: Praxios (Axon & Alexander)
 website: https://github.com/drawnhunter/PraxiOS---BlockLords
-softdepend: [FastAsyncWorldEdit, Floodgate, LuckPerms]
+depend: [FastAsyncWorldEdit]
+softdepend: [Floodgate, LuckPerms]
 commands:
   blocklords:
     aliases: [bl]

@@ -1,14 +1,22 @@
 package eu.praxios.blocklords.ui;
 
 import eu.praxios.blocklords.config.BlockLordsConfig;
+import eu.praxios.blocklords.model.BlueprintType;
+import eu.praxios.blocklords.model.BuildSite;
+import eu.praxios.blocklords.model.Building;
 import eu.praxios.blocklords.model.ClaimRegion;
 import eu.praxios.blocklords.model.QuestState;
+import eu.praxios.blocklords.model.ResourceType;
 import eu.praxios.blocklords.model.Village;
 import eu.praxios.blocklords.model.VillageStats;
+import eu.praxios.blocklords.service.ConstructionService;
 import eu.praxios.blocklords.service.FoundingService;
+import eu.praxios.blocklords.service.ResearchService;
+import eu.praxios.blocklords.service.StorageService;
 import eu.praxios.blocklords.service.TaskRunner;
 import eu.praxios.blocklords.service.VillageScanner;
 import eu.praxios.blocklords.service.VillageService;
+import eu.praxios.blocklords.service.WorkerService;
 import eu.praxios.blocklords.util.Msg;
 import eu.praxios.blocklords.util.VillageNames;
 import net.kyori.adventure.text.Component;
@@ -33,14 +41,23 @@ public final class UiService {
     private final VillageScanner scanner;
     private final TaskRunner tasks;
     private final BedrockUi bedrock;
+    private final ConstructionService construction;
+    private final StorageService storage;
+    private final WorkerService workers;
+    private final ResearchService research;
 
     public UiService(Supplier<BlockLordsConfig> config, VillageService villages, FoundingService founding,
-                     VillageScanner scanner, TaskRunner tasks) {
+                     VillageScanner scanner, TaskRunner tasks, ConstructionService construction,
+                     StorageService storage, WorkerService workers, ResearchService research) {
         this.config = config;
         this.villages = villages;
         this.founding = founding;
         this.scanner = scanner;
         this.tasks = tasks;
+        this.construction = construction;
+        this.storage = storage;
+        this.workers = workers;
+        this.research = research;
         BedrockUi candidate = null;
         if (Bukkit.getPluginManager().isPluginEnabled("Floodgate") && config.get().bedrockForms()) {
             try {
@@ -120,22 +137,115 @@ public final class UiService {
     }
 
     public void openVillage(Player player, Village village) {
-        String owner = ownerName(village);
-        String stats = statsText(village);
+        String content = "Landherr: " + ownerName(village) + " · Mitglieder: " + villages.memberCount(village.id())
+                + "\nLevel " + village.level() + " · XP " + village.xp() + " · " + village.status()
+                + "\n" + statsText(village);
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.CHEST, "Dorfvorrat", () -> openStorage(player, village), storage.summary(village.id())));
+        actions.add(UiAction.of(Material.OAK_PLANKS, "Bauen & Baustellen", () -> openBuild(player, village)));
+        actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG, "Arbeiter", () -> openWorkers(player, village)));
+        actions.add(UiAction.of(Material.ENCHANTED_BOOK, "Bibliothek & Forschung", () -> openResearch(player, village)));
+        actions.add(UiAction.of(Material.COMPASS, "Dorf vermessen", () -> scanner.requestAndNotify(village, player)));
+        actions.add(UiAction.of(Material.BARRIER, "Schließen", player::closeInventory));
+        openActions(player, "BlockLords · " + village.name(), content, actions);
+    }
+
+    public void openStorage(Player player, Village village) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.HOPPER, "Alles einlagern", () -> storage.depositAll(player, village),
+                "Nimmt nur eindeutig zugeordnete Ressourcen aus deinem Inventar."));
+        for (ResourceType resource : ResourceType.values()) {
+            int balance = storage.balances(village.id()).getOrDefault(resource, 0);
+            actions.add(UiAction.of(resource.canonicalItem(), resource.displayName() + " · " + balance,
+                    () -> storage.withdraw(player, village, resource, 64), "64 abheben; Bestand und Kapazität werden geprüft."));
+        }
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
+        openActions(player, "Vorrat · " + village.name(), storage.summary(village.id()), actions);
+    }
+
+    public void openBuild(Player player, Village village) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        for (BlueprintType type : construction.available(village)) {
+            actions.add(UiAction.of(Material.OAK_PLANKS, type.displayName() + " · Vorschau",
+                    () -> {
+                        player.closeInventory();
+                        construction.preview(player, village, type);
+                    }, "Kosten: " + type.cost(), "Erforderliches Dorf-Level: " + type.requiredLevel()));
+        }
+        actions.add(UiAction.of(Material.CRAFTING_TABLE, "Meine Baustellen", () -> openSites(player, village)));
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
+        openActions(player, "Bauen · " + village.name(), "Wähle eine Vorschau oder bestücke eine vorhandene Baustelle.", actions);
+    }
+
+    public void openSites(Player player, Village village) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        for (BuildSite site : construction.sites(village.id())) {
+            actions.add(UiAction.of(Material.CRAFTING_TABLE, "#" + site.id() + " " + site.type().displayName(),
+                    () -> openSite(player, village, site), "Status: " + site.status(), "Rest: " + remaining(site)));
+        }
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openBuild(player, village)));
+        openActions(player, "Baustellen · " + village.name(), construction.sites(village.id()).isEmpty()
+                ? "Noch keine Baustellen." : "Beiträge mehrerer Spieler werden protokolliert.", actions);
+    }
+
+    public void openSite(Player player, Village village, BuildSite site) {
+        construction.selectSite(player, site);
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.CHEST, "Inventar beisteuern", () -> construction.contribute(player, village)));
+        actions.add(UiAction.of(Material.ENDER_CHEST, "Dorfvorrat verwenden", () -> construction.fund(player, village)));
+        actions.add(UiAction.of(Material.ANVIL, "FAWE-Bau starten", () -> construction.start(player, village),
+                site.complete() ? "Alle Materialien vorhanden." : "Rest: " + remaining(site)));
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openSites(player, village)));
+        openActions(player, "Baustelle #" + site.id(), site.type().displayName() + " · " + remaining(site), actions);
+    }
+
+    public void openWorkers(Player player, Village village) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        for (Building building : construction.buildings(village.id())) {
+            if (building.type() == BlueprintType.FARM || building.type() == BlueprintType.MINE) {
+                long assigned = workers.workers(village.id()).stream().filter(worker -> worker.buildingId() == building.id()).count();
+                actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG,
+                        "#" + building.id() + " " + building.type().displayName() + " · " + assigned + " Arbeiter",
+                        () -> workers.assign(player, village, building.id()), "Freien Bewohner im Umkreis zuweisen."));
+            }
+        }
+        workers.workers(village.id()).forEach(worker -> actions.add(UiAction.of(Material.NAME_TAG,
+                "Arbeiter #" + worker.id() + " entfernen", () -> workers.unassign(player, village, worker.id()),
+                worker.job() + " · Gebäude #" + worker.buildingId())));
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
+        openActions(player, "Arbeiter · " + village.name(), "Produktion hängt von Zuordnung, Nahrung und Lager ab.", actions);
+    }
+
+    public void openResearch(Player player, Village village) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.ENCHANTED_BOOK, "Wohnhaus II erforschen", () -> research.startResearch(player, village),
+                "Kosten: 32 Holz, 16 Stein, 8 Smaragde", "Benötigt eine Bibliothek."));
+        research.projects(village.id()).forEach(project -> actions.add(UiAction.of(Material.BOOK,
+                project.key() + " · " + project.status(), () -> { }, "Ende: " + java.time.Instant.ofEpochMilli(project.finishesAt()))));
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
+        openActions(player, "Forschung · " + village.name(), "Bibliotheks-Upgrades erscheinen nach Abschluss als Bauplan.", actions);
+    }
+
+    public void openActions(Player player, String title, String content, java.util.List<UiAction> actions) {
         if (bedrockAvailable(player)) {
-            bedrock.openVillage(player, village, owner, villages.memberCount(village.id()) + "", stats,
-                    () -> scanner.requestAndNotify(village, player));
+            bedrock.openActions(player, title, content, actions);
             return;
         }
-        MenuHolder holder = new MenuHolder(MenuContext.village(village.region(), village.id()));
-        Inventory inventory = Bukkit.createInventory(holder, 27, Component.text("BlockLords · " + village.name()));
+        int size = Math.max(9, Math.min(54, ((actions.size() + 8) / 9) * 9));
+        ActionMenuHolder holder = new ActionMenuHolder(actions);
+        Inventory inventory = Bukkit.createInventory(holder, size, Component.text(title));
         holder.inventory(inventory);
-        inventory.setItem(11, item(Material.BOOK, "Dorfinformation", "Level " + village.level(), "Status " + village.status(), stats));
-        inventory.setItem(13, item(Material.PLAYER_HEAD, "Landherr: " + owner,
-                "Mitglieder: " + villages.memberCount(village.id()), "Rathaus-Basis (Wirtschaft folgt in Phase 2)"));
-        inventory.setItem(15, item(Material.COMPASS, "Dorf vermessen", "Bewohner und Betten in geladenen Chunks zählen"));
-        inventory.setItem(22, item(Material.BARRIER, "Schließen"));
+        for (int index = 0; index < actions.size(); index++) {
+            UiAction action = actions.get(index);
+            inventory.setItem(index, item(action.icon(), action.name(), action.lore().toArray(new String[0])));
+        }
         player.openInventory(inventory);
+    }
+
+    private String remaining(BuildSite site) {
+        return site.required().keySet().stream().filter(resource -> site.remaining(resource) > 0)
+                .map(resource -> site.remaining(resource) + " " + resource.displayName())
+                .reduce((left, right) -> left + ", " + right).orElse("bereit");
     }
 
     public void handleClick(Player player, MenuContext context, int slot) {

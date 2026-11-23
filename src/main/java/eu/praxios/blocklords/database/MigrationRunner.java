@@ -15,7 +15,9 @@ import java.util.logging.Logger;
 
 /** Kleine, explizit versionierte Migrationen ohne zusätzliches Runtime-Framework. */
 public final class MigrationRunner {
-    private static final List<String> MIGRATIONS = List.of("V1__phase1_foundation.sql");
+    private static final List<String> MIGRATIONS = List.of(
+            "V1__phase1_foundation.sql",
+            "V2__phase2_economy.sql");
     private final Database database;
     private final Logger logger;
 
