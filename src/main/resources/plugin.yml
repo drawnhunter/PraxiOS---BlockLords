@@ -2,6 +2,19 @@ name: BlockLords
 version: ${version}
 main: eu.praxios.blocklords.BlockLords
 api-version: '1.21'
-description: Dorf-Claim-, Wirtschafts-, Diplomatie- und Kriegssystem
+description: Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 author: Praxios (Axon & Alexander)
 website: https://github.com/drawnhunter/PraxiOS---BlockLords
+softdepend: [FastAsyncWorldEdit, Floodgate, LuckPerms]
+commands:
+  blocklords:
+    aliases: [bl]
+    description: BlockLords-Dorfinfo, Gründung und Verwaltung
+    usage: /bl info|quest|found <Name>|admin
+permissions:
+  blocklords.admin:
+    description: BlockLords-Administration, Altparzellen und Audit
+    default: op
+  blocklords.admin.bypass:
+    description: Ausdrücklich umschaltbarer Schutz-Bypass mit Audit
+    default: op

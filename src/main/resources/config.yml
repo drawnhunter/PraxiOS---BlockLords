@@ -1,13 +1,36 @@
-# Claim
-claim.radius-blocks: 48
-claim.cost-mayor-emeralds: 64
-claim.second-village-min-level: 3
-claim.decay-days: 14
-claim.decay-warning-days: 10
+# BlockLords Phase 1 — Zahlen sind Startwerte; Schutz- und Zustimmungsinvarianten bleiben fest.
+claims:
+  radius-blocks: 48
+  max-per-player: 4
+  max-per-world: 20
+  # Phase 1 erlaubt bewusst nur die erste Gründung. Die spätere Mehr-Dorf-Logik ist vorbereitet.
+  multi-claim-enabled: false
+  next-village-cost-emeralds: 64
+  decay-block-days: 21
 
-# Wirtschaft (Startwerte, live tunen)
-economy.ticks-per-work-cycle: 600
-economy.storage-capacity-default: 1728
+founding:
+  require-quest: true
+  # Wird genau einmal nach Abschluss der ersten Gründungsquest ausgegeben.
+  starter-items:
+    - "OAK_LOG:32"
+    - "COBBLESTONE:64"
+    - "BREAD:16"
 
-# Debug
+decay:
+  # false entspricht der bestätigten Config-Alternative "kein Zerfall".
+  enabled: true
+  warning-days: 10
+  resting-days: 14
+  check-interval-minutes: 30
+
+database:
+  file: "blocklords.db"
+  backup-retention: 5
+
+ui:
+  use-bedrock-forms: true
+  scan-cache-seconds: 60
+  # Ein Scan arbeitet nur geladene Chunks ab; unvollständige Ergebnisse werden gekennzeichnet.
+  chunks-per-tick: 1
+
 debug: false
