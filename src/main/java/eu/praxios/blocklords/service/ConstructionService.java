@@ -11,6 +11,8 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -91,12 +93,10 @@ public final class ConstructionService {
 
     public boolean preview(Player player, Village village, BlueprintType type) {
         Block target = player.getTargetBlockExact(6);
-        if (target == null) {
-            Msg.error(player, "Visiere einen Bodenblock in deinem Dorf an.");
-            return false;
-        }
-        return previewAt(player, village, type, new BuildLocation(target.getWorld().getUID(), target.getX(),
-                target.getY() + 1, target.getZ(), rotation(player)));
+        BuildLocation location = target != null
+                ? new BuildLocation(target.getWorld().getUID(), target.getX(), target.getY() + 1, target.getZ(), rotation(player))
+                : defaultPlacementLocation(player);
+        return previewAt(player, village, type, location);
     }
 
     public boolean previewAt(Player player, Village village, BlueprintType type, BuildLocation location) {
@@ -119,7 +119,7 @@ public final class ConstructionService {
         PreviewSession previous = previews.get(player.getUniqueId());
         if (previous != null) restore(previous);
         original.forEach((block, data) -> player.sendBlockChange(block.getLocation(), BlueprintBlocks.blocks(type).stream()
-                .filter(offset -> matches(block, location, offset)).findFirst().map(BlueprintBlocks.OffsetBlock::data)
+                .filter(offset -> matches(block, location, offset)).findFirst().map(offset -> rotateData(offset, location.rotation()))
                 .orElse(data)));
         previews.put(player.getUniqueId(), new PreviewSession(village.id(), type, location, original));
         selectedSites.remove(player.getUniqueId());
@@ -136,12 +136,15 @@ public final class ConstructionService {
         }
         Village village = villages.byId(current.villageId()).orElse(null);
         Block target = player.getTargetBlockExact(6);
-        if (village == null || target == null) {
-            Msg.error(player, "Visiere einen Bodenblock im selben Dorf an.");
+        if (village == null) {
+            Msg.error(player, "Die Vorschau gehört zu keinem geladenen Dorf.");
             return false;
         }
-        return previewAt(player, village, current.type(), new BuildLocation(target.getWorld().getUID(), target.getX(),
-                target.getY() + 1, target.getZ(), current.location().rotation()));
+        BuildLocation location = target != null
+                ? new BuildLocation(target.getWorld().getUID(), target.getX(), target.getY() + 1, target.getZ(), current.location().rotation())
+                : new BuildLocation(player.getWorld().getUID(), current.location().x(), current.location().y(), current.location().z(),
+                        current.location().rotation());
+        return previewAt(player, village, current.type(), location);
     }
 
     public boolean rotatePreview(Player player, int degrees) {
@@ -159,6 +162,30 @@ public final class ConstructionService {
 
     public Village villageById(long id) {
         return villages.byId(id).orElse(null);
+    }
+
+    public boolean offsetPreview(Player player, int dx, int dy, int dz) {
+        PreviewSession current = previews.get(player.getUniqueId());
+        if (current == null) {
+            Msg.error(player, "Keine aktive Vorschau zum Verschieben.");
+            return false;
+        }
+        Village village = villages.byId(current.villageId()).orElse(null);
+        if (village == null) return false;
+        BuildLocation moved = new BuildLocation(current.location().world(), current.location().x() + dx,
+                current.location().y() + dy, current.location().z() + dz, current.location().rotation());
+        return previewAt(player, village, current.type(), moved);
+    }
+
+    private BuildLocation defaultPlacementLocation(Player player) {
+        org.bukkit.util.Vector direction = player.getLocation().getDirection();
+        direction.setY(0);
+        if (direction.lengthSquared() < 0.0001) direction = player.getFacing().getDirection();
+        direction.normalize().multiply(2);
+        org.bukkit.Location target = player.getLocation().add(direction);
+        int highest = player.getWorld().getHighestBlockYAt(target.getBlockX(), target.getBlockZ());
+        int y = Math.max(player.getLocation().getBlockY(), highest + 1);
+        return new BuildLocation(player.getWorld().getUID(), target.getBlockX(), y, target.getBlockZ(), rotation(player));
     }
 
     public boolean hasPreview(Player player) {
@@ -407,7 +434,8 @@ public final class ConstructionService {
                 Msg.error(player, "Der Bauplan würde den Dorf-Claim verlassen.");
                 return null;
             }
-            if (!block.getType().isAir() && !isOwnPreviewGhost(block, offset, location, ownPreview)) {
+            if (!block.getType().isAir() && !isReplaceableGrass(block.getType())
+                    && !isOwnPreviewGhost(block, offset, location, ownPreview)) {
                 Msg.error(player, "Kollision bei " + block.getX() + "/" + block.getY() + "/" + block.getZ()
                         + ": " + block.getType() + ". Bitte Bereich freiräumen.");
                 return null;
@@ -417,10 +445,15 @@ public final class ConstructionService {
         return original;
     }
 
+    private boolean isReplaceableGrass(Material material) {
+        return material == Material.SHORT_GRASS || material == Material.TALL_GRASS
+                || material == Material.FERN || material == Material.LARGE_FERN;
+    }
+
     private boolean isOwnPreviewGhost(Block block, BlueprintBlocks.OffsetBlock offset,
                                       BuildLocation location, PreviewSession preview) {
         if (preview == null || !preview.original().containsKey(block)) return false;
-        return matches(block, location, offset) && block.getBlockData().equals(offset.data());
+        return matches(block, location, offset) && block.getBlockData().equals(rotateData(offset, location.rotation()));
     }
 
     private boolean placeChest(BuildSite site) {
@@ -580,6 +613,24 @@ public final class ConstructionService {
                 .reduce((a, b) -> a + ", " + b).orElse("bereit");
     }
 
+    private BlockData rotateData(BlueprintBlocks.OffsetBlock offset, int rotation) {
+        BlockData data = offset.data().clone();
+        if (data instanceof Directional directional) {
+            BlockFace face = directional.getFacing();
+            for (int step = 0; step < ((rotation % 360) + 360) % 360 / 90; step++) {
+                face = switch (face) {
+                    case NORTH -> BlockFace.EAST;
+                    case EAST -> BlockFace.SOUTH;
+                    case SOUTH -> BlockFace.WEST;
+                    case WEST -> BlockFace.NORTH;
+                    default -> face;
+                };
+            }
+            directional.setFacing(face);
+        }
+        return data;
+    }
+
     private boolean matches(Block block, BuildLocation location, BlueprintBlocks.OffsetBlock offset) {
         int[] rotated = rotate(offset.x(), offset.z(), location.rotation());
         return block.getX() == location.x() + rotated[0] && block.getY() == location.y() + offset.y()
@@ -588,11 +639,11 @@ public final class ConstructionService {
 
     private static int rotation(Player player) {
         float yaw = player.getLocation().getYaw();
-        return switch (Math.round(yaw / 90f)) {
-            case 0 -> 180;
-            case 1, -3 -> 270;
-            case 2, -2 -> 0;
-            default -> 90;
+        return switch (Math.floorMod(Math.round(yaw / 90f), 4)) {
+            case 0 -> 0;
+            case 1 -> 90;
+            case 2 -> 180;
+            default -> 270;
         };
     }
 

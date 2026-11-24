@@ -6,9 +6,11 @@ import eu.praxios.blocklords.model.BuildSite;
 import eu.praxios.blocklords.model.Building;
 import eu.praxios.blocklords.model.ClaimRegion;
 import eu.praxios.blocklords.model.QuestState;
+import eu.praxios.blocklords.model.Resident;
 import eu.praxios.blocklords.model.ResourceType;
 import eu.praxios.blocklords.model.Village;
 import eu.praxios.blocklords.model.VillageStats;
+import eu.praxios.blocklords.model.Worker;
 import eu.praxios.blocklords.service.ConstructionService;
 import eu.praxios.blocklords.service.FoundingService;
 import eu.praxios.blocklords.service.ResearchService;
@@ -171,13 +173,30 @@ public final class UiService {
     }
 
     public void openBuild(Player player, Village village) {
+        openBuildPage(player, village, 0);
+    }
+
+    public void openBuildPage(Player player, Village village, int page) {
+        List<BlueprintType> types = construction.available(village);
+        int pageSize = 8;
+        int safePage = Math.max(0, Math.min(page, Math.max(0, (types.size() - 1) / pageSize)));
+        int start = safePage * pageSize;
+        int end = Math.min(types.size(), start + pageSize);
         java.util.List<UiAction> actions = new java.util.ArrayList<>();
-        for (BlueprintType type : construction.available(village)) {
+        for (BlueprintType type : types.subList(start, end)) {
             actions.add(UiAction.of(Material.OAK_PLANKS, type.displayName() + " · Vorschau",
                     () -> {
                         player.closeInventory();
                         construction.preview(player, village, type);
                     }, "Kosten: " + type.cost(), "Erforderliches Dorf-Level: " + type.requiredLevel()));
+        }
+        if (safePage > 0) {
+            actions.add(UiAction.of(Material.ARROW, "Zurück · Seite " + safePage,
+                    () -> openBuildPage(player, village, safePage - 1)));
+        }
+        if (end < types.size()) {
+            actions.add(UiAction.of(Material.ARROW, "Weiter · Seite " + (safePage + 2),
+                    () -> openBuildPage(player, village, safePage + 1)));
         }
         if (construction.hasPreview(player)) {
             actions.add(UiAction.of(Material.REPEATER, "Hotbar-Werkzeugmodus", () -> placement.enterExisting(player),
@@ -185,8 +204,10 @@ public final class UiService {
             actions.add(UiAction.of(Material.COMPASS, "Platzierungssteuerung", () -> openPlacementControls(player)));
         }
         actions.add(UiAction.of(Material.CRAFTING_TABLE, "Meine Baustellen", () -> openSites(player, village)));
-        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
-        openActions(player, "Bauen · " + village.name(), "Wähle eine Vorschau oder bestücke eine vorhandene Baustelle.", actions);
+        actions.add(UiAction.of(Material.BARRIER, "Verlassen", player::closeInventory));
+        openActions(player, "Bauen · " + village.name() + " · " + (safePage + 1) + "/"
+                + Math.max(1, (types.size() + pageSize - 1) / pageSize),
+                "Acht Bauoptionen pro Seite. Wähle eine Vorschau oder öffne deine Baustellen.", actions);
     }
 
     public void openSites(Player player, Village village) {
@@ -235,6 +256,9 @@ public final class UiService {
                         () -> workers.assign(player, village, building.id()), "Freien Bewohner im Umkreis zuweisen."));
             }
         }
+        residents.residents(village.id()).forEach(resident -> actions.add(UiAction.of(Material.NAME_TAG,
+                "Bewohner " + resident.villager().toString().substring(0, 8), () -> openResident(player, village, resident),
+                resident.hasBed() ? "Bett vorhanden · Details" : "Bett fehlt · Details")));
         workers.workers(village.id()).forEach(worker -> actions.add(UiAction.of(Material.NAME_TAG,
                 "Arbeiter #" + worker.id() + " entfernen", () -> workers.unassign(player, village, worker.id()),
                 worker.job() + " · Gebäude #" + worker.buildingId())));
@@ -246,6 +270,54 @@ public final class UiService {
                 + residents.free(village.id(), workers.workers(village.id())).size() + " frei.\n"
                 + "Sneak + Rechtsklick auf die Dorfglocke startet ebenfalls die Versammlung.";
         openActions(player, "Arbeiter · " + village.name(), content, actions);
+    }
+
+    public void openResident(Player player, Village village, Resident resident) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.RED_BED, "Bett zuweisen", () -> residents.assignBed(player, village, resident),
+                resident.hasBed() ? "Neues freies Bett suchen" : "Bett ist erforderlich"));
+        actions.add(UiAction.of(Material.ANVIL, "Als Arbeiter zuweisen", () -> openResidentAssign(player, village, resident),
+                "Farm oder Mine im Dorf wählen"));
+        Worker assigned = workers.workers(village.id()).stream().filter(worker -> worker.villager().equals(resident.villager()))
+                .findFirst().orElse(null);
+        if (assigned != null) {
+            actions.add(UiAction.of(Material.BARRIER, "Arbeitszuweisung aufheben",
+                    () -> workers.unassign(player, village, assigned.id())));
+        }
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openWorkers(player, village)));
+        openActions(player, "Bewohner " + resident.villager().toString().substring(0, 8),
+                residentText(village, resident, assigned), actions);
+    }
+
+    public void openResidentAssign(Player player, Village village, Resident resident) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        for (Building building : construction.buildings(village.id())) {
+            if (building.type() == BlueprintType.FARM || building.type() == BlueprintType.MINE) {
+                actions.add(UiAction.of(Material.ANVIL, "Zuweisen: " + building.type().displayName(),
+                        () -> workers.assignResident(player, village, building.id(), resident.villager()),
+                        "Gebäude #" + building.id()));
+            }
+        }
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openResident(player, village, resident)));
+        openActions(player, "Arbeitsplatz wählen", "Nur vorhandene Farmen und Minen werden angeboten.", actions);
+    }
+
+    private String residentText(Village village, Resident resident, Worker assigned) {
+        StringBuilder text = new StringBuilder();
+        text.append("Status: ").append(resident.status()).append("\n");
+        text.append("Bett: ").append(resident.hasBed() ? "zugewiesen" : "fehlt").append("\n");
+        text.append("Meeting-Point: ").append(resident.meetingPoint() == null ? "nicht gesetzt" : "gesetzt").append("\n");
+        if (assigned != null) text.append("Beruf: ").append(assigned.job()).append(" · Gebäude #").append(assigned.buildingId()).append("\n");
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        if (!resident.hasBed()) missing.add("Bett");
+        if (construction.buildings(village.id()).stream().noneMatch(building -> building.type().workplace())) {
+            missing.add("Farm oder Mine");
+        }
+        if (storage.balances(village.id()).getOrDefault(ResourceType.NAHRUNG, 0) <= 0) {
+            missing.add("Nahrung im Rathaus");
+        }
+        text.append(missing.isEmpty() ? "Bereit zur Zuweisung." : "Fehlt: " + String.join(", ", missing));
+        return text.toString();
     }
 
     public void openResearch(Player player, Village village) {
@@ -280,6 +352,10 @@ public final class UiService {
         for (int index = 0; index < actions.size(); index++) {
             UiAction action = actions.get(index);
             inventory.setItem(index, item(action.icon(), action.name(), action.lore().toArray(new String[0])));
+        }
+        ItemStack filler = item(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
+        for (int index = actions.size(); index < size; index++) {
+            inventory.setItem(index, filler);
         }
         player.openInventory(inventory);
     }

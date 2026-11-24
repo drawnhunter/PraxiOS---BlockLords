@@ -166,3 +166,36 @@
 - Wiederherstellung nach Bestätigen, Abbrechen, Logout/Join, Tod, Weltwechsel und Serverstopp.
 - Bedrock-Formular-Fallback und Multiplayer-Verhalten.
 - Danach folgen 0.2.3-alpha.2 Schematic-Loader/Herkunftsakte und die Kolonie-Gründungsbasis.
+
+
+## 2026-11-25 — 0.2.4-alpha.1, Build-Flow aus #210
+
+### Implementiert
+
+- Kisten-GUI mit einheitlichen Glas-Füllern und **8 Bauoptionen pro Seite**; Pagination für beliebig viele Baupläne.
+- Standardplatzierung **2 Blöcke vor dem Spieler** statt fester Distanz 4.
+- Directional Blockdaten werden mitrotiert: Türen, Betten, Leitern und andere Directionals zeigen relativ zum Spieler korrekt.
+- Vollständige Edit-Hotbar mit `x±`, `z±`, links/rechts, hoch/runter und Bestätigen/Abbrechen; Sneak steuert Anker und Abbruch.
+- Bewohnerdetail mit Anforderungen, freier Bettzuweisung und Auswahl des Arbeitsgebäudes.
+- Golem-/Kampfkorrektur: Schutz nur noch für Villager und dekorative Objekte statt pauschalem Stopp aller Nicht-Spieler-Kämpfe.
+- Gras, hohes Gras, Farn und großer Farn werden beim Platzieren überschrieben.
+- Optionaler Rotationsparameter für `/bl admin selftest`.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **23 Unit-Tests** erfolgreich.
+- Echter Start auf Paper 1.21.11 Build 132 mit FAWE 2.16.3 und Floodgate 2.2.5 Build 141.
+- Migrationen V1–V4 und NBT-Roundtrip erfolgreich.
+- Zwei FAWE-Selftests mit 99 Blöcken sowie zusätzlicher 90°-Rotationstest erfolgreich.
+- Direkter Blockstate-Nachweis: Tür nach 90°-Rotation **`facing=east`** (`execute if block` = Test passed).
+- Nach Erfolg 27 Sekunden kein `LATE_FAILURE_IGNORED`.
+- Sauberer Shutdown ohne BlockLords-Fehler.
+
+### Toolchain
+
+- Java, Gradle, Paper, FAWE und Floodgate liegen jetzt ausführbar unter `/home/kimi/.cache/blocklords`; wiederholte Downloads werden vermieden.
+
+### Nächster Test durch Axon
+
+- Build-Flow, Pagination, Distanz 2, Edit-Hotbar, Bewohnerdetail, Bettzuweisung, Grasfreimachung und Golem-Kampf auf Paper 26.3/Java 25.
+- Danach folgen Schematic-Loader/Herkunftsakte und die Kolonie-Gründungsbasis.

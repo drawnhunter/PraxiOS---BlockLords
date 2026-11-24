@@ -218,7 +218,15 @@ public final class BlockLords extends JavaPlugin {
                 ? player.getWorld() : getServer().getWorlds().getFirst();
         logs.info("Selftest akzeptiert: " + type + " @ " + world.getName() + " " + x + "/" + y + "/" + z);
         Msg.info(sender, "FAWE-Diagnose gestartet. Ergebnis oder Timeout folgt mit Aktions-ID im Log.");
-        faweBuilder.paste(type, new BuildLocation(world.getUID(), x, y, z, 0),
+        selfTest(sender, type, x, y, z, 0);
+    }
+
+    public void selfTest(CommandSender sender, BlueprintType type, int x, int y, int z, int rotation) {
+        org.bukkit.World world = sender instanceof org.bukkit.entity.Player player
+                ? player.getWorld() : getServer().getWorlds().getFirst();
+        logs.info("Selftest akzeptiert: " + type + " @ " + world.getName() + " " + x + "/" + y + "/" + z + " Rotation " + rotation);
+        Msg.info(sender, "FAWE-Diagnose gestartet. Ergebnis oder Timeout folgt mit Aktions-ID im Log.");
+        faweBuilder.paste(type, new BuildLocation(world.getUID(), x, y, z, rotation),
                 count -> Msg.success(sender, "FAWE-Diagnose erfolgreich: " + count + " Blöcke für " + type + "."),
                 error -> Msg.error(sender, "FAWE-Diagnose fehlgeschlagen: " + error.getMessage()));
     }

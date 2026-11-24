@@ -9,6 +9,9 @@ import eu.praxios.blocklords.model.BlueprintType;
 import eu.praxios.blocklords.model.BuildLocation;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
@@ -91,7 +94,7 @@ public final class FaweBuilder {
                                 location.y() + block.y(), location.z() + rotated[1]);
                         if (excluded.contains(destination)) continue;
                         session.setBlock(destination,
-                                (com.sk89q.worldedit.function.pattern.Pattern) BukkitAdapter.adapt(block.data()));
+                                (com.sk89q.worldedit.function.pattern.Pattern) BukkitAdapter.adapt(rotateData(block, location.rotation())));
                         count++;
                     }
                     logs.action(id, "QUEUED", count + " Blöcke");
@@ -110,6 +113,24 @@ public final class FaweBuilder {
                 }
             }
         }, succeed, fail);
+    }
+
+    private BlockData rotateData(BlueprintBlocks.OffsetBlock block, int rotation) {
+        BlockData data = block.data().clone();
+        if (data instanceof Directional directional) {
+            BlockFace face = directional.getFacing();
+            for (int step = 0; step < ((rotation % 360) + 360) % 360 / 90; step++) {
+                face = switch (face) {
+                    case NORTH -> BlockFace.EAST;
+                    case EAST -> BlockFace.SOUTH;
+                    case SOUTH -> BlockFace.WEST;
+                    case WEST -> BlockFace.NORTH;
+                    default -> face;
+                };
+            }
+            directional.setFacing(face);
+        }
+        return data;
     }
 
     private Set<Long> requiredChunks(BlueprintType type, BuildLocation location, Set<BlockVector3> excluded) {

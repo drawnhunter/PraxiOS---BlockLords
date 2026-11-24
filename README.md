@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.3-alpha.1 (Phase 2)
+## Aktueller Stand: 0.2.4-alpha.1 (Phase 2)
 
 Enthalten:
 
@@ -29,6 +29,16 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.4-alpha.1 (Build-Flow)
+
+- Kisten-GUI mit klaren Menüpunkten und einheitlichen Glas-Füllern; Bauoptionen werden **8 pro Seite** mit Weiter/Zurück-Pfeilen paginiert.
+- Platzierung standardmäßig **2 Blöcke vor dem Spieler**; Türen und andere directional Blockdaten rotieren korrekt mit der Spielerorientierung.
+- Vollständige Edit-Hotbar mit `x±`, `z±`, links/rechts, hoch/runter und Bestätigen/Abbrechen; Sneak steuert Anker und Abbruch.
+- Bewohnerdetail mit Anforderungen, Bettzuweisung und Auswahl des Arbeitsgebäudes.
+- Eisen-Golems und andere Kampfentitäten werden nicht mehr pauschal durch den Dorfschutz blockiert; geschützt bleiben Villager und dekorative Objekte.
+- Gras, hohes Gras, Farn und großer Farn werden beim Platzieren ignoriert/überschrieben.
+- Selftest akzeptiert optional `/bl admin selftest <Typ> <x> <y> <z> <Rotation>`.
 
 ### Neuerungen in 0.2.3-alpha.1 (Hotbar-Baumodus)
 
@@ -85,8 +95,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.3-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.3-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.4-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.4-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -96,9 +106,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.3-alpha.1.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.4-alpha.1.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.3-alpha.1 aktiviert: Phase 2 ...`.
+3. Log prüfen: `BlockLords 0.2.4-alpha.1 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 
@@ -128,6 +138,10 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 20. **Timeout-Race:** Nach erfolgreichem FAWE-Selftest mindestens 25 Sekunden warten. Es darf kein `LATE_FAILURE_IGNORED` nach `SUCCESS` erscheinen.
 21. **Hotbar-Session:** Preview wählen, `/bl build tools`, rotieren/verschieben/Anker lösen und bestätigen. Originalinventar muss exakt zurückkehren. Tests zusätzlich mit Abbrechen, Logout/Join, Tod, Weltwechsel und Serverstopp wiederholen; keine Items dürfen dupliziert werden. `/bl admin itemtest` muss erfolgreich sein.
 22. **Formular-Fallback:** Dieselben Platzierungsaktionen auf Bedrock über das Platzierungsmenü ausführen; keine Hotbar-Übernahme ist erforderlich.
+23. **Build-Flow:** Bauoptionen mit Pfeilen paginieren, Bauplan zwei Blöcke vor Spieler platzieren und Edit-Hotbar für X/Z, Rotation und Höhe nutzen. Sneak steuert Anker und Abbrechen.
+24. **Front und Gras:** Türseite muss zum Spieler zeigen. Gras/hohes Gras/Farn wird beim Platzieren überschrieben, andere Blöcke bleiben Kollisionen.
+25. **Bewohnerdetail:** Alle registrierten Bewohner mit/ohne Bett öffnen, Anforderungen lesen, freies Bett zuweisen und Arbeitsgebäude auswählen.
+26. **Golems:** Eigene Eisen-Golems müssen Zombies im Dorf angreifen können; Villager und dekorative Objekte bleiben geschützt.
 
 ## Befehle
 

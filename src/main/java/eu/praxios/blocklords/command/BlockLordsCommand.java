@@ -213,8 +213,9 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
             return;
         }
         try {
+            int rotation = args.length >= 7 ? Integer.parseInt(args[6]) : 0;
             plugin.selfTest(sender, BlueprintType.valueOf(args[2].toUpperCase(Locale.ROOT)),
-                    Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
+                    Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]), rotation);
         } catch (IllegalArgumentException exception) {
             Msg.error(sender, "Unbekannter Bauplantyp oder ungültige Koordinaten.");
         }

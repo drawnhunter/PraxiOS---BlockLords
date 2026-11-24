@@ -7,6 +7,7 @@ import eu.praxios.blocklords.util.Msg;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.entity.memory.MemoryKey;
@@ -79,7 +80,11 @@ public final class ResidentService {
         Map<UUID, Resident> previous = previous(village.id());
         List<Resident> changed = new ArrayList<>();
         for (Villager villager : loaded) {
-            Resident evaluated = evaluate(village, villager, previous.get(villager.getUniqueId()), false);
+            Resident known = previous.get(villager.getUniqueId());
+            if (known != null && known.bed() != null && villager.getMemory(MemoryKey.HOME) == null) {
+                villager.setMemory(MemoryKey.HOME, locationFromLink(known.bed()));
+            }
+            Resident evaluated = evaluate(village, villager, known, false);
             if (evaluated == null) continue;
             Resident old = previous.get(villager.getUniqueId());
             if (old == null || !old.sameLinks(evaluated)) changed.add(evaluated);
@@ -113,6 +118,50 @@ public final class ResidentService {
         Msg.success(player, "Versammlung in '" + village.name() + "': " + records.size() + " versammelt, "
                 + newlyConfirmed + " neu bestätigt, " + withoutBed + " ohne Bett markiert.");
         player.sendActionBar(Component.text("Dorfbewohner werden zur Glocke gerufen.", NamedTextColor.GOLD));
+    }
+
+    public void assignBed(Player player, Village village, Resident resident) {
+        World world = Bukkit.getWorld(village.region().world());
+        if (world == null) {
+            Msg.error(player, "Die Dorfwelt ist nicht geladen.");
+            return;
+        }
+        Location center = Bukkit.getEntity(resident.villager()) instanceof Villager villager
+                ? villager.getLocation() : bellLocation(village);
+        Set<String> occupied = new HashSet<>();
+        residents(village.id()).forEach(other -> {
+            if (other.bed() != null) {
+                occupied.add(other.bed().world() + ":" + other.bed().x() + ":" + other.bed().z());
+            }
+        });
+        Block nearest = null;
+        double best = Double.MAX_VALUE;
+        for (int x = -12; x <= 12; x++) {
+            for (int y = -4; y <= 4; y++) {
+                for (int z = -12; z <= 12; z++) {
+                    Block block = world.getBlockAt(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z);
+                    if (!(block.getBlockData() instanceof org.bukkit.block.data.type.Bed bed) || bed.getPart() != org.bukkit.block.data.type.Bed.Part.FOOT) continue;
+                    if (occupied.contains(block.getWorld().getUID() + ":" + block.getX() + ":" + block.getZ())) continue;
+                    double distance = block.getLocation().distanceSquared(center);
+                    if (distance < best) {
+                        best = distance;
+                        nearest = block;
+                    }
+                }
+            }
+        }
+        if (nearest == null) {
+            Msg.error(player, "Kein freies Bett im Umkreis von 12 Blöcken gefunden. Bitte Betten freimachen oder bauen.");
+            return;
+        }
+        BlockLink link = new BlockLink(world.getUID(), nearest.getX(), nearest.getY(), nearest.getZ());
+        Resident updated = new Resident(village.id(), resident.villager(), resident.status(), true, link,
+                resident.meetingPoint(), resident.firstSeen(), System.currentTimeMillis());
+        if (Bukkit.getEntity(resident.villager()) instanceof Villager villager) {
+            villager.setMemory(MemoryKey.HOME, nearest.getLocation());
+        }
+        persist(village, List.of(updated));
+        Msg.success(player, "Bett zugewiesen: " + nearest.getX() + "/" + nearest.getY() + "/" + nearest.getZ() + ".");
     }
 
     private Resident evaluate(Village village, Villager villager, Resident old, boolean forceConfirm) {
@@ -174,6 +223,10 @@ public final class ResidentService {
     private Location bellLocation(Village village) {
         return new Location(Bukkit.getWorld(village.region().world()), village.region().bellX() + 0.5,
                 village.region().bellY(), village.region().bellZ() + 0.5);
+    }
+
+    private Location locationFromLink(BlockLink link) {
+        return new Location(Bukkit.getWorld(link.world()), link.x() + 0.5, link.y(), link.z() + 0.5);
     }
 
     private static BlockLink link(Location location) {

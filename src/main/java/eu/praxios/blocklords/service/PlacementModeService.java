@@ -133,15 +133,30 @@ public final class PlacementModeService {
         SessionState session = active.get(player.getUniqueId());
         if (session == null) return;
         switch (action) {
+            case "X_MINUS" -> {
+                if (player.isSneaking()) toggleAnchor(player);
+                else construction.offsetPreview(player, -1, 0, 0);
+            }
+            case "X_PLUS" -> {
+                if (player.isSneaking()) construction.movePreview(player);
+                else construction.offsetPreview(player, 1, 0, 0);
+            }
+            case "Y_MINUS" -> construction.offsetPreview(player, 0, 0, -1);
+            case "Y_PLUS" -> construction.offsetPreview(player, 0, 0, 1);
+            case "ROTATE_LEFT" -> construction.rotatePreview(player, -90);
+            case "ROTATE_RIGHT" -> construction.rotatePreview(player, 90);
+            case "UP" -> construction.offsetPreview(player, 0, 1, 0);
+            case "DOWN" -> construction.offsetPreview(player, 0, -1, 0);
             case "MOVE" -> {
                 if (session.anchored()) Msg.info(player, "Der Anker ist fixiert. Zum Verschieben zuerst das Ankerwerkzeug verwenden.");
                 else construction.movePreview(player);
             }
-            case "ROTATE_LEFT" -> construction.rotatePreview(player, -90);
-            case "ROTATE_RIGHT" -> construction.rotatePreview(player, 90);
             case "ANCHOR" -> toggleAnchor(player);
-            case "CONFIRM" -> {
-                if (construction.confirmPreview(player)) {
+            case "CONFIRM", "CONFIRM_OR_CANCEL" -> {
+                if (player.isSneaking()) {
+                    construction.cancelPreview(player);
+                    exit(player, "Abgebrochen", false);
+                } else if (construction.confirmPreview(player)) {
                     exit(player, "Bestätigt", false);
                 }
             }
@@ -177,15 +192,15 @@ public final class PlacementModeService {
     }
 
     private void installTools(Player player) {
-        player.getInventory().setItem(0, tool(Material.OAK_SIGN, "MOVE", "Position", "Anker gelöst: Boden neu wählen"));
-        player.getInventory().setItem(1, tool(Material.REDSTONE_TORCH, "ROTATE_LEFT", "Links rotieren", "90° gegen den Uhrzeigersinn"));
-        player.getInventory().setItem(2, tool(Material.REPEATER, "ROTATE_RIGHT", "Rechts rotieren", "90° im Uhrzeigersinn"));
-        player.getInventory().setItem(3, tool(Material.IRON_CHAIN, "ANCHOR", "Anker fixieren/lösen", "Anker steuert das Positionswerkzeug"));
-        player.getInventory().setItem(4, tool(Material.EMERALD, "CONFIRM", "Baustelle bestätigen", "Inventar wird danach wiederhergestellt"));
-        player.getInventory().setItem(8, tool(Material.BARRIER, "CANCEL", "Baumodus abbrechen", "Keine Weltänderung"));
-        for (int slot : new int[]{5, 6, 7}) {
-            player.getInventory().setItem(slot, tool(Material.LIGHT_GRAY_STAINED_GLASS_PANE, "INFO", "Baumodus aktiv", "Werkzeuge per Rechtsklick verwenden"));
-        }
+        player.getInventory().setItem(0, tool(Material.RED_CONCRETE, "X_MINUS", "X −1", "Sneak = Anker fixieren/lösen"));
+        player.getInventory().setItem(1, tool(Material.LIME_CONCRETE, "X_PLUS", "X +1", "Sneak = Position frei wählen"));
+        player.getInventory().setItem(2, tool(Material.BLUE_CONCRETE, "Y_MINUS", "Z −1", "Z um 1 verringern"));
+        player.getInventory().setItem(3, tool(Material.LIGHT_BLUE_CONCRETE, "Y_PLUS", "Z +1", "Z um 1 erhöhen"));
+        player.getInventory().setItem(4, tool(Material.REDSTONE_TORCH, "ROTATE_LEFT", "Links drehen", "90° gegen den Uhrzeigersinn"));
+        player.getInventory().setItem(5, tool(Material.REPEATER, "ROTATE_RIGHT", "Rechts drehen", "90° im Uhrzeigersinn"));
+        player.getInventory().setItem(6, tool(Material.FEATHER, "UP", "Hoch +1", "Eine Ebene nach oben"));
+        player.getInventory().setItem(7, tool(Material.ANVIL, "DOWN", "Runter −1", "Eine Ebene nach unten"));
+        player.getInventory().setItem(8, tool(Material.EMERALD, "CONFIRM_OR_CANCEL", "Bestätigen / Abbrechen", "Rechtsklick = bestätigen · Sneak = abbrechen"));
         player.getInventory().setHeldItemSlot(0);
         player.updateInventory();
         player.sendActionBar(Component.text("Baumodus aktiv · Anker fixiert", NamedTextColor.GOLD));

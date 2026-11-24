@@ -81,7 +81,8 @@ public final class ProtectionListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof Player || !protection.isProtected(event.getEntity().getLocation())) return;
+        if (event.getEntity() instanceof Player || !isProtectedEntity(event.getEntity())
+                || !protection.isProtected(event.getEntity().getLocation())) return;
         if (event.getDamager() instanceof Player player) {
             if (!protection.canInteract(player, event.getEntity().getLocation())) {
                 event.setCancelled(true);
@@ -90,6 +91,13 @@ public final class ProtectionListener implements Listener {
         } else {
             event.setCancelled(true);
         }
+    }
+
+    private boolean isProtectedEntity(Entity entity) {
+        return switch (entity.getType()) {
+            case VILLAGER, ARMOR_STAND, ITEM_FRAME, GLOW_ITEM_FRAME, PAINTING, LEASH_KNOT -> true;
+            default -> false;
+        };
     }
 
     @EventHandler(priority = EventPriority.HIGH)
