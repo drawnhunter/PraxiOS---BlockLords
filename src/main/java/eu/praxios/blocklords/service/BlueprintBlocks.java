@@ -44,6 +44,7 @@ public final class BlueprintBlocks {
                 blocks.add(new OffsetBlock(2, 1, 1, data(Material.COMPOSTER)));
             }
             case MINE -> {
+                blocks.add(new OffsetBlock(2, 1, 1, data(Material.SMITHING_TABLE)));
                 blocks.add(new OffsetBlock(2, 1, 2, data(Material.LADDER)));
                 blocks.add(new OffsetBlock(2, 2, 2, data(Material.LADDER)));
                 blocks.add(new OffsetBlock(2, 3, 2, data(Material.LADDER)));

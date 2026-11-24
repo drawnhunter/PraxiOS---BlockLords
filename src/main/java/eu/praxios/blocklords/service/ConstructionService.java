@@ -124,7 +124,7 @@ public final class ConstructionService {
         previews.put(player.getUniqueId(), new PreviewSession(village.id(), type, location, original));
         selectedSites.remove(player.getUniqueId());
         Msg.success(player, "Vorschau für " + type.displayName() + " aktiv. Kosten: " + costText(type));
-        Msg.info(player, "Anker standardmäßig fixiert: /bl build tools für Hotbar-Werkzeuge; confirm/cancel wie bisher.");
+        Msg.info(player, "Nächstes: /bl build tools oder /bl build confirm.");
         return true;
     }
 
@@ -230,7 +230,7 @@ public final class ConstructionService {
             refresh(village.id());
             audit.log(player, "BUILD_SITE_CREATED", "#" + site.id() + " " + site.type() + " mit Baustellenkiste");
             Msg.success(player, "Baustelle #" + site.id() + " für " + site.type().displayName() + " angelegt.");
-            Msg.info(player, "Die Baustellenkiste nimmt Inventar und Dorfvorrat an und zeigt Liefer- und Baufortschritt.");
+            Msg.info(player, "Nächstes: /bl build contribute oder /bl build fund. Danach /bl build start.");
         }, error -> Msg.error(player, "Baustelle konnte nicht angelegt werden: " + error.getMessage()));
         return true;
     }
@@ -353,7 +353,7 @@ public final class ConstructionService {
                 Msg.error(player, "Materialcommit fehlgeschlagen; kein Bau gestartet.");
                 return;
             }
-            Msg.info(player, "FAWE-Bau für " + site.type().displayName() + " gestartet: Fundament, Wände, Dach.");
+            Msg.info(player, "Bau läuft: Fundament → Wände → Dach.");
             Set<com.sk89q.worldedit.math.BlockVector3> excluded = Set.of(chestVector(site));
             builder.paste(site.type(), site.location(), excluded, count -> tasks.database(() -> {
                 Building building = repository.completeSite(site.id());

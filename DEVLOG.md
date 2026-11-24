@@ -199,3 +199,35 @@
 
 - Build-Flow, Pagination, Distanz 2, Edit-Hotbar, Bewohnerdetail, Bettzuweisung, Grasfreimachung und Golem-Kampf auf Paper 26.3/Java 25.
 - Danach folgen Schematic-Loader/Herkunftsakte und die Kolonie-Gründungsbasis.
+
+
+## 2026-11-25 — 0.2.5-alpha.1, P2/P3 mit Vanilla-Mechanik und Zahlenprüfung
+
+### Recherche
+
+- Vanilla-POIs `HOME`, `JOB_SITE`, `MEETING_POINT` und Arbeitsplatztypen bestätigt: Bauer = Komposter, Schmied = Schmiedetisch.
+- Golems greifen Zombies aktiv an; pauschaler Schutz aller Nicht-Spieler-Entitäten wurde verworfen.
+- MineColonies bestätigt Trennung von `Supplied %` und `Used %`.
+- TekTopia/Millénaire bestätigen sichtbare Abhängigkeiten, aber keine harten NPC-Verkettungen als Zielbild.
+- Zahlen geprüft: 12 Zyklen/Stunde; 64 Smaragde dauern je nach Minenbelegschaft etwa 21,3 h (1), 10,7 h (2), 5,3 h (4) oder 2,7 h (8). Ein Bauer füllt das Startlager rechnerisch erst nach 14,4 h; Offline-Deckel 4 h/50 % begrenzt passive Anhäufung. Startwerte bleiben bestehen und werden live weiter getestet.
+- Vollständiger Bericht: `docs/VILLAGER_MECHANICS_RESEARCH.md`.
+
+### Implementiert
+
+- **Echte Job-Sites:** `MemoryKey.JOB_SITE` für Bauer und Minenarbeiter; die Mine enthält eine echte `smithing_table`.
+- Bewohnerdetail mit Anforderungen, Bettzuweisung und Auswahl des Arbeitsgebäudes; Job-Site wird in der Detailansicht genannt.
+- Bettbelegung über alle Y-Ebenen korrigiert: X/Y/Z-Schlüssel statt nur X/Z.
+- P3-Kurztexte: Aktion → kurze Bestätigung → nächster Schritt.
+- P2-Grasregel bleibt auf `SHORT_GRASS`, `TALL_GRASS`, `FERN`, `LARGE_FERN` begrenzt.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **23 Unit-Tests** erfolgreich.
+- Echter Start auf Paper 1.21.11 Build 132 mit FAWE 2.16.3 und Floodgate 2.2.5 Build 141.
+- FAWE-Selftest `MINE` mit 90°-Rotation: **102 Blöcke**, Schmiedetisch-Nachweis `execute if block ... minecraft:smithing_table` = Test passed.
+- NBT-Roundtrip und sauberer Shutdown ohne BlockLords-Fehler.
+
+### Nächster Test durch Axon
+
+- Bewohnerdetail, Bettzuweisung, Arbeitsgebäudewahl, echte Job-Site-Verknüpfung und P3-Kurztexte auf Paper 26.3/Java 25.
+- Danach folgen Schematic-Loader/Herkunftsakte und die Kolonie-Gründungsbasis.

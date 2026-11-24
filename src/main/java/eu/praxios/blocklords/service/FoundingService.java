@@ -87,8 +87,8 @@ public final class FoundingService {
         save(new QuestState(player.getUniqueId(), QuestState.Stage.SURVEY, region, 0,
                 quest(player).founderCompleted(), System.currentTimeMillis()));
         audit.log(player, "QUEST_START", "Glocke " + coordinates(bell));
-        Msg.info(player, "Gründungsquest: Klicke im Dorf auf ein Bett, Ackerland/Getreide/Komposter und einen Arbeitsblock.");
-        Msg.plain(player, "Arbeitsblöcke sind zum Beispiel Lesepult, Schmiedetisch, Fletchtisch, Webstuhl oder Komposter als Nahrungsquelle.");
+        Msg.info(player, "1. Bett anklicken. 2. Ackerland/Getreide/Komposter anklicken. 3. Arbeitsblock anklicken (z.B. Lesepult).");
+        Msg.plain(player, "Danach Glocke öffnen und Dorfnamen wählen.");
     }
 
     /** @return true, wenn die Interaktion zur Gründungsquest gehörte. */

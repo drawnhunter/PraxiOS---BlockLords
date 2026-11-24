@@ -307,7 +307,13 @@ public final class UiService {
         text.append("Status: ").append(resident.status()).append("\n");
         text.append("Bett: ").append(resident.hasBed() ? "zugewiesen" : "fehlt").append("\n");
         text.append("Meeting-Point: ").append(resident.meetingPoint() == null ? "nicht gesetzt" : "gesetzt").append("\n");
-        if (assigned != null) text.append("Beruf: ").append(assigned.job()).append(" · Gebäude #").append(assigned.buildingId()).append("\n");
+        if (assigned != null) {
+            text.append("Beruf: ").append(assigned.job()).append(" · Gebäude #").append(assigned.buildingId()).append("\n");
+            construction.building(assigned.buildingId()).ifPresent(building -> {
+                text.append("Job-Site: ").append(building.location().x() + 2).append("/")
+                        .append(building.location().y() + 1).append("/").append(building.location().z() + 1).append("\n");
+            });
+        }
         java.util.List<String> missing = new java.util.ArrayList<>();
         if (!resident.hasBed()) missing.add("Bett");
         if (construction.buildings(village.id()).stream().noneMatch(building -> building.type().workplace())) {

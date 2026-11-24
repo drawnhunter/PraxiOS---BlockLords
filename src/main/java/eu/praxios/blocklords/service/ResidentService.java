@@ -131,7 +131,7 @@ public final class ResidentService {
         Set<String> occupied = new HashSet<>();
         residents(village.id()).forEach(other -> {
             if (other.bed() != null) {
-                occupied.add(other.bed().world() + ":" + other.bed().x() + ":" + other.bed().z());
+                occupied.add(other.bed().world() + ":" + other.bed().x() + ":" + other.bed().y() + ":" + other.bed().z());
             }
         });
         Block nearest = null;
@@ -141,7 +141,7 @@ public final class ResidentService {
                 for (int z = -12; z <= 12; z++) {
                     Block block = world.getBlockAt(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z);
                     if (!(block.getBlockData() instanceof org.bukkit.block.data.type.Bed bed) || bed.getPart() != org.bukkit.block.data.type.Bed.Part.FOOT) continue;
-                    if (occupied.contains(block.getWorld().getUID() + ":" + block.getX() + ":" + block.getZ())) continue;
+                    if (occupied.contains(block.getWorld().getUID() + ":" + block.getX() + ":" + block.getY() + ":" + block.getZ())) continue;
                     double distance = block.getLocation().distanceSquared(center);
                     if (distance < best) {
                         best = distance;

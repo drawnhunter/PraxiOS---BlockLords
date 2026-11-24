@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.4-alpha.1 (Phase 2)
+## Aktueller Stand: 0.2.5-alpha.1 (Phase 2)
 
 Enthalten:
 
@@ -29,6 +29,14 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.5-alpha.1 (P2/P3)
+
+- **Echte Job-Sites:** Komposter und Schmiedetisch werden zugewiesen und mit `MemoryKey.JOB_SITE` verknüpft; die Mine enthält jetzt eine echte Schmiedetafel.
+- **Bewohnerdetail:** alle registrierten Bewohner mit/ohne Bett, Anforderungen, Bettzuweisung und Auswahl des Arbeitsgebäudes.
+- **Bettbelegung über Y-Ebenen korrigiert:** Mehrere Betten an derselben X/Z-Position werden jetzt korrekt unterschieden.
+- **P3-Kurztexte:** einheitliches Muster Aktion → kurze Bestätigung → nächster Schritt statt langer Chat-Anweisungen.
+- Recherche und Zahlenprüfung in `docs/VILLAGER_MECHANICS_RESEARCH.md` dokumentiert.
 
 ### Neuerungen in 0.2.4-alpha.1 (Build-Flow)
 
@@ -95,8 +103,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.4-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.4-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.5-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.5-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -106,9 +114,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.4-alpha.1.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.5-alpha.1.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.4-alpha.1 aktiviert: Phase 2 ...`.
+3. Log prüfen: `BlockLords 0.2.5-alpha.1 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 
@@ -142,6 +150,9 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 24. **Front und Gras:** Türseite muss zum Spieler zeigen. Gras/hohes Gras/Farn wird beim Platzieren überschrieben, andere Blöcke bleiben Kollisionen.
 25. **Bewohnerdetail:** Alle registrierten Bewohner mit/ohne Bett öffnen, Anforderungen lesen, freies Bett zuweisen und Arbeitsgebäude auswählen.
 26. **Golems:** Eigene Eisen-Golems müssen Zombies im Dorf angreifen können; Villager und dekorative Objekte bleiben geschützt.
+27. **Job-Sites:** Bauer erhält Komposter, Minenarbeiter erhält Schmiedetisch. `/bl admin selftest MINE <x> <y> <z> <Rotation>` muss die echte Schmiedetafel erzeugen.
+28. **Bewohnerdetail:** Alle registrierten Bewohner mit/ohne Bett öffnen, Anforderungen lesen, freies Bett zuweisen und Arbeitsgebäude auswählen.
+29. **P3-Texte:** Kurze Hinweise lesen und befolgen; Detailinformationen bleiben per Klick verfügbar, nicht als lange Chat-Anweisung.
 
 ## Befehle
 

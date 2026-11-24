@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
+import org.bukkit.entity.memory.MemoryKey;
 import org.bukkit.util.BoundingBox;
 
 import java.util.List;
@@ -95,13 +96,13 @@ public final class WorkerService {
             refresh(village.id());
             if (villager != null) {
                 villager.setProfession(job == Worker.Job.FARMER ? Villager.Profession.FARMER : Villager.Profession.MASON);
+                villager.setMemory(MemoryKey.JOB_SITE, jobSiteLocation(building));
                 villager.customName(Component.text(job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter"));
                 villager.setCustomNameVisible(true);
             }
             villages.markActivity(village, player.getUniqueId());
             audit.log(player, "WORKER_ASSIGNED", job + " " + candidate.villager() + " Gebäude #" + buildingId);
-            Msg.success(player, (job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter")
-                    + " aus dem dorffweiten Bewohnerregister zugewiesen: " + candidate.villager());
+            Msg.success(player, (job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter") + " zugewiesen. Nächstes: Nahrung einlagern.");
         }, error -> Msg.error(player, "Arbeiter konnte nicht zugewiesen werden: " + error.getMessage()));
     }
 
@@ -139,13 +140,19 @@ public final class WorkerService {
             refresh(village.id());
             if (villager != null) {
                 villager.setProfession(job == Worker.Job.FARMER ? Villager.Profession.FARMER : Villager.Profession.MASON);
+                villager.setMemory(MemoryKey.JOB_SITE, jobSiteLocation(building));
                 villager.customName(Component.text(job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter"));
                 villager.setCustomNameVisible(true);
             }
             villages.markActivity(village, player.getUniqueId());
             audit.log(player, "WORKER_ASSIGNED", job + " " + residentId + " Gebäude #" + buildingId);
-            Msg.success(player, (job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter") + " aus dem dorffweiten Bewohnerregister zugewiesen: " + residentId);
+            Msg.success(player, (job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter") + " zugewiesen. Nächstes: Nahrung einlagern.");
         }, error -> Msg.error(player, "Arbeiter konnte nicht zugewiesen werden: " + error.getMessage()));
+    }
+
+    private Location jobSiteLocation(Building building) {
+        org.bukkit.World world = Bukkit.getWorld(building.location().world());
+        return new Location(world, building.location().x() + 2, building.location().y() + 1, building.location().z() + 1);
     }
 
     public void unassign(Player player, Village village, long workerId) {
