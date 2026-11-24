@@ -296,6 +296,14 @@ public final class UiService {
         return world == null ? null : world.getBlockAt(region.bellX(), region.bellY(), region.bellZ());
     }
 
+    public void handleQuestUpdate(Player player) {
+        if (player.getOpenInventory().getTopInventory().getHolder() instanceof MenuHolder holder
+                && holder.context().type() == MenuContext.MenuType.UNCLAIMED) {
+            Block bell = bell(holder.context().bell());
+            if (bell != null) openUnclaimed(player, bell);
+        }
+    }
+
     private boolean bedrockAvailable(Player player) {
         return bedrock != null && bedrock.available(player, config.get().bedrockForms());
     }

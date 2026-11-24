@@ -122,6 +122,7 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
                         + " · Level " + village.level() + " · " + village.status()));
             }
             case "audit" -> audit(sender, args);
+            case "auditselftest" -> audit.selfTest(sender);
             case "backup" -> plugin.backup(sender);
             case "decay" -> {
                 decay.check();
@@ -280,7 +281,7 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
     }
 
     private void adminHelp(CommandSender sender) {
-        Msg.plain(sender, "/bl admin list|reload|backup|decay|audit [n]|bypass|selftest <Typ> <x> <y> <z>");
+        Msg.plain(sender, "/bl admin list|reload|backup|decay|audit [n]|auditselftest|bypass|selftest <Typ> <x> <y> <z>");
         Msg.plain(sender, "/bl admin disband <ID> confirm · transfer <ID> <Spieler>");
         Msg.plain(sender, "/bl admin alt pos1|pos2|register <Spieler|unbekannt> <Name>|remove <ID>|list");
     }
@@ -289,7 +290,7 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) return filter(List.of("info", "quest", "found", "build", "storage", "workers", "research", "level", "admin"), args[0]);
         if (args.length == 2 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("blocklords.admin")) {
-            return filter(List.of("list", "reload", "backup", "decay", "audit", "bypass", "disband", "transfer", "alt"), args[1]);
+            return filter(List.of("list", "reload", "backup", "decay", "audit", "auditselftest", "bypass", "selftest", "disband", "transfer", "alt"), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("alt")) {
             return filter(List.of("pos1", "pos2", "register", "remove", "list"), args[2]);

@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.0-alpha.1 (Phase 2)
+## Aktueller Stand: 0.2.1-alpha.1 (Phase 2)
 
 Enthalten:
 
@@ -30,6 +30,16 @@ Enthalten:
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
 
+### Änderungen in 0.2.1-alpha.1
+
+- Preview wird vor dem Bestätigen geschlossen; eigene Ghost-Positionen blockieren die Validierung nicht mehr.
+- FAWE-Aktionen besitzen Aktions-ID, Chunk-Prüfung, Fortschrittslogs, Timeout und genau einen Ergebnis-Callback.
+- `/bl admin auditselftest` schreibt und liest eine eindeutige Audit-Probe.
+- `logging.level: INFO|DEBUG` und `logging.action-timeout-seconds` sind konfigurierbar.
+- Der Aktivierungslog zeigt die tatsächliche JVM-Version.
+- Questtexte nennen konkrete Klickziele; Arbeitergebäude verweisen nach Fertigstellung auf `/bl workers`.
+- Das Bau-Revamp mit Baustellenkiste ist in [docs/BAU_REVAMP_RESEARCH.md](docs/BAU_REVAMP_RESEARCH.md) beschrieben.
+
 ## Voraussetzungen
 
 - Paper 1.21.11
@@ -52,8 +62,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.0-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.0-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.1-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.1-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -63,9 +73,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.0-alpha.1.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.1-alpha.1.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.0-alpha.1 aktiviert: Phase 2 ...`.
+3. Log prüfen: `BlockLords 0.2.1-alpha.1 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 
@@ -83,7 +93,7 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 8. **Bedrock prüfen:** Gründung und Dorfinfo vollständig über native Formulare ausführen. Ohne Floodgate müssen Chest-GUI und Befehle weiterhin funktionieren.
 9. **Altbesitz prüfen:** Mit `/bl admin alt pos1` und `pos2` einen Bereich markieren, registrieren und anschließend einen kollidierenden Claim versuchen. Dieser muss mit konkreter Fehlerursache abgelehnt werden.
 10. **Zerfall prüfen:** `/bl admin decay` darf Statuswerte ändern, niemals jedoch den Schutz öffnen. Mit `decay.enabled: false` bleibt Zerfall vollständig deaktiviert.
-11. **FAWE-Diagnose:** In einer freien Testfläche `/bl admin selftest RATHAUS <x> <y> <z>` ausführen. Der direkte Baupfad muss ohne Fehler 99 Blöcke erzeugen.
+11. **FAWE-Diagnose:** In einer freien, vollständig geladenen Testfläche `/bl admin selftest RATHAUS <x> <y> <z>` ausführen. Der direkte Baupfad muss ohne Fehler 99 Blöcke erzeugen. Ungeladene Chunks müssen sofort eine verständliche Fehlermeldung mit Aktions-ID erzeugen; `/bl admin auditselftest` muss anschließend sichtbar sein.
 12. **Bauplan testen:** Im Dorf `/bl build preview RATHAUS`, Vorschau mit `/bl build confirm` bestätigen, Material mit `/bl build contribute` oder `/bl build fund` vollständig bestücken und danach `/bl build start` ausführen.
 13. **Lager testen:** `/bl storage deposit` und anschließend `/bl storage` verwenden. Volle Lager dürfen keine Ressourcen vernichten; Entnahmen und Baustellenfinanzierung müssen im Audit erscheinen.
 14. **Arbeiter testen:** Farm und Mine bauen, Bewohner in der Nähe platzieren und über `/bl workers` zuweisen. Nahrung einlagern und Produktionsbericht prüfen.
@@ -108,6 +118,7 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 | `/bl admin backup` | SQLite-Backup erzeugen und alte Backups rotieren |
 | `/bl admin decay` | Zerfallsprüfung ohne Schutzänderung ausführen |
 | `/bl admin audit [n]` | Letzte Audit-Einträge anzeigen |
+| `/bl admin auditselftest` | Audit-Schreib-/Leseprobe mit eindeutiger ID ausführen |
 | `/bl admin bypass` | Eigenen Admin-Bypass umschalten und auditieren |
 | `/bl admin disband <ID> confirm` | Claim bestätigt auflösen; Gebäude bleiben stehen |
 | `/bl admin transfer <ID> <Spieler>` | Dorf auf einen Online-Spieler übertragen |

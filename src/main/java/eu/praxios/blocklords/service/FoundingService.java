@@ -38,6 +38,11 @@ public final class FoundingService {
     private final AuditService audit;
     private final Map<UUID, QuestState> quests = new ConcurrentHashMap<>();
     private final Set<UUID> pendingClaims = ConcurrentHashMap.newKeySet();
+    private Consumer<Player> questUpdateHandler = player -> { };
+
+    public void setQuestUpdateHandler(Consumer<Player> handler) {
+        this.questUpdateHandler = handler;
+    }
 
     public FoundingService(Supplier<BlockLordsConfig> config, VillageRepository villageRepository,
                            QuestRepository questRepository, VillageService villages, TaskRunner tasks, AuditService audit) {
@@ -79,8 +84,8 @@ public final class FoundingService {
         save(new QuestState(player.getUniqueId(), QuestState.Stage.SURVEY, region, 0,
                 quest(player).founderCompleted(), System.currentTimeMillis()));
         audit.log(player, "QUEST_START", "Glocke " + coordinates(bell));
-        Msg.info(player, "Gründungsquest: Finde im Dorf ein Bett, eine Nahrungsquelle und einen Arbeitsplatz.");
-        Msg.plain(player, "Klicke dazu ein Bett, Ackerland/Getreide/Komposter und einen Villager-Arbeitsblock an.");
+        Msg.info(player, "Gründungsquest: Klicke im Dorf auf ein Bett, Ackerland/Getreide/Komposter und einen Arbeitsblock.");
+        Msg.plain(player, "Arbeitsblöcke sind zum Beispiel Lesepult, Schmiedetisch, Fletchtisch, Webstuhl oder Komposter als Nahrungsquelle.");
     }
 
     /** @return true, wenn die Interaktion zur Gründungsquest gehörte. */
@@ -103,6 +108,7 @@ public final class FoundingService {
         QuestState updated = new QuestState(player.getUniqueId(), complete ? QuestState.Stage.READY : QuestState.Stage.SURVEY,
                 state.bell(), progress, complete || state.founderCompleted(), System.currentTimeMillis());
         save(updated);
+        questUpdateHandler.accept(player);
         audit.log(player, "QUEST_PROGRESS", flagName(flag) + " bei " + coordinates(block));
         if (complete) {
             if (!state.founderCompleted()) {
@@ -120,8 +126,9 @@ public final class FoundingService {
         QuestState state = quest(player);
         return switch (state.stage()) {
             case NOT_STARTED -> "Noch keine Gründungsquest aktiv. Rechtsklick auf eine unbeanspruchte Dorfglocke.";
-            case SURVEY -> "Dorferkundung: Bett " + mark(state.has(QuestState.BED)) + ", Nahrung "
-                    + mark(state.has(QuestState.FOOD)) + ", Arbeitsplatz " + mark(state.has(QuestState.WORK)) + ".";
+            case SURVEY -> "Anklicken: Bett " + mark(state.has(QuestState.BED))
+                    + " · Ackerland/Getreide/Komposter " + mark(state.has(QuestState.FOOD))
+                    + " · Arbeitsblock wie Lesepult/Schmiedetisch " + mark(state.has(QuestState.WORK)) + ".";
             case READY -> "Bereit zur Gründung. Wähle an der Glocke einen Namen oder nutze /bl found <Name>.";
         };
     }

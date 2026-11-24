@@ -34,6 +34,7 @@ public final class BlockLords extends JavaPlugin {
     private ProductionService production;
     private ResearchService research;
     private FaweBuilder faweBuilder;
+    private LogService logs;
 
     @Override
     public void onEnable() {
@@ -47,6 +48,7 @@ public final class BlockLords extends JavaPlugin {
         }
 
         try {
+            logs = new LogService(getLogger(), this::settings);
             tasks = new TaskRunner(this);
             database = new Database(getDataFolder().toPath().resolve(settings.databaseFile()));
             if (Files.size(database.path()) > 0) {
@@ -64,7 +66,7 @@ public final class BlockLords extends JavaPlugin {
             WorkerRepository workerRepository = new WorkerRepository(database);
             ResearchRepository researchRepository = new ResearchRepository(database);
 
-            AuditService audit = new AuditService(auditRepository, tasks);
+            AuditService audit = new AuditService(auditRepository, tasks, logs);
             VillageService villages = new VillageService(villageRepository, legacyRepository, tasks);
             villages.loadInitial();
             FoundingService founding = new FoundingService(this::settings, villageRepository, questRepository, villages, tasks, audit);
@@ -73,7 +75,7 @@ public final class BlockLords extends JavaPlugin {
             decay = new DecayService(this, this::settings, villages);
             scanner = new VillageScanner(this, this::settings, tasks);
             StorageService storage = new StorageService(this::settings, storageRepository, constructionRepository, tasks, audit, villages);
-            faweBuilder = new FaweBuilder(tasks);
+            faweBuilder = new FaweBuilder(this, tasks, logs, this::settings);
             ConstructionService construction = new ConstructionService(constructionRepository, villageRepository,
                     villages, storage, faweBuilder, tasks, audit);
             storage.loadInitial(villages.all());
@@ -87,6 +89,7 @@ public final class BlockLords extends JavaPlugin {
                     villages, storage, tasks);
             UiService ui = new UiService(this::settings, villages, founding, scanner, tasks,
                     construction, storage, workers, research);
+            founding.setQuestUpdateHandler(ui::handleQuestUpdate);
 
             getServer().getPluginManager().registerEvents(new BellListener(ui, founding), this);
             getServer().getPluginManager().registerEvents(new ProtectionListener(protection), this);
@@ -108,7 +111,8 @@ public final class BlockLords extends JavaPlugin {
             research.start();
 
             getLogger().info("BlockLords " + getPluginMeta().getVersion()
-                    + " aktiviert: Phase 2, " + villages.all().size() + " Dörfer, Java 21.");
+                    + " aktiviert: Phase 2, " + villages.all().size() + " Dörfer, Java "
+                    + System.getProperty("java.version") + ".");
         } catch (Exception exception) {
             getLogger().severe("BlockLords konnte nicht sicher gestartet werden: " + exception.getMessage());
             exception.printStackTrace();
@@ -169,6 +173,8 @@ public final class BlockLords extends JavaPlugin {
     public void selfTest(CommandSender sender, BlueprintType type, int x, int y, int z) {
         org.bukkit.World world = sender instanceof org.bukkit.entity.Player player
                 ? player.getWorld() : getServer().getWorlds().getFirst();
+        logs.info("Selftest akzeptiert: " + type + " @ " + world.getName() + " " + x + "/" + y + "/" + z);
+        Msg.info(sender, "FAWE-Diagnose gestartet. Ergebnis oder Timeout folgt mit Aktions-ID im Log.");
         faweBuilder.paste(type, new BuildLocation(world.getUID(), x, y, z, 0),
                 count -> Msg.success(sender, "FAWE-Diagnose erfolgreich: " + count + " Blöcke für " + type + "."),
                 error -> Msg.error(sender, "FAWE-Diagnose fehlgeschlagen: " + error.getMessage()));

@@ -76,3 +76,29 @@
 - Arbeiter-Laufwege sind weiterhin Vanilla-/NPC-Ambiente, keine eigene Navigationssimulation.
 - Interaktive Klicks, Menüs, Arbeiterzuweisung und Produktion müssen von Axon auf dem OnePlus getestet werden.
 - Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+
+## 2026-11-24 — 0.2.1-alpha.1, Diagnose und Bugfixpaket aus #202
+
+### Implementiert
+
+- Preview wird vor dem Bestätigen geschlossen; ausschließlich eigene, exakt übereinstimmende Ghost-Positionen werden ausgenommen. Fremde/neue Blöcke bleiben Kollisionen.
+- FAWE-Bau erhält Aktions-ID, Welt-/Chunk-Prüfung, EditSession-/Queue-/Flush-Logs, Timeout und genau einen Ergebnis-Callback.
+- Ungeladene Ziel-Chunks werden sofort und verständlich gemeldet, statt stumm zu warten.
+- `logging.level: INFO|DEBUG` und `logging.action-timeout-seconds` sind konfigurierbar.
+- Aktivierungslog verwendet `System.getProperty("java.version")` statt festem Text.
+- `/bl admin auditselftest` schreibt eine eindeutige Probe und verlangt deren Nachweis beim Lesen; Audit-Fehler landen im Serverlog.
+- Questtexte nennen konkrete Klickziele; geöffnete Questmenüs werden aktualisiert; fertige Arbeitergebäude verweisen auf `/bl workers`.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **20 Unit-Tests** erfolgreich.
+- Echter Start auf Paper 1.21.11 Build 132 mit FAWE 2.16.3 und Floodgate 2.2.5 Build 141.
+- Audit-Probe wurde geschrieben, wiedergefunden und über `/bl admin audit 5` angezeigt.
+- Ungeladene Chunks erzeugten sofortige Fehlermeldungen mit Aktions-ID und Stacktrace.
+- Nach `forceload add 0 0` lief `/bl admin selftest RATHAUS 0 80 0` mit vollständiger Logfolge erfolgreich: **99 Blöcke in 496 ms**.
+- Kompatibilitätsfeedback von Axon übernommen: Phase 2 läuft auch auf Paper 26.2-135 und 26.3-259 mit Java 25.
+
+### Nächster Schritt
+
+- Nach Axons Live-Gegenprobe folgt 0.2.2 mit der Baustellenkiste gemäß `docs/BAU_REVAMP_RESEARCH.md`.

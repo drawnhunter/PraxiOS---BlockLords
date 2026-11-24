@@ -43,4 +43,9 @@ economy:
   offline-rate-percent: 50
   research-duration-seconds: 300
 
+logging:
+  # INFO: wichtige Aktionen und Fehler. DEBUG: zusätzlich Pakete, DB- und Queue-Details.
+  level: INFO
+  action-timeout-seconds: 20
+
 debug: false

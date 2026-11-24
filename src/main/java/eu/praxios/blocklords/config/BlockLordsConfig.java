@@ -34,6 +34,8 @@ public final class BlockLordsConfig {
     private final long offlineMaxMillis;
     private final double offlineRate;
     private final long researchDurationMillis;
+    private final String logLevel;
+    private final long actionTimeoutTicks;
     private final boolean debug;
 
     public BlockLordsConfig(FileConfiguration config) {
@@ -74,6 +76,11 @@ public final class BlockLordsConfig {
         int offlinePercent = positive(config, "economy.offline-rate-percent", 0, 100);
         offlineRate = offlinePercent / 100.0;
         researchDurationMillis = positive(config, "economy.research-duration-seconds", 1, 86_400) * 1000L;
+        logLevel = config.getString("logging.level", "INFO").toUpperCase(java.util.Locale.ROOT);
+        if (!logLevel.equals("INFO") && !logLevel.equals("DEBUG")) {
+            throw new IllegalArgumentException("logging.level muss INFO oder DEBUG sein.");
+        }
+        actionTimeoutTicks = positive(config, "logging.action-timeout-seconds", 1, 600) * 20L;
         debug = config.getBoolean("debug", false);
     }
 
@@ -137,5 +144,7 @@ public final class BlockLordsConfig {
     public long offlineMaxMillis() { return offlineMaxMillis; }
     public double offlineRate() { return offlineRate; }
     public long researchDurationMillis() { return researchDurationMillis; }
+    public String logLevel() { return logLevel; }
+    public long actionTimeoutTicks() { return actionTimeoutTicks; }
     public boolean debug() { return debug; }
 }

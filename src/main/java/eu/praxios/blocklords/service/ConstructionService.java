@@ -129,10 +129,11 @@ public final class ConstructionService {
             cancelPreview(player);
             return;
         }
-        if (validateAndCapture(player, village, preview.type(), preview.location()) == null) return;
+        restore(preview);
+        previews.remove(player.getUniqueId());
+        if (validateAndCapture(player, village, preview.type(), preview.location(), preview) == null) return;
         tasks.database(() -> repository.createSite(village.id(), preview.type(), preview.location(), player.getUniqueId()), site -> {
             restore(preview);
-            previews.remove(player.getUniqueId());
             selectedSites.put(player.getUniqueId(), site.id());
             refresh(village.id());
             audit.log(player, "BUILD_SITE_CREATED", "#" + site.id() + " " + site.type());
@@ -233,6 +234,9 @@ public final class ConstructionService {
                 audit.log(player, "BUILDING_COMPLETED", completion.building().type() + " #" + completion.building().id());
                 Msg.success(player, completion.building().type().displayName() + " fertiggestellt: " + count + " Blöcke.");
                 Msg.success(player, "Dorf-Level " + completion.village().level() + " · XP " + completion.village().xp() + ".");
+                if (site.type().workplace()) {
+                    Msg.info(player, "Nächster Schritt: /bl workers öffnen, freien Bewohner zuweisen und Nahrung einlagern.");
+                }
             }, error -> {
                 repositorySafeReady(site.id());
                 Msg.error(player, "Abschluss nach dem Bau fehlgeschlagen: " + error.getMessage());
@@ -277,6 +281,11 @@ public final class ConstructionService {
     }
 
     private Map<Block, BlockData> validateAndCapture(Player player, Village village, BlueprintType type, BuildLocation location) {
+        return validateAndCapture(player, village, type, location, null);
+    }
+
+    private Map<Block, BlockData> validateAndCapture(Player player, Village village, BlueprintType type,
+                                                     BuildLocation location, PreviewSession ownPreview) {
         Map<Block, BlockData> original = new LinkedHashMap<>();
         for (BlueprintBlocks.OffsetBlock offset : BlueprintBlocks.blocks(type)) {
             int[] rotated = rotate(offset.x(), offset.z(), location.rotation());
@@ -286,7 +295,7 @@ public final class ConstructionService {
                 Msg.error(player, "Der Bauplan würde den Dorf-Claim verlassen.");
                 return null;
             }
-            if (!block.getType().isAir()) {
+            if (!block.getType().isAir() && !isOwnPreviewGhost(block, offset, location, ownPreview)) {
                 Msg.error(player, "Kollision bei " + block.getX() + "/" + block.getY() + "/" + block.getZ()
                         + ": " + block.getType() + ". Bitte Bereich freiräumen.");
                 return null;
@@ -294,6 +303,12 @@ public final class ConstructionService {
             original.put(block, block.getBlockData());
         }
         return original;
+    }
+
+    private boolean isOwnPreviewGhost(Block block, BlueprintBlocks.OffsetBlock offset,
+                                      BuildLocation location, PreviewSession preview) {
+        if (preview == null || !preview.original().containsKey(block)) return false;
+        return matches(block, location, offset) && block.getBlockData().equals(offset.data());
     }
 
     private Map<ResourceType, Integer> removeNeeded(Player player, BuildSite site) {
