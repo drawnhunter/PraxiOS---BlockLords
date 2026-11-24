@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.1-alpha.1 (Phase 2)
+## Aktueller Stand: 0.2.2-alpha.1 (Phase 2)
 
 Enthalten:
 
@@ -29,6 +29,20 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.2-alpha.1
+
+- **Baustellenkiste:** echte Kiste am Gebäudeanker mit Materialbestand, Lieferstand, Auftragsstatus und Restmaterial/Info nach Abschluss.
+- **Rechtsklick auf die Kiste:** Auftragsmenü; Sneak + Rechtsklick öffnet das physische Inventar.
+- Materialbeiträge kommen direkt aus Spielerinventar oder Rathausvorrat und werden aus dem realen Kistenbestand abgeleitet.
+- FAWE überspringt die Kiste; Materialcommit bei Baustart, Rückgabe bei normalem Fehler, Reservierung bei Timeout.
+- **Automatisches Bewohnerregister:** Meeting-Point an der Dorfglocke bestätigt, Bett im Claim registriert unbestätigt; Wanderer bleiben außen vor.
+- **Versammlungsritual:** Sneak + Rechtsklick auf die Dorfglocke oder Aktion im Arbeiter-Menü; live Zählung von Anwesenden, neu Bestätigten und Bettlosen.
+- Arbeiterzuweisung nutzt das dorffweite Register ohne 12-Block-Limit.
+- **Dorfmenü-Kompass:** `/bl menu` oder automatisch bei Gründung; Rechtsklick öffnet Dorf-/Baumenüs.
+- `/bl admin tp <Dorf-ID>` teleportiert mit Prüfung auf sicheren Stand.
+- `/bl admin selftest <Typ>` funktioniert auch ohne Koordinaten am anvisierten Block.
+- Timeout nach bereits erfolgreichem FAWE-Bau wird unterdrückt; kein `LATE_FAILURE_IGNORED` mehr nach `SUCCESS`.
 
 ### Änderungen in 0.2.1-alpha.1
 
@@ -62,8 +76,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.1-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.1-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.2-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.2-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -73,9 +87,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.1-alpha.1.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.2-alpha.1.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.1-alpha.1 aktiviert: Phase 2 ...`.
+3. Log prüfen: `BlockLords 0.2.2-alpha.1 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 
@@ -99,11 +113,16 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 14. **Arbeiter testen:** Farm und Mine bauen, Bewohner in der Nähe platzieren und über `/bl workers` zuweisen. Nahrung einlagern und Produktionsbericht prüfen.
 15. **Forschung testen:** Bibliothek bauen, `/bl research start` ausführen und anschließend Wohnhaus II als Bauplan bestätigen.
 16. **Persistenz:** Nach Bau, Produktion und Forschung den Server neu starten. Gebäude, Lager, Arbeiterzuordnung, XP und Forschungsstatus müssen erhalten bleiben.
+17. **Baustellenkiste:** Nach Preview-Confirm muss eine echte Kiste am Gebäude stehen. Rechtsklick öffnet das Auftragsmenü; Inventar- und Vorratstransfers müssen im realen Kistenbestand erscheinen. FAWE darf die Kiste nicht ersetzen.
+18. **Bewohnerregister:** Bewohner mit Dorfglocken-Meeting-Point werden als bestätigt, Bettbewohner als unbestätigt erfasst. Sneak + Rechtsklick auf die Glocke muss Anwesende, neue Bestätigungen und bettlose Bewohner melden.
+19. **Bedienung:** `/bl menu` liefert den Kompass; Rechtsklick öffnet Menüs. `/bl admin selftest RATHAUS` funktioniert ohne Koordinaten. `/bl admin tp <ID>` findet einen sicheren Zielpunkt oder meldet einen Fehler.
+20. **Timeout-Race:** Nach erfolgreichem FAWE-Selftest mindestens 25 Sekunden warten. Es darf kein `LATE_FAILURE_IGNORED` nach `SUCCESS` erscheinen.
 
 ## Befehle
 
 | Befehl | Funktion |
 |---|---|
+| `/bl menu` | Dorfmenü-Kompass erhalten; Rechtsklick öffnet Dorf-/Baumenüs |
 | `/bl info` | Dorfinfo zur anvisierten Glocke oder am aktuellen Standort |
 | `/bl quest` | Aktuellen Gründungsfortschritt anzeigen |
 | `/bl found <Name>` | Dorf an der anvisierten Glocke gründen |
@@ -120,6 +139,7 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 | `/bl admin audit [n]` | Letzte Audit-Einträge anzeigen |
 | `/bl admin auditselftest` | Audit-Schreib-/Leseprobe mit eindeutiger ID ausführen |
 | `/bl admin bypass` | Eigenen Admin-Bypass umschalten und auditieren |
+| `/bl admin tp <Dorf-ID>` | Sicher zur Dorfglocken-Umgebung teleportieren |
 | `/bl admin disband <ID> confirm` | Claim bestätigt auflösen; Gebäude bleiben stehen |
 | `/bl admin transfer <ID> <Spieler>` | Dorf auf einen Online-Spieler übertragen |
 | `/bl admin alt pos1` / `pos2` | Altparzellen-Eckpunkte setzen |

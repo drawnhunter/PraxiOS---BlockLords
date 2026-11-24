@@ -12,6 +12,7 @@ import eu.praxios.blocklords.model.VillageStats;
 import eu.praxios.blocklords.service.ConstructionService;
 import eu.praxios.blocklords.service.FoundingService;
 import eu.praxios.blocklords.service.ResearchService;
+import eu.praxios.blocklords.service.ResidentService;
 import eu.praxios.blocklords.service.StorageService;
 import eu.praxios.blocklords.service.TaskRunner;
 import eu.praxios.blocklords.service.VillageScanner;
@@ -45,10 +46,12 @@ public final class UiService {
     private final StorageService storage;
     private final WorkerService workers;
     private final ResearchService research;
+    private final ResidentService residents;
 
     public UiService(Supplier<BlockLordsConfig> config, VillageService villages, FoundingService founding,
                      VillageScanner scanner, TaskRunner tasks, ConstructionService construction,
-                     StorageService storage, WorkerService workers, ResearchService research) {
+                     StorageService storage, WorkerService workers, ResearchService research,
+                     ResidentService residents) {
         this.config = config;
         this.villages = villages;
         this.founding = founding;
@@ -58,6 +61,7 @@ public final class UiService {
         this.storage = storage;
         this.workers = workers;
         this.research = research;
+        this.residents = residents;
         BedrockUi candidate = null;
         if (Bukkit.getPluginManager().isPluginEnabled("Floodgate") && config.get().bedrockForms()) {
             try {
@@ -196,7 +200,11 @@ public final class UiService {
         actions.add(UiAction.of(Material.ANVIL, "FAWE-Bau starten", () -> construction.start(player, village),
                 site.complete() ? "Alle Materialien vorhanden." : "Rest: " + remaining(site)));
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openSites(player, village)));
-        openActions(player, "Baustelle #" + site.id(), site.type().displayName() + " · " + remaining(site), actions);
+        int required = site.required().values().stream().mapToInt(Integer::intValue).sum();
+        int supplied = site.contributed().values().stream().mapToInt(Integer::intValue).sum();
+        openActions(player, "Baustelle #" + site.id(), site.type().displayName()
+                + "\nMaterial: " + supplied + "/" + required + " · Baufortschritt: " + site.status()
+                + "\nRest: " + remaining(site), actions);
     }
 
     public void openWorkers(Player player, Village village) {
@@ -212,8 +220,14 @@ public final class UiService {
         workers.workers(village.id()).forEach(worker -> actions.add(UiAction.of(Material.NAME_TAG,
                 "Arbeiter #" + worker.id() + " entfernen", () -> workers.unassign(player, village, worker.id()),
                 worker.job() + " · Gebäude #" + worker.buildingId())));
+        actions.add(UiAction.of(Material.BELL, "Versammlung läuten", () -> residents.assemble(player, village),
+                "Bestätigt Anwesende und meldet neue sowie bettlose Bewohner."));
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
-        openActions(player, "Arbeiter · " + village.name(), "Produktion hängt von Zuordnung, Nahrung und Lager ab.", actions);
+        String content = "Register: " + residents.residents(village.id()).size() + " Bewohner · "
+                + residents.confirmed(village.id()) + " bestätigt · " + residents.unconfirmed(village.id()) + " unbestätigt · "
+                + residents.free(village.id(), workers.workers(village.id())).size() + " frei.\n"
+                + "Sneak + Rechtsklick auf die Dorfglocke startet ebenfalls die Versammlung.";
+        openActions(player, "Arbeiter · " + village.name(), content, actions);
     }
 
     public void openResearch(Player player, Village village) {
@@ -224,6 +238,16 @@ public final class UiService {
                 project.key() + " · " + project.status(), () -> { }, "Ende: " + java.time.Instant.ofEpochMilli(project.finishesAt()))));
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
         openActions(player, "Forschung · " + village.name(), "Bibliotheks-Upgrades erscheinen nach Abschluss als Bauplan.", actions);
+    }
+
+    public void openBuildingInfo(Player player, Village village, Building building) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.BOOK, "Gebäudeinformationen", () -> { },
+                "Typ: " + building.type().displayName(), "Gebäude-Level: " + building.level(),
+                "Dorf-Level: " + village.level() + " · XP: " + village.xp()));
+        actions.add(UiAction.of(Material.ARROW, "Zurück zum Dorf", () -> openVillage(player, village)));
+        openActions(player, building.type().displayName() + " · " + village.name(),
+                "Baustelle abgeschlossen. Die Kiste bleibt als Informations- und Restmaterialpunkt erhalten.", actions);
     }
 
     public void openActions(Player player, String title, String content, java.util.List<UiAction> actions) {

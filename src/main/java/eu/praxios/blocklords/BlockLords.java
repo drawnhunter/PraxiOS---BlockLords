@@ -35,6 +35,7 @@ public final class BlockLords extends JavaPlugin {
     private ResearchService research;
     private FaweBuilder faweBuilder;
     private LogService logs;
+    private ResidentService residents;
 
     @Override
     public void onEnable() {
@@ -65,11 +66,13 @@ public final class BlockLords extends JavaPlugin {
             StorageRepository storageRepository = new StorageRepository(database);
             WorkerRepository workerRepository = new WorkerRepository(database);
             ResearchRepository researchRepository = new ResearchRepository(database);
+            ResidentRepository residentRepository = new ResidentRepository(database);
 
             AuditService audit = new AuditService(auditRepository, tasks, logs);
             VillageService villages = new VillageService(villageRepository, legacyRepository, tasks);
             villages.loadInitial();
-            FoundingService founding = new FoundingService(this::settings, villageRepository, questRepository, villages, tasks, audit);
+            GuideItemService guide = new GuideItemService(this);
+            FoundingService founding = new FoundingService(this::settings, villageRepository, questRepository, villages, tasks, audit, guide);
             ProtectionService protection = new ProtectionService(villages, audit);
             AltSelectionService alt = new AltSelectionService(legacyRepository, villages, tasks, audit);
             decay = new DecayService(this, this::settings, villages);
@@ -77,10 +80,12 @@ public final class BlockLords extends JavaPlugin {
             StorageService storage = new StorageService(this::settings, storageRepository, constructionRepository, tasks, audit, villages);
             faweBuilder = new FaweBuilder(this, tasks, logs, this::settings);
             ConstructionService construction = new ConstructionService(constructionRepository, villageRepository,
-                    villages, storage, faweBuilder, tasks, audit);
+                    villages, storage, storageRepository, faweBuilder, tasks, audit);
             storage.loadInitial(villages.all());
             construction.loadInitial(villages.all());
-            WorkerService workers = new WorkerService(workerRepository, storageRepository, construction, villages, tasks, audit);
+            residents = new ResidentService(this, this::settings, residentRepository, villages, tasks);
+            residents.loadInitial(villages.all());
+            WorkerService workers = new WorkerService(workerRepository, storageRepository, construction, villages, residents, tasks, audit);
             workers.loadInitial(villages.all());
             research = new ResearchService(this, this::settings, researchRepository, villageRepository,
                     storage, villages, construction, tasks, audit);
@@ -88,18 +93,20 @@ public final class BlockLords extends JavaPlugin {
             production = new ProductionService(this, this::settings, workerRepository, storageRepository,
                     villages, storage, tasks);
             UiService ui = new UiService(this::settings, villages, founding, scanner, tasks,
-                    construction, storage, workers, research);
+                    construction, storage, workers, research, residents);
             founding.setQuestUpdateHandler(ui::handleQuestUpdate);
 
-            getServer().getPluginManager().registerEvents(new BellListener(ui, founding), this);
+            getServer().getPluginManager().registerEvents(new BellListener(ui, founding, villages, residents), this);
             getServer().getPluginManager().registerEvents(new ProtectionListener(protection), this);
             getServer().getPluginManager().registerEvents(new OwnershipListener(ownershipRepository, tasks), this);
             getServer().getPluginManager().registerEvents(new MenuListener(ui), this);
+            getServer().getPluginManager().registerEvents(new GuideItemListener(guide, villages, ui), this);
+            getServer().getPluginManager().registerEvents(new BuilderChestListener(construction, villages, ui), this);
             getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(founding, decay, production, villages, this), this);
 
             EconomyCommand economy = new EconomyCommand(villages, construction, storage, workers, research, ui);
             BlockLordsCommand executor = new BlockLordsCommand(this, villages, founding, ui, protection, alt, audit,
-                    tasks, villageRepository, decay, economy);
+                    tasks, villageRepository, decay, economy, guide);
             PluginCommand command = getCommand("blocklords");
             if (command == null) {
                 throw new IllegalStateException("Befehl 'blocklords' fehlt in plugin.yml");
@@ -109,6 +116,7 @@ public final class BlockLords extends JavaPlugin {
             decay.start();
             production.start();
             research.start();
+            residents.start();
 
             getLogger().info("BlockLords " + getPluginMeta().getVersion()
                     + " aktiviert: Phase 2, " + villages.all().size() + " Dörfer, Java "
@@ -125,6 +133,7 @@ public final class BlockLords extends JavaPlugin {
         if (decay != null) decay.stop();
         if (production != null) production.stop();
         if (research != null) research.stop();
+        if (residents != null) residents.stop();
         if (scanner != null) scanner.close();
         if (tasks != null) tasks.close();
         if (database != null) {
@@ -149,6 +158,7 @@ public final class BlockLords extends JavaPlugin {
             settings = candidate;
             decay.start();
             production.start();
+            residents.start();
             return true;
         } catch (RuntimeException invalid) {
             getLogger().severe("Reload verworfen: " + invalid.getMessage());
@@ -168,6 +178,20 @@ public final class BlockLords extends JavaPlugin {
             return target;
         }, path -> Msg.success(sender, "SQLite-Backup erstellt: " + path.getFileName()),
                 error -> Msg.error(sender, "Backup fehlgeschlagen: " + error.getMessage()));
+    }
+
+    public void selfTest(CommandSender sender, BlueprintType type) {
+        if (!(sender instanceof org.bukkit.entity.Player player)) {
+            Msg.error(sender, "Ohne Koordinaten wird ein Spieler benötigt.");
+            return;
+        }
+        org.bukkit.block.Block target = player.getTargetBlockExact(6);
+        if (target != null) {
+            selfTest(sender, type, target.getX(), target.getY() + 1, target.getZ());
+        } else {
+            selfTest(sender, type, player.getLocation().getBlockX(), player.getLocation().getBlockY() + 1,
+                    player.getLocation().getBlockZ());
+        }
     }
 
     public void selfTest(CommandSender sender, BlueprintType type, int x, int y, int z) {

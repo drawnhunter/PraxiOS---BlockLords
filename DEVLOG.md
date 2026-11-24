@@ -102,3 +102,35 @@
 ### Nächster Schritt
 
 - Nach Axons Live-Gegenprobe folgt 0.2.2 mit der Baustellenkiste gemäß `docs/BAU_REVAMP_RESEARCH.md`.
+
+
+## 2026-11-24 — 0.2.2-alpha.1, Baustellenkiste und Bewohnerregister
+
+### Implementiert
+
+- **Baustellenkiste als physischer Auftragsanker:** Nach Preview-Confirm entsteht eine echte Kiste am Gebäude; Rechtsklick öffnet das Auftragsmenü, Sneak + Rechtsklick das reale Inventar.
+- Inventar- und Vorratstransfers landen als echte Items in der Kiste; `reconcileFromChest` leitet Bereitschaft aus diesem Bestand ab.
+- FAWE schließt die Kistenposition aus dem Bau aus. Material wird beim Start committet, bei normalem Fehler mit Undo zurückgegeben und bei Timeout sicher reserviert.
+- Nach Abschluss bleibt die Kiste als Informations-/Restmaterialpunkt erhalten.
+- **Bewohnerregister mit Vanilla-POI-Links:** `MEETING_POINT` an der Dorfglocke = bestätigt; `HOME`/Bett im Claim = unbestätigt; sonst Wanderer ohne Registrierung.
+- Diff-basierte Aktualisierung statt blindem Überschreiben; persistente Speicherung in Migration V3.
+- **Versammlungsritual:** Sneak + Rechtsklick auf die Dorfglocke oder Arbeiter-Menü. Setzt den Vanilla-Meeting-Point, bestätigt Anwesende und meldet versammelte, neue und bettlose Bewohner.
+- Arbeiterzuweisung nutzt das dorffweite Register; das alte 12-Block-Limit ist entfernt.
+- Dorfmenü-Kompass mit PDC-Erkennung, `/bl menu` und automatischer Ausgabe bei Gründung.
+- `/bl admin tp <Dorf-ID>` mit Suche nach passierbarem Stand, Kopffreiheit und festem Boden.
+- `/bl admin selftest <Typ>` ohne Koordinaten am anvisierten Block; Koordinatenform bleibt erhalten.
+- Timeout-Timer prüft den abgeschlossenen Aktionszustand; kein falscher `LATE_FAILURE_IGNORED` nach erfolgreichem Bau.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **22 Unit-Tests** erfolgreich.
+- Echter Start auf Paper 1.21.11 Build 132 mit FAWE 2.16.3 und Floodgate 2.2.5 Build 141.
+- Migrationen V1, V2 und V3 erfolgreich; Audit-Probe und Audit-Lesung erfolgreich.
+- FAWE-Selftest mit **99 Blöcken in 553 ms** und vollständiger Aktionslogfolge.
+- Nach Erfolg 27 Sekunden weiterlaufen lassen: **kein verspäteter Timeout-/LATE_FAILURE-Eintrag**.
+- Sauberer Shutdown ohne BlockLords-Fehler.
+
+### Nächste Schritte
+
+- Axon testet Kiste, Kistenmaterial, Versammlung, dorffweite Arbeiterzuweisung, Kompass und Admin-Teleport auf Paper 26.3/Java 25.
+- Danach folgen 0.2.3 Schematic-/Rotationsausbau und die Kolonie-Gründungsbasis; 0.2.4 aktive Bauhilfe und 0.2.5 Bauhütte/Builder-NPC gemäß Research-Dokument.

@@ -33,6 +33,9 @@ ui:
   # Ein Scan arbeitet nur geladene Chunks ab; unvollständige Ergebnisse werden gekennzeichnet.
   chunks-per-tick: 1
 
+residents:
+  scan-interval-ticks: 200
+
 economy:
   storage-base-capacity: 1728
   storage-per-warehouse: 1728

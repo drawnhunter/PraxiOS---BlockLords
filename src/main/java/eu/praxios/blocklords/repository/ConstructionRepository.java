@@ -110,6 +110,50 @@ public final class ConstructionRepository {
         });
     }
 
+    public int reconcileFromChest(long siteId, Map<ResourceType, Integer> chestCounts) throws Exception {
+        return database.inTransaction(connection -> {
+            BuildSite site = findSite(connection, siteId);
+            if (site.status() == BuildSite.Status.BUILDING) return 0;
+            int total = 0;
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "UPDATE build_site_resources SET contributed = ? WHERE site_id = ? AND resource = ?")) {
+                for (ResourceType resource : site.required().keySet()) {
+                    int actual = Math.min(site.required().get(resource), chestCounts.getOrDefault(resource, 0));
+                    statement.setInt(1, actual);
+                    statement.setLong(2, siteId);
+                    statement.setString(3, resource.name());
+                    statement.addBatch();
+                    total += actual;
+                }
+                statement.executeBatch();
+            }
+            boolean complete = site.required().keySet().stream()
+                    .allMatch(resource -> chestCounts.getOrDefault(resource, 0) >= site.required().get(resource));
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "UPDATE build_sites SET status = ? WHERE id = ? AND status <> 'BUILDING'")) {
+                statement.setString(1, complete ? "READY" : "COLLECTING");
+                statement.setLong(2, siteId);
+                statement.executeUpdate();
+            }
+            return total;
+        });
+    }
+
+    public void recordContribution(long siteId, UUID player, ResourceType resource, int amount) throws Exception {
+        database.inTransaction(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO build_site_contributors(site_id, player_uuid, resource, amount, contributed_at) VALUES (?, ?, ?, ?, ?)")) {
+                statement.setLong(1, siteId);
+                statement.setString(2, player.toString());
+                statement.setString(3, resource.name());
+                statement.setInt(4, amount);
+                statement.setLong(5, System.currentTimeMillis());
+                statement.executeUpdate();
+            }
+            return null;
+        });
+    }
+
     public void markBuilding(long siteId) throws Exception {
         database.inTransaction(connection -> {
             try (PreparedStatement statement = connection.prepareStatement(

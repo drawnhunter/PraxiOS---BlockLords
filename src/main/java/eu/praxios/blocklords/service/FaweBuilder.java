@@ -34,6 +34,11 @@ public final class FaweBuilder {
 
     public void paste(BlueprintType type, BuildLocation location,
                       Consumer<Integer> success, Consumer<Throwable> failure) {
+        paste(type, location, Set.of(), success, failure);
+    }
+
+    public void paste(BlueprintType type, BuildLocation location, Set<BlockVector3> excluded,
+                      Consumer<Integer> success, Consumer<Throwable> failure) {
         String id = logs.actionId("PASTE");
         long started = System.nanoTime();
         AtomicBoolean finished = new AtomicBoolean(false);
@@ -60,7 +65,7 @@ public final class FaweBuilder {
             fail.accept(new IllegalStateException("Bauwelt ist nicht geladen."));
             return;
         }
-        Set<Long> requiredChunks = requiredChunks(type, location);
+        Set<Long> requiredChunks = requiredChunks(type, location, excluded);
         long loaded = requiredChunks.stream().filter(chunk -> world.isChunkLoaded(chunkX(chunk), chunkZ(chunk))).count();
         logs.action(id, "CHUNK_CHECK", loaded + "/" + requiredChunks.size() + " geladen");
         if (loaded != requiredChunks.size()) {
@@ -69,8 +74,11 @@ public final class FaweBuilder {
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskLater(plugin,
-                () -> fail.accept(new TimeoutException("FAWE-Aktion hat das Zeitlimit überschritten.")), config.get().actionTimeoutTicks());
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            if (!finished.get()) {
+                fail.accept(new TimeoutException("FAWE-Aktion hat das Zeitlimit überschritten."));
+            }
+        }, config.get().actionTimeoutTicks());
         tasks.scan(() -> {
             logs.action(id, "EXECUTOR_START", Thread.currentThread().getName());
             int count = 0;
@@ -81,6 +89,7 @@ public final class FaweBuilder {
                         int[] rotated = rotate(block.x(), block.z(), location.rotation());
                         BlockVector3 destination = BlockVector3.at(location.x() + rotated[0],
                                 location.y() + block.y(), location.z() + rotated[1]);
+                        if (excluded.contains(destination)) continue;
                         session.setBlock(destination,
                                 (com.sk89q.worldedit.function.pattern.Pattern) BukkitAdapter.adapt(block.data()));
                         count++;
@@ -103,12 +112,13 @@ public final class FaweBuilder {
         }, succeed, fail);
     }
 
-    private Set<Long> requiredChunks(BlueprintType type, BuildLocation location) {
+    private Set<Long> requiredChunks(BlueprintType type, BuildLocation location, Set<BlockVector3> excluded) {
         Set<Long> chunks = new HashSet<>();
         for (BlueprintBlocks.OffsetBlock block : BlueprintBlocks.blocks(type)) {
             int[] rotated = rotate(block.x(), block.z(), location.rotation());
             int x = location.x() + rotated[0];
             int z = location.z() + rotated[1];
+            if (excluded.contains(BlockVector3.at(x, location.y() + block.y(), z))) continue;
             chunks.add(pack(Math.floorDiv(x, 16), Math.floorDiv(z, 16)));
         }
         return chunks;

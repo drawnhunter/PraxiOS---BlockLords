@@ -17,7 +17,8 @@ import java.util.logging.Logger;
 public final class MigrationRunner {
     private static final List<String> MIGRATIONS = List.of(
             "V1__phase1_foundation.sql",
-            "V2__phase2_economy.sql");
+            "V2__phase2_economy.sql",
+            "V3__residents.sql");
     private final Database database;
     private final Logger logger;
 

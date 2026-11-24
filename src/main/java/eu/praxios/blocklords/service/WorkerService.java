@@ -5,6 +5,7 @@ import eu.praxios.blocklords.repository.StorageRepository;
 import eu.praxios.blocklords.repository.WorkerRepository;
 import eu.praxios.blocklords.util.Msg;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
@@ -20,16 +21,18 @@ public final class WorkerService {
     private final StorageRepository storage;
     private final ConstructionService construction;
     private final VillageService villages;
+    private final ResidentService residents;
     private final TaskRunner tasks;
     private final AuditService audit;
     private final Map<Long, List<Worker>> workers = new ConcurrentHashMap<>();
 
     public WorkerService(WorkerRepository repository, StorageRepository storage, ConstructionService construction,
-                         VillageService villages, TaskRunner tasks, AuditService audit) {
+                         VillageService villages, ResidentService residents, TaskRunner tasks, AuditService audit) {
         this.repository = repository;
         this.storage = storage;
         this.construction = construction;
         this.villages = villages;
+        this.residents = residents;
         this.tasks = tasks;
         this.audit = audit;
     }
@@ -72,27 +75,33 @@ public final class WorkerService {
             return;
         }
         Location center = new Location(world, building.location().x() + 2, building.location().y() + 1, building.location().z() + 2);
-        List<UUID> assigned = workers(village.id()).stream().map(Worker::villager).toList();
-        Villager villager = world.getNearbyEntities(BoundingBox.of(center.clone().add(-12, -6, -12), center.clone().add(12, 6, 12)))
-                .stream().filter(entity -> entity instanceof Villager).map(entity -> (Villager) entity)
-                .filter(candidate -> !assigned.contains(candidate.getUniqueId()))
-                .min((left, right) -> Double.compare(left.getLocation().distanceSquared(center), right.getLocation().distanceSquared(center)))
-                .orElse(null);
-        if (villager == null) {
-            Msg.error(player, "Kein freier Dorfbewohner im Umkreis von 12 Blöcken gefunden.");
+        Resident candidate = residents.free(village.id(), workers(village.id())).stream()
+                .min((left, right) -> {
+                    double leftDistance = Bukkit.getEntity(left.villager()) instanceof Villager villager
+                            ? villager.getLocation().distanceSquared(center) : Double.MAX_VALUE;
+                    double rightDistance = Bukkit.getEntity(right.villager()) instanceof Villager villager
+                            ? villager.getLocation().distanceSquared(center) : Double.MAX_VALUE;
+                    return Double.compare(leftDistance, rightDistance);
+                }).orElse(null);
+        if (candidate == null) {
+            Msg.error(player, "Noch kein freier Bewohner registriert. Bleib kurz im Dorf; neue geladene Villager werden automatisch erfasst.");
             return;
         }
+        Villager villager = Bukkit.getEntity(candidate.villager()) instanceof Villager found ? found : null;
         tasks.database(() -> {
             storage.initializeProduction(village.id(), System.currentTimeMillis());
-            return repository.assign(village.id(), villager.getUniqueId(), buildingId, job);
+            return repository.assign(village.id(), candidate.villager(), buildingId, job);
         }, worker -> {
             refresh(village.id());
-            villager.setProfession(job == Worker.Job.FARMER ? Villager.Profession.FARMER : Villager.Profession.MASON);
-            villager.customName(Component.text(job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter"));
-            villager.setCustomNameVisible(true);
+            if (villager != null) {
+                villager.setProfession(job == Worker.Job.FARMER ? Villager.Profession.FARMER : Villager.Profession.MASON);
+                villager.customName(Component.text(job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter"));
+                villager.setCustomNameVisible(true);
+            }
             villages.markActivity(village, player.getUniqueId());
-            audit.log(player, "WORKER_ASSIGNED", job + " " + villager.getUniqueId() + " Gebäude #" + buildingId);
-            Msg.success(player, (job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter") + " zugewiesen: " + villager.getUniqueId());
+            audit.log(player, "WORKER_ASSIGNED", job + " " + candidate.villager() + " Gebäude #" + buildingId);
+            Msg.success(player, (job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter")
+                    + " aus dem dorffweiten Bewohnerregister zugewiesen: " + candidate.villager());
         }, error -> Msg.error(player, "Arbeiter konnte nicht zugewiesen werden: " + error.getMessage()));
     }
 

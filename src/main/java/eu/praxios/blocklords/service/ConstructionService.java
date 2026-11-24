@@ -2,23 +2,28 @@ package eu.praxios.blocklords.service;
 
 import eu.praxios.blocklords.model.*;
 import eu.praxios.blocklords.repository.ConstructionRepository;
+import eu.praxios.blocklords.repository.StorageRepository;
 import eu.praxios.blocklords.repository.VillageRepository;
 import eu.praxios.blocklords.util.Msg;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 
 public final class ConstructionService {
     private final ConstructionRepository repository;
     private final VillageRepository villageRepository;
     private final VillageService villages;
     private final StorageService storage;
+    private final StorageRepository storageRepository;
     private final FaweBuilder builder;
     private final TaskRunner tasks;
     private final AuditService audit;
@@ -29,12 +34,13 @@ public final class ConstructionService {
     private final Map<Long, Map<String, Boolean>> features = new ConcurrentHashMap<>();
 
     public ConstructionService(ConstructionRepository repository, VillageRepository villageRepository,
-                               VillageService villages, StorageService storage, FaweBuilder builder,
-                               TaskRunner tasks, AuditService audit) {
+                               VillageService villages, StorageService storage, StorageRepository storageRepository,
+                               FaweBuilder builder, TaskRunner tasks, AuditService audit) {
         this.repository = repository;
         this.villageRepository = villageRepository;
         this.villages = villages;
         this.storage = storage;
+        this.storageRepository = storageRepository;
         this.builder = builder;
         this.tasks = tasks;
         this.audit = audit;
@@ -134,11 +140,19 @@ public final class ConstructionService {
         if (validateAndCapture(player, village, preview.type(), preview.location(), preview) == null) return;
         tasks.database(() -> repository.createSite(village.id(), preview.type(), preview.location(), player.getUniqueId()), site -> {
             restore(preview);
+            if (!placeChest(site)) {
+                tasks.databaseVoid(() -> {
+                    repository.deleteSite(site.id());
+                    return null;
+                }, error -> Msg.error(player, "Baustellen-Rollback fehlgeschlagen: " + error.getMessage()));
+                Msg.error(player, "Baustellenkiste konnte nicht am vorgesehenen Anker platziert werden.");
+                return;
+            }
             selectedSites.put(player.getUniqueId(), site.id());
             refresh(village.id());
-            audit.log(player, "BUILD_SITE_CREATED", "#" + site.id() + " " + site.type());
+            audit.log(player, "BUILD_SITE_CREATED", "#" + site.id() + " " + site.type() + " mit Baustellenkiste");
             Msg.success(player, "Baustelle #" + site.id() + " für " + site.type().displayName() + " angelegt.");
-            Msg.info(player, "Mit /bl build contribute Inventar oder /bl build fund Dorfvorrat einzahlen; danach /bl build start.");
+            Msg.info(player, "Die Baustellenkiste nimmt Inventar und Dorfvorrat an und zeigt Liefer- und Baufortschritt.");
         }, error -> Msg.error(player, "Baustelle konnte nicht angelegt werden: " + error.getMessage()));
     }
 
@@ -156,32 +170,34 @@ public final class ConstructionService {
             Msg.error(player, "Wähle zuerst eine Baustelle aus.");
             return;
         }
-        Map<ResourceType, Integer> removed = removeNeeded(player, site);
+        Chest chest = chestFor(site);
+        if (chest == null) {
+            Msg.error(player, "Die Baustellenkiste fehlt oder ist nicht geladen. Bitte Admin prüfen lassen.");
+            return;
+        }
+        Map<ResourceType, Integer> removed = removeNeeded(player, site, chestCounts(site));
         if (removed.isEmpty()) {
             Msg.error(player, "Dein Inventar enthält kein benötigtes Restmaterial: " + remainingText(site));
             return;
         }
+        Map<ResourceType, Integer> accepted = putIntoChest(chest, site, removed);
+        removed.forEach((resource, original) -> {
+            int missing = original - accepted.getOrDefault(resource, 0);
+            if (missing > 0) give(player, resource, missing);
+        });
         tasks.database(() -> {
-            Map<ResourceType, Integer> accepted = new EnumMap<>(ResourceType.class);
-            for (var entry : removed.entrySet()) {
-                int actual = repository.contribute(site.id(), player.getUniqueId(), entry.getKey(), entry.getValue());
-                if (actual > 0) accepted.put(entry.getKey(), actual);
+            for (var entry : accepted.entrySet()) {
+                repository.recordContribution(site.id(), player.getUniqueId(), entry.getKey(), entry.getValue());
             }
+            repository.reconcileFromChest(site.id(), chestCounts(site));
             return accepted;
-        }, accepted -> {
-            removed.forEach((resource, original) -> {
-                int missing = original - accepted.getOrDefault(resource, 0);
-                if (missing > 0) give(player, resource, missing);
-            });
+        }, confirmed -> {
             refresh(village.id());
             villages.markActivity(village, player.getUniqueId());
-            audit.log(player, "BUILD_CONTRIBUTION", "Baustelle #" + site.id() + " " + accepted);
-            Msg.success(player, "Material an Baustelle #" + site.id() + " geliefert: " + accepted);
+            audit.log(player, "BUILD_CONTRIBUTION", "Baustellenkiste #" + site.id() + " " + confirmed);
+            Msg.success(player, "Material in Baustellenkiste #" + site.id() + " geliefert: " + confirmed);
             repositoryStatus(player, site.id());
-        }, error -> {
-            removed.forEach((resource, amount) -> give(player, resource, amount));
-            Msg.error(player, "Materialbeitrag fehlgeschlagen; Items zurückerstattet: " + error.getMessage());
-        });
+        }, error -> Msg.error(player, "Material liegt in der Kiste, aber der Status konnte nicht gespeichert werden: " + error.getMessage()));
     }
 
     public void fund(Player player, Village village) {
@@ -190,20 +206,43 @@ public final class ConstructionService {
             Msg.error(player, "Wähle zuerst eine Baustelle aus.");
             return;
         }
+        Chest chest = chestFor(site);
+        if (chest == null) {
+            Msg.error(player, "Die Baustellenkiste fehlt oder ist nicht geladen.");
+            return;
+        }
+        Map<ResourceType, Integer> counts = chestCounts(site);
         tasks.database(() -> {
-            Map<ResourceType, Integer> accepted = new EnumMap<>(ResourceType.class);
+            Map<ResourceType, Integer> withdrawn = new EnumMap<>(ResourceType.class);
             for (ResourceType resource : site.required().keySet()) {
-                int actual = repository.fundFromStorage(site.id(), player.getUniqueId(), resource, site.remaining(resource));
-                if (actual > 0) accepted.put(resource, actual);
+                int remaining = site.required().get(resource) - counts.getOrDefault(resource, 0);
+                int actual = storageRepository.withdraw(village.id(), player.getUniqueId(), resource, remaining);
+                if (actual > 0) withdrawn.put(resource, actual);
             }
-            return accepted;
-        }, accepted -> {
-            refresh(village.id());
-            storage.refresh(village.id());
-            villages.markActivity(village, player.getUniqueId());
-            audit.log(player, "BUILD_STORAGE_FUNDING", "Baustelle #" + site.id() + " " + accepted);
-            Msg.success(player, "Dorfvorrat eingesetzt: " + accepted);
-            repositoryStatus(player, site.id());
+            return withdrawn;
+        }, withdrawn -> {
+            Map<ResourceType, Integer> accepted = putIntoChest(chest, site, withdrawn);
+            tasks.database(() -> {
+                withdrawn.forEach((resource, original) -> {
+                    int missing = original - accepted.getOrDefault(resource, 0);
+                    if (missing > 0) {
+                        try {
+                            storageRepository.deposit(village.id(), player.getUniqueId(), resource, missing, storage.capacity(village.id()));
+                        } catch (Exception exception) {
+                            throw new RuntimeException(exception);
+                        }
+                    }
+                });
+                repository.reconcileFromChest(site.id(), chestCounts(site));
+                return accepted;
+            }, confirmed -> {
+                refresh(village.id());
+                storage.refresh(village.id());
+                villages.markActivity(village, player.getUniqueId());
+                audit.log(player, "BUILD_STORAGE_FUNDING", "Baustellenkiste #" + site.id() + " " + confirmed);
+                Msg.success(player, "Dorfvorrat in die Baustellenkiste übertragen: " + confirmed);
+                repositoryStatus(player, site.id());
+            }, error -> Msg.error(player, "Baustellenübertragung fehlgeschlagen: " + error.getMessage()));
         }, error -> Msg.error(player, "Dorfvorrat konnte nicht verwendet werden: " + error.getMessage()));
     }
 
@@ -213,16 +252,31 @@ public final class ConstructionService {
             Msg.error(player, "Wähle zuerst eine Baustelle aus.");
             return;
         }
-        if (!site.complete()) {
-            Msg.error(player, "Es fehlt noch Material: " + remainingText(site));
+        Chest chest = chestFor(site);
+        if (chest == null) {
+            Msg.error(player, "Die Baustellenkiste fehlt oder ist nicht geladen.");
+            return;
+        }
+        Map<ResourceType, Integer> counts = chestCounts(site);
+        boolean complete = site.required().keySet().stream()
+                .allMatch(resource -> counts.getOrDefault(resource, 0) >= site.required().get(resource));
+        if (!complete) {
+            Msg.error(player, "Es fehlt noch Material: " + remainingFromCounts(site, counts));
             return;
         }
         tasks.database(() -> {
             repository.markBuilding(site.id());
             return site;
         }, marked -> {
+            Map<ResourceType, Integer> committed = commitMaterials(chest, site);
+            if (committed == null) {
+                repositorySafeReady(site.id());
+                Msg.error(player, "Materialcommit fehlgeschlagen; kein Bau gestartet.");
+                return;
+            }
             Msg.info(player, "FAWE-Bau für " + site.type().displayName() + " gestartet: Fundament, Wände, Dach.");
-            builder.paste(site.type(), site.location(), count -> tasks.database(() -> {
+            Set<com.sk89q.worldedit.math.BlockVector3> excluded = Set.of(chestVector(site));
+            builder.paste(site.type(), site.location(), excluded, count -> tasks.database(() -> {
                 Building building = repository.completeSite(site.id());
                 Village updated = villageRepository.addXp(village.id(), site.type().xp());
                 setCompletionFeatures(building);
@@ -235,14 +289,20 @@ public final class ConstructionService {
                 Msg.success(player, completion.building().type().displayName() + " fertiggestellt: " + count + " Blöcke.");
                 Msg.success(player, "Dorf-Level " + completion.village().level() + " · XP " + completion.village().xp() + ".");
                 if (site.type().workplace()) {
-                    Msg.info(player, "Nächster Schritt: /bl workers öffnen, freien Bewohner zuweisen und Nahrung einlagern.");
+                    Msg.info(player, "Nächster Schritt: /bl workers öffnen, registrierte Bewohner zuweisen und Nahrung einlagern.");
                 }
             }, error -> {
+                returnMaterials(chest, committed);
                 repositorySafeReady(site.id());
-                Msg.error(player, "Abschluss nach dem Bau fehlgeschlagen: " + error.getMessage());
+                Msg.error(player, "Abschluss nach dem Bau fehlgeschlagen; Material wurde zurückgegeben: " + error.getMessage());
             }), error -> {
-                repositorySafeReady(site.id());
-                Msg.error(player, "FAWE-Bau fehlgeschlagen; Baustelle wurde wieder freigegeben: " + error.getMessage());
+                if (error instanceof TimeoutException) {
+                    Msg.error(player, "FAWE-Timeout: Material bleibt sicher reserviert. Bitte Aktions-ID im Log prüfen.");
+                } else {
+                    returnMaterials(chest, committed);
+                    repositorySafeReady(site.id());
+                    Msg.error(player, "FAWE-Bau fehlgeschlagen; Material zurückgegeben und Baustelle freigegeben: " + error.getMessage());
+                }
             });
         }, error -> Msg.error(player, "Baustart fehlgeschlagen: " + error.getMessage()));
     }
@@ -311,11 +371,119 @@ public final class ConstructionService {
         return matches(block, location, offset) && block.getBlockData().equals(offset.data());
     }
 
-    private Map<ResourceType, Integer> removeNeeded(Player player, BuildSite site) {
+    private boolean placeChest(BuildSite site) {
+        Block block = chestBlock(site);
+        if (block == null || !block.getType().isAir()) return false;
+        block.setType(Material.CHEST);
+        if (!(block.getState() instanceof Chest chest)) return false;
+        chest.customName(net.kyori.adventure.text.Component.text("Baustelle · " + site.type().displayName()));
+        chest.update(true);
+        return true;
+    }
+
+    private Block chestBlock(BuildSite site) {
+        org.bukkit.World world = Bukkit.getWorld(site.location().world());
+        if (world == null) return null;
+        int[] rotated = rotate(4, 4, site.location().rotation());
+        return world.getBlockAt(site.location().x() + rotated[0], site.location().y() + 1,
+                site.location().z() + rotated[1]);
+    }
+
+    private com.sk89q.worldedit.math.BlockVector3 chestVector(BuildSite site) {
+        Block block = chestBlock(site);
+        return block == null ? null : com.sk89q.worldedit.math.BlockVector3.at(block.getX(), block.getY(), block.getZ());
+    }
+
+    private Chest chestFor(BuildSite site) {
+        Block block = chestBlock(site);
+        if (block == null || block.getType() != Material.CHEST) return null;
+        return block.getState() instanceof Chest chest ? chest : null;
+    }
+
+    public Optional<BuildSite> siteAtChest(Block block) {
+        return sites.values().stream().flatMap(List::stream)
+                .filter(site -> sameBlock(chestBlock(site), block)).findFirst();
+    }
+
+    public Optional<Building> buildingAtChest(Block block) {
+        return buildings.values().stream().flatMap(List::stream).filter(building -> {
+            Block chest = chestBlock(new BuildSite(0, building.villageId(), building.type(), building.location(),
+                    BuildSite.Status.COLLECTING, villageServiceOwner(building), building.createdAt(), Map.of(), Map.of()));
+            return sameBlock(chest, block);
+        }).findFirst();
+    }
+
+    private UUID villageServiceOwner(Building building) {
+        return villages.byId(building.villageId()).map(Village::owner).orElse(new UUID(0, 0));
+    }
+
+    private boolean sameBlock(Block first, Block second) {
+        return first != null && second != null && first.getWorld().equals(second.getWorld())
+                && first.getX() == second.getX() && first.getY() == second.getY() && first.getZ() == second.getZ();
+    }
+
+    private Map<ResourceType, Integer> chestCounts(BuildSite site) {
+        Chest chest = chestFor(site);
+        if (chest == null) return Map.of();
+        Map<ResourceType, Integer> counts = new EnumMap<>(ResourceType.class);
+        for (ItemStack item : chest.getInventory().getContents()) {
+            if (item == null) continue;
+            ResourceType.from(item.getType()).ifPresent(resource -> counts.merge(resource, item.getAmount(), Integer::sum));
+        }
+        return counts;
+    }
+
+    private Map<ResourceType, Integer> putIntoChest(Chest chest, BuildSite site, Map<ResourceType, Integer> items) {
+        Map<ResourceType, Integer> accepted = new EnumMap<>(ResourceType.class);
+        Map<ResourceType, Integer> current = chestCounts(site);
+        items.forEach((resource, offered) -> {
+            int remaining = Math.max(0, site.required().getOrDefault(resource, 0) - current.getOrDefault(resource, 0));
+            int requested = Math.min(offered, remaining);
+            if (requested <= 0) return;
+            Map<Integer, ItemStack> left = chest.getInventory().addItem(new ItemStack(resource.canonicalItem(), requested));
+            int actual = requested - left.values().stream().mapToInt(ItemStack::getAmount).sum();
+            if (actual > 0) accepted.put(resource, actual);
+        });
+        return accepted;
+    }
+
+    private Map<ResourceType, Integer> commitMaterials(Chest chest, BuildSite site) {
+        Map<ResourceType, Integer> committed = new EnumMap<>(ResourceType.class);
+        for (var entry : site.required().entrySet()) {
+            int remaining = entry.getValue();
+            for (ItemStack item : chest.getInventory().getContents()) {
+                if (item == null || !entry.getKey().accepts(item.getType())) continue;
+                int take = Math.min(remaining, item.getAmount());
+                item.setAmount(item.getAmount() - take);
+                remaining -= take;
+                committed.merge(entry.getKey(), take, Integer::sum);
+                if (item.getAmount() <= 0) item.setAmount(0);
+                if (remaining == 0) break;
+            }
+            if (remaining > 0) return null;
+        }
+        return committed;
+    }
+
+    private void returnMaterials(Chest chest, Map<ResourceType, Integer> committed) {
+        committed.forEach((resource, amount) -> {
+            Map<Integer, ItemStack> left = chest.getInventory().addItem(new ItemStack(resource.canonicalItem(), amount));
+            left.values().forEach(item -> chest.getWorld().dropItemNaturally(chest.getLocation(), item));
+        });
+    }
+
+    private String remainingFromCounts(BuildSite site, Map<ResourceType, Integer> counts) {
+        return site.required().keySet().stream()
+                .filter(resource -> counts.getOrDefault(resource, 0) < site.required().get(resource))
+                .map(resource -> (site.required().get(resource) - counts.getOrDefault(resource, 0)) + " " + resource.displayName())
+                .reduce((left, right) -> left + ", " + right).orElse("bereit");
+    }
+
+    private Map<ResourceType, Integer> removeNeeded(Player player, BuildSite site, Map<ResourceType, Integer> chestCounts) {
         Map<ResourceType, Integer> removed = new EnumMap<>(ResourceType.class);
         ItemStack[] contents = player.getInventory().getContents();
         for (ResourceType resource : site.required().keySet()) {
-            int remaining = site.remaining(resource);
+            int remaining = site.required().get(resource) - chestCounts.getOrDefault(resource, 0);
             if (remaining <= 0) continue;
             for (int slot = 0; slot < contents.length && remaining > 0; slot++) {
                 ItemStack item = contents[slot];

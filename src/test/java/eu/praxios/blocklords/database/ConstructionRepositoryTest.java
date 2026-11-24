@@ -66,6 +66,20 @@ class ConstructionRepositoryTest {
         assertTrue(construction.findSite(site.id()).orElseThrow().complete());
     }
 
+    @Test
+    void chestInventoryControlsReadyState() throws Exception {
+        BuildSite site = construction.createSite(village.id(), BlueprintType.FARM, location(), player);
+        construction.reconcileFromChest(site.id(), Map.of(ResourceType.HOLZ, 16));
+        assertEquals(BuildSite.Status.COLLECTING, construction.findSite(site.id()).orElseThrow().status());
+        construction.reconcileFromChest(site.id(), Map.of(ResourceType.HOLZ, 16, ResourceType.STEIN, 8));
+        BuildSite ready = construction.findSite(site.id()).orElseThrow();
+        assertEquals(BuildSite.Status.READY, ready.status());
+        assertTrue(ready.complete());
+        construction.recordContribution(site.id(), player, ResourceType.HOLZ, 16);
+        construction.reconcileFromChest(site.id(), Map.of());
+        assertEquals(BuildSite.Status.COLLECTING, construction.findSite(site.id()).orElseThrow().status());
+    }
+
     private BuildLocation location() {
         return new BuildLocation(village.region().world(), 10, 65, 10, 0);
     }

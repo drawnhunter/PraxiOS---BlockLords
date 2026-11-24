@@ -9,6 +9,7 @@ import eu.praxios.blocklords.service.*;
 import eu.praxios.blocklords.ui.UiService;
 import eu.praxios.blocklords.util.Msg;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -39,11 +40,12 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
     private final VillageRepository villageRepository;
     private final DecayService decay;
     private final EconomyCommand economy;
+    private final GuideItemService guide;
 
     public BlockLordsCommand(BlockLords plugin, VillageService villages, FoundingService founding, UiService ui,
                              ProtectionService protection, AltSelectionService alt, AuditService audit,
                              TaskRunner tasks, VillageRepository villageRepository, DecayService decay,
-                             EconomyCommand economy) {
+                             EconomyCommand economy, GuideItemService guide) {
         this.plugin = plugin;
         this.villages = villages;
         this.founding = founding;
@@ -55,6 +57,7 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
         this.villageRepository = villageRepository;
         this.decay = decay;
         this.economy = economy;
+        this.guide = guide;
     }
 
     @Override
@@ -70,6 +73,10 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
             }
             case "quest" -> {
                 if (sender instanceof Player player) Msg.info(player, founding.questInfo(player));
+                else Msg.error(sender, "Diese Aktion benötigt einen Spieler.");
+            }
+            case "menu" -> {
+                if (sender instanceof Player player) guide.give(player);
                 else Msg.error(sender, "Diese Aktion benötigt einen Spieler.");
             }
             case "found" -> found(sender, args);
@@ -130,15 +137,78 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
             }
             case "disband" -> disband(sender, args);
             case "transfer" -> transfer(sender, args);
+            case "tp" -> teleport(sender, args);
             case "selftest" -> selfTest(sender, args);
             case "alt" -> alt(sender, args);
             default -> adminHelp(sender);
         }
     }
 
+    private void teleport(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            Msg.error(sender, "Dorf-Teleport benötigt einen Spieler.");
+            return;
+        }
+        if (args.length < 3) {
+            Msg.error(player, "Verwendung: /bl admin tp <Dorf-ID>");
+            return;
+        }
+        Long id = parseId(player, args[2]);
+        if (id == null) return;
+        Village village = villages.byId(id).orElse(null);
+        if (village == null) {
+            Msg.error(player, "Dorf-ID " + id + " existiert nicht.");
+            return;
+        }
+        org.bukkit.World world = Bukkit.getWorld(village.region().world());
+        if (world == null) {
+            Msg.error(player, "Die Welt dieses Dorfes ist nicht geladen.");
+            return;
+        }
+        Location target = safeVillageLocation(world, village);
+        if (target == null) {
+            Msg.error(player, "Kein sicherer Teleportpunkt nahe der Glocke gefunden. Bitte Umgebung prüfen.");
+            return;
+        }
+        player.teleportAsync(target).thenAccept(success -> {
+            if (success) {
+                Msg.success(player, "Teleport zu Dorf #" + village.id() + " '" + village.name() + "'.");
+                audit.log(player, "ADMIN_TELEPORT", "Dorf #" + village.id() + " " + village.name());
+            } else {
+                Msg.error(player, "Teleport wurde vom Server abgelehnt.");
+            }
+        });
+    }
+
+    private Location safeVillageLocation(org.bukkit.World world, Village village) {
+        int[][] offsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {2, 0}, {0, 2}, {-2, 0}, {0, -2}};
+        for (int dy = 2; dy >= -5; dy--) {
+            for (int[] offset : offsets) {
+                int x = village.region().bellX() + offset[0];
+                int y = village.region().bellY() + dy;
+                int z = village.region().bellZ() + offset[1];
+                Block feet = world.getBlockAt(x, y, z);
+                Block head = feet.getRelative(0, 1, 0);
+                Block ground = feet.getRelative(0, -1, 0);
+                if (feet.isPassable() && head.isPassable() && ground.getType().isSolid()) {
+                    return new Location(world, x + 0.5, y, z + 0.5, 0, 0);
+                }
+            }
+        }
+        return null;
+    }
+
     private void selfTest(CommandSender sender, String[] args) {
+        if (args.length == 3) {
+            try {
+                plugin.selfTest(sender, BlueprintType.valueOf(args[2].toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException exception) {
+                Msg.error(sender, "Unbekannter Bauplantyp: " + args[2]);
+            }
+            return;
+        }
         if (args.length < 6) {
-            Msg.error(sender, "Verwendung: /bl admin selftest <Bauplantyp> <x> <y> <z>");
+            Msg.error(sender, "Verwendung: /bl admin selftest <Bauplantyp> [<x> <y> <z>] — ohne Koordinaten gilt dein anvisierter Block.");
             return;
         }
         try {
@@ -275,22 +345,22 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
     }
 
     private void help(CommandSender sender) {
-        Msg.info(sender, "/bl info · /bl quest · /bl found <Name>");
+        Msg.info(sender, "/bl menu · /bl info · /bl quest · /bl found <Name>");
         Msg.plain(sender, "/bl storage · /bl build · /bl workers · /bl research · /bl level");
         if (sender.hasPermission("blocklords.admin")) adminHelp(sender);
     }
 
     private void adminHelp(CommandSender sender) {
         Msg.plain(sender, "/bl admin list|reload|backup|decay|audit [n]|auditselftest|bypass|selftest <Typ> <x> <y> <z>");
-        Msg.plain(sender, "/bl admin disband <ID> confirm · transfer <ID> <Spieler>");
+        Msg.plain(sender, "/bl admin tp <Dorf-ID> · disband <ID> confirm · transfer <ID> <Spieler>");
         Msg.plain(sender, "/bl admin alt pos1|pos2|register <Spieler|unbekannt> <Name>|remove <ID>|list");
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) return filter(List.of("info", "quest", "found", "build", "storage", "workers", "research", "level", "admin"), args[0]);
+        if (args.length == 1) return filter(List.of("menu", "info", "quest", "found", "build", "storage", "workers", "research", "level", "admin"), args[0]);
         if (args.length == 2 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("blocklords.admin")) {
-            return filter(List.of("list", "reload", "backup", "decay", "audit", "auditselftest", "bypass", "selftest", "disband", "transfer", "alt"), args[1]);
+            return filter(List.of("list", "reload", "backup", "decay", "audit", "auditselftest", "bypass", "selftest", "tp", "disband", "transfer", "alt"), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("alt")) {
             return filter(List.of("pos1", "pos2", "register", "remove", "list"), args[2]);

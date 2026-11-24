@@ -36,6 +36,7 @@ public final class FoundingService {
     private final VillageService villages;
     private final TaskRunner tasks;
     private final AuditService audit;
+    private final GuideItemService guide;
     private final Map<UUID, QuestState> quests = new ConcurrentHashMap<>();
     private final Set<UUID> pendingClaims = ConcurrentHashMap.newKeySet();
     private Consumer<Player> questUpdateHandler = player -> { };
@@ -45,13 +46,15 @@ public final class FoundingService {
     }
 
     public FoundingService(Supplier<BlockLordsConfig> config, VillageRepository villageRepository,
-                           QuestRepository questRepository, VillageService villages, TaskRunner tasks, AuditService audit) {
+                           QuestRepository questRepository, VillageService villages, TaskRunner tasks,
+                           AuditService audit, GuideItemService guide) {
         this.config = config;
         this.villageRepository = villageRepository;
         this.questRepository = questRepository;
         this.villages = villages;
         this.tasks = tasks;
         this.audit = audit;
+        this.guide = guide;
     }
 
     public void loadPlayer(Player player) {
@@ -186,7 +189,8 @@ public final class FoundingService {
                             System.currentTimeMillis()));
                     audit.log(player, "VILLAGE_FOUNDED", village.name() + " an Glocke " + coordinates(bell));
                     Msg.success(player, "Dorf '" + village.name() + "' gegründet. Du bist jetzt Landherr.");
-                    Msg.info(player, "Die Rathaus-Basis öffnest du über die Dorfglocke oder /bl info.");
+                    guide.give(player);
+                    Msg.info(player, "Die Rathaus-Basis öffnest du über die Dorfglocke, den Dorfmenü-Kompass oder /bl info.");
                     success.accept(village);
                 }, error -> {
                     pendingClaims.remove(player.getUniqueId());
