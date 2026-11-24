@@ -13,6 +13,7 @@ import eu.praxios.blocklords.service.ConstructionService;
 import eu.praxios.blocklords.service.FoundingService;
 import eu.praxios.blocklords.service.ResearchService;
 import eu.praxios.blocklords.service.ResidentService;
+import eu.praxios.blocklords.service.PlacementModeService;
 import eu.praxios.blocklords.service.StorageService;
 import eu.praxios.blocklords.service.TaskRunner;
 import eu.praxios.blocklords.service.VillageScanner;
@@ -47,11 +48,12 @@ public final class UiService {
     private final WorkerService workers;
     private final ResearchService research;
     private final ResidentService residents;
+    private final PlacementModeService placement;
 
     public UiService(Supplier<BlockLordsConfig> config, VillageService villages, FoundingService founding,
                      VillageScanner scanner, TaskRunner tasks, ConstructionService construction,
                      StorageService storage, WorkerService workers, ResearchService research,
-                     ResidentService residents) {
+                     ResidentService residents, PlacementModeService placement) {
         this.config = config;
         this.villages = villages;
         this.founding = founding;
@@ -62,6 +64,7 @@ public final class UiService {
         this.workers = workers;
         this.research = research;
         this.residents = residents;
+        this.placement = placement;
         BedrockUi candidate = null;
         if (Bukkit.getPluginManager().isPluginEnabled("Floodgate") && config.get().bedrockForms()) {
             try {
@@ -176,6 +179,11 @@ public final class UiService {
                         construction.preview(player, village, type);
                     }, "Kosten: " + type.cost(), "Erforderliches Dorf-Level: " + type.requiredLevel()));
         }
+        if (construction.hasPreview(player)) {
+            actions.add(UiAction.of(Material.REPEATER, "Hotbar-Werkzeugmodus", () -> placement.enterExisting(player),
+                    "Sicheres Inventar-Snapshot und Wiederherstellung."));
+            actions.add(UiAction.of(Material.COMPASS, "Platzierungssteuerung", () -> openPlacementControls(player)));
+        }
         actions.add(UiAction.of(Material.CRAFTING_TABLE, "Meine Baustellen", () -> openSites(player, village)));
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
         openActions(player, "Bauen · " + village.name(), "Wähle eine Vorschau oder bestücke eine vorhandene Baustelle.", actions);
@@ -190,6 +198,16 @@ public final class UiService {
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openBuild(player, village)));
         openActions(player, "Baustellen · " + village.name(), construction.sites(village.id()).isEmpty()
                 ? "Noch keine Baustellen." : "Beiträge mehrerer Spieler werden protokolliert.", actions);
+    }
+
+    public void openPlacementControls(Player player) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.OAK_SIGN, "Position neu setzen", () -> construction.movePreview(player)));
+        actions.add(UiAction.of(Material.REDSTONE_TORCH, "Links rotieren", () -> construction.rotatePreview(player, -90)));
+        actions.add(UiAction.of(Material.REPEATER, "Rechts rotieren", () -> construction.rotatePreview(player, 90)));
+        actions.add(UiAction.of(Material.EMERALD, "Baustelle bestätigen", () -> construction.confirmPreview(player)));
+        actions.add(UiAction.of(Material.BARRIER, "Vorschau abbrechen", () -> construction.cancelPreview(player)));
+        openActions(player, "Platzierung", "Alle Aktionen sind auch als Hotbar-Werkzeuge über /bl build tools verfügbar.", actions);
     }
 
     public void openSite(Player player, Village village, BuildSite site) {

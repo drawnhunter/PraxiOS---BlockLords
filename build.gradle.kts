@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "eu.praxios"
-version = "0.2.2-alpha.1"
+version = "0.2.3-alpha.1"
 
 repositories {
     mavenCentral()

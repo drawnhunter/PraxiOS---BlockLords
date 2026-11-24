@@ -17,15 +17,18 @@ public final class EconomyCommand {
     private final WorkerService workers;
     private final ResearchService research;
     private final UiService ui;
+    private final PlacementModeService placement;
 
     public EconomyCommand(VillageService villages, ConstructionService construction, StorageService storage,
-                          WorkerService workers, ResearchService research, UiService ui) {
+                          WorkerService workers, ResearchService research, UiService ui,
+                          PlacementModeService placement) {
         this.villages = villages;
         this.construction = construction;
         this.storage = storage;
         this.workers = workers;
         this.research = research;
         this.ui = ui;
+        this.placement = placement;
     }
 
     public boolean handle(CommandSender sender, String[] args) {
@@ -68,6 +71,10 @@ public final class EconomyCommand {
                     Msg.error(player, "Unbekannter Bauplantyp: " + args[2]);
                 }
             }
+            case "tools" -> placement.enterExisting(player);
+            case "move" -> construction.movePreview(player);
+            case "left" -> construction.rotatePreview(player, -90);
+            case "right" -> construction.rotatePreview(player, 90);
             case "confirm" -> construction.confirmPreview(player);
             case "cancel" -> construction.cancelPreview(player);
             case "contribute" -> construction.contribute(player, village);
@@ -90,7 +97,7 @@ public final class EconomyCommand {
                     Msg.error(player, "Baustellen-ID muss eine Zahl sein.");
                 }
             }
-            default -> Msg.error(player, "/bl build list|preview|confirm|cancel|contribute|fund|start|sites|select");
+            default -> Msg.error(player, "/bl build list|preview|tools|move|left|right|confirm|cancel|contribute|fund|start|sites|select");
         }
     }
 

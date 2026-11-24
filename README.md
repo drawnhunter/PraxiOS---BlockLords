@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.2-alpha.1 (Phase 2)
+## Aktueller Stand: 0.2.3-alpha.1 (Phase 2)
 
 Enthalten:
 
@@ -29,6 +29,15 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.3-alpha.1 (Hotbar-Baumodus)
+
+- **Verankerte Preview:** Der Bauplan bleibt beim Umhergehen an seiner Position; Verschieben und Rotieren verwenden dieselbe Session und Kollisionsprüfung.
+- **Hotbar-Werkzeugmodus:** Nach Preview-Auswahl über `/bl build tools` oder das Baummenü. Werkzeuge für Position, links/rechts, Anker, Bestätigen und Abbrechen.
+- **Sichere Inventar-Session:** SQLite-Snapshot von Inventar, Rüstung, Offhand/Extras und Slot vor der ersten Ersetzung; PDC-Werkzeuge und Sperren gegen Drop, Drag, Klick, Offhand-Swap und fremde Container.
+- **Wiederherstellung:** idempotent nach Bestätigen, Abbrechen, Logout, Tod, Weltwechsel, Reload und Serverstopp; Logout während Snapshot-Speicherung wird abgefangen.
+- **Formular-Fallback:** Alle Bewegungs-/Rotationsaktionen bleiben über das Platzierungsmenü verfügbar; Hotbar ist optional.
+- `/bl admin itemtest` prüft den ItemStack-NBT-Roundtrip auf dem laufenden Server.
 
 ### Neuerungen in 0.2.2-alpha.1
 
@@ -76,8 +85,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.2-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.2-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.3-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.3-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -87,9 +96,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.2-alpha.1.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.3-alpha.1.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.2-alpha.1 aktiviert: Phase 2 ...`.
+3. Log prüfen: `BlockLords 0.2.3-alpha.1 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 
@@ -117,6 +126,8 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 18. **Bewohnerregister:** Bewohner mit Dorfglocken-Meeting-Point werden als bestätigt, Bettbewohner als unbestätigt erfasst. Sneak + Rechtsklick auf die Glocke muss Anwesende, neue Bestätigungen und bettlose Bewohner melden.
 19. **Bedienung:** `/bl menu` liefert den Kompass; Rechtsklick öffnet Menüs. `/bl admin selftest RATHAUS` funktioniert ohne Koordinaten. `/bl admin tp <ID>` findet einen sicheren Zielpunkt oder meldet einen Fehler.
 20. **Timeout-Race:** Nach erfolgreichem FAWE-Selftest mindestens 25 Sekunden warten. Es darf kein `LATE_FAILURE_IGNORED` nach `SUCCESS` erscheinen.
+21. **Hotbar-Session:** Preview wählen, `/bl build tools`, rotieren/verschieben/Anker lösen und bestätigen. Originalinventar muss exakt zurückkehren. Tests zusätzlich mit Abbrechen, Logout/Join, Tod, Weltwechsel und Serverstopp wiederholen; keine Items dürfen dupliziert werden. `/bl admin itemtest` muss erfolgreich sein.
+22. **Formular-Fallback:** Dieselben Platzierungsaktionen auf Bedrock über das Platzierungsmenü ausführen; keine Hotbar-Übernahme ist erforderlich.
 
 ## Befehle
 
@@ -127,7 +138,7 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 | `/bl quest` | Aktuellen Gründungsfortschritt anzeigen |
 | `/bl found <Name>` | Dorf an der anvisierten Glocke gründen |
 | `/bl storage` | Vorrat öffnen; `/bl storage deposit` lagert passende Inventar-Items ein |
-| `/bl build` | Baupläne öffnen; `preview`, `confirm`, `contribute`, `fund`, `start`, `sites`, `select` |
+| `/bl build` | Baupläne öffnen; `preview`, `tools`, `move`, `left`, `right`, `confirm`, `cancel`, `contribute`, `fund`, `start`, `sites`, `select` |
 | `/bl workers` | Arbeiterübersicht; `assign <Gebäude-ID>`, `unassign <Arbeiter-ID>` |
 | `/bl research` | Forschung öffnen beziehungsweise mit `start` beginnen |
 | `/bl level` | Dorf-Level, XP und Status anzeigen |
@@ -138,6 +149,7 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 | `/bl admin decay` | Zerfallsprüfung ohne Schutzänderung ausführen |
 | `/bl admin audit [n]` | Letzte Audit-Einträge anzeigen |
 | `/bl admin auditselftest` | Audit-Schreib-/Leseprobe mit eindeutiger ID ausführen |
+| `/bl admin itemtest` | ItemStack-NBT-Serialisierung und Rücklesung prüfen |
 | `/bl admin bypass` | Eigenen Admin-Bypass umschalten und auditieren |
 | `/bl admin tp <Dorf-ID>` | Sicher zur Dorfglocken-Umgebung teleportieren |
 | `/bl admin disband <ID> confirm` | Claim bestätigt auflösen; Gebäude bleiben stehen |

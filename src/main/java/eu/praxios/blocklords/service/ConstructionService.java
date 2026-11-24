@@ -89,55 +89,106 @@ public final class ConstructionService {
                 .toList();
     }
 
-    public void preview(Player player, Village village, BlueprintType type) {
+    public boolean preview(Player player, Village village, BlueprintType type) {
+        Block target = player.getTargetBlockExact(6);
+        if (target == null) {
+            Msg.error(player, "Visiere einen Bodenblock in deinem Dorf an.");
+            return false;
+        }
+        return previewAt(player, village, type, new BuildLocation(target.getWorld().getUID(), target.getX(),
+                target.getY() + 1, target.getZ(), rotation(player)));
+    }
+
+    public boolean previewAt(Player player, Village village, BlueprintType type, BuildLocation location) {
         if (villages.role(village.id(), player.getUniqueId()) != Role.LANDHERR
                 && villages.role(village.id(), player.getUniqueId()) != Role.GEFOLGSMANN) {
             Msg.error(player, "Nur Landherr oder Gefolgsmann dürfen Baupläne platzieren.");
-            return;
+            return false;
         }
         if (type.requiredLevel() > village.level()) {
             Msg.error(player, type.displayName() + " benötigt Dorf-Level " + type.requiredLevel() + ".");
-            return;
+            return false;
         }
         if (type == BlueprintType.WOHNHAUS_II
                 && !features.getOrDefault(village.id(), Map.of()).getOrDefault("RESEARCH_WOHNHAUS_II", false)) {
             Msg.error(player, "Wohnhaus II benötigt die abgeschlossene Bibliotheksforschung.");
-            return;
+            return false;
         }
-        Block target = player.getTargetBlockExact(6);
-        if (target == null) {
-            Msg.error(player, "Visiere einen Bodenblock in deinem Dorf an.");
-            return;
-        }
-        BuildLocation location = new BuildLocation(target.getWorld().getUID(), target.getX(), target.getY() + 1,
-                target.getZ(), rotation(player));
         Map<Block, BlockData> original = validateAndCapture(player, village, type, location);
-        if (original == null) return;
-        cancelPreview(player);
+        if (original == null) return false;
+        PreviewSession previous = previews.get(player.getUniqueId());
+        if (previous != null) restore(previous);
         original.forEach((block, data) -> player.sendBlockChange(block.getLocation(), BlueprintBlocks.blocks(type).stream()
                 .filter(offset -> matches(block, location, offset)).findFirst().map(BlueprintBlocks.OffsetBlock::data)
                 .orElse(data)));
-        PreviewSession session = new PreviewSession(village.id(), type, location, original);
-        previews.put(player.getUniqueId(), session);
+        previews.put(player.getUniqueId(), new PreviewSession(village.id(), type, location, original));
         selectedSites.remove(player.getUniqueId());
         Msg.success(player, "Vorschau für " + type.displayName() + " aktiv. Kosten: " + costText(type));
-        Msg.info(player, "Bestätigen mit /bl build confirm oder Abbrechen mit /bl build cancel. Die Welt ist noch unverändert.");
+        Msg.info(player, "Anker standardmäßig fixiert: /bl build tools für Hotbar-Werkzeuge; confirm/cancel wie bisher.");
+        return true;
     }
 
-    public void confirmPreview(Player player) {
+    public boolean movePreview(Player player) {
+        PreviewSession current = previews.get(player.getUniqueId());
+        if (current == null) {
+            Msg.error(player, "Keine aktive Vorschau zum Verschieben.");
+            return false;
+        }
+        Village village = villages.byId(current.villageId()).orElse(null);
+        Block target = player.getTargetBlockExact(6);
+        if (village == null || target == null) {
+            Msg.error(player, "Visiere einen Bodenblock im selben Dorf an.");
+            return false;
+        }
+        return previewAt(player, village, current.type(), new BuildLocation(target.getWorld().getUID(), target.getX(),
+                target.getY() + 1, target.getZ(), current.location().rotation()));
+    }
+
+    public boolean rotatePreview(Player player, int degrees) {
+        PreviewSession current = previews.get(player.getUniqueId());
+        if (current == null) {
+            Msg.error(player, "Keine aktive Vorschau zum Rotieren.");
+            return false;
+        }
+        Village village = villages.byId(current.villageId()).orElse(null);
+        if (village == null) return false;
+        BuildLocation rotated = new BuildLocation(current.location().world(), current.location().x(), current.location().y(),
+                current.location().z(), current.location().rotation() + degrees);
+        return previewAt(player, village, current.type(), rotated);
+    }
+
+    public Village villageById(long id) {
+        return villages.byId(id).orElse(null);
+    }
+
+    public boolean hasPreview(Player player) {
+        return previews.containsKey(player.getUniqueId());
+    }
+
+    public long previewVillageId(Player player) {
+        PreviewSession preview = previews.get(player.getUniqueId());
+        return preview == null ? -1 : preview.villageId();
+    }
+
+    public BlueprintType previewType(Player player) {
+        PreviewSession preview = previews.get(player.getUniqueId());
+        return preview == null ? null : preview.type();
+    }
+
+    public boolean confirmPreview(Player player) {
         PreviewSession preview = previews.get(player.getUniqueId());
         if (preview == null) {
             Msg.error(player, "Du hast keine aktive Bauvorschau.");
-            return;
+            return false;
         }
         Village village = villages.byId(preview.villageId()).orElse(null);
         if (village == null) {
             cancelPreview(player);
-            return;
+            return false;
         }
         restore(preview);
         previews.remove(player.getUniqueId());
-        if (validateAndCapture(player, village, preview.type(), preview.location(), preview) == null) return;
+        if (validateAndCapture(player, village, preview.type(), preview.location(), preview) == null) return false;
         tasks.database(() -> repository.createSite(village.id(), preview.type(), preview.location(), player.getUniqueId()), site -> {
             restore(preview);
             if (!placeChest(site)) {
@@ -154,6 +205,7 @@ public final class ConstructionService {
             Msg.success(player, "Baustelle #" + site.id() + " für " + site.type().displayName() + " angelegt.");
             Msg.info(player, "Die Baustellenkiste nimmt Inventar und Dorfvorrat an und zeigt Liefer- und Baufortschritt.");
         }, error -> Msg.error(player, "Baustelle konnte nicht angelegt werden: " + error.getMessage()));
+        return true;
     }
 
     public void cancelPreview(Player player) {

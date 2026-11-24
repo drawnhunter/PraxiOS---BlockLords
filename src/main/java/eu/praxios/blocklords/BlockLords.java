@@ -36,6 +36,7 @@ public final class BlockLords extends JavaPlugin {
     private FaweBuilder faweBuilder;
     private LogService logs;
     private ResidentService residents;
+    private PlacementModeService placement;
 
     @Override
     public void onEnable() {
@@ -67,6 +68,7 @@ public final class BlockLords extends JavaPlugin {
             WorkerRepository workerRepository = new WorkerRepository(database);
             ResearchRepository researchRepository = new ResearchRepository(database);
             ResidentRepository residentRepository = new ResidentRepository(database);
+            PlacementRepository placementRepository = new PlacementRepository(database);
 
             AuditService audit = new AuditService(auditRepository, tasks, logs);
             VillageService villages = new VillageService(villageRepository, legacyRepository, tasks);
@@ -83,6 +85,7 @@ public final class BlockLords extends JavaPlugin {
                     villages, storage, storageRepository, faweBuilder, tasks, audit);
             storage.loadInitial(villages.all());
             construction.loadInitial(villages.all());
+            placement = new PlacementModeService(this, placementRepository, construction, tasks, logs, audit);
             residents = new ResidentService(this, this::settings, residentRepository, villages, tasks);
             residents.loadInitial(villages.all());
             WorkerService workers = new WorkerService(workerRepository, storageRepository, construction, villages, residents, tasks, audit);
@@ -93,7 +96,7 @@ public final class BlockLords extends JavaPlugin {
             production = new ProductionService(this, this::settings, workerRepository, storageRepository,
                     villages, storage, tasks);
             UiService ui = new UiService(this::settings, villages, founding, scanner, tasks,
-                    construction, storage, workers, research, residents);
+                    construction, storage, workers, research, residents, placement);
             founding.setQuestUpdateHandler(ui::handleQuestUpdate);
 
             getServer().getPluginManager().registerEvents(new BellListener(ui, founding, villages, residents), this);
@@ -102,9 +105,10 @@ public final class BlockLords extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new MenuListener(ui), this);
             getServer().getPluginManager().registerEvents(new GuideItemListener(guide, villages, ui), this);
             getServer().getPluginManager().registerEvents(new BuilderChestListener(construction, villages, ui), this);
+            getServer().getPluginManager().registerEvents(new PlacementModeListener(placement), this);
             getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(founding, decay, production, villages, this), this);
 
-            EconomyCommand economy = new EconomyCommand(villages, construction, storage, workers, research, ui);
+            EconomyCommand economy = new EconomyCommand(villages, construction, storage, workers, research, ui, placement);
             BlockLordsCommand executor = new BlockLordsCommand(this, villages, founding, ui, protection, alt, audit,
                     tasks, villageRepository, decay, economy, guide);
             PluginCommand command = getCommand("blocklords");
@@ -135,6 +139,7 @@ public final class BlockLords extends JavaPlugin {
         if (research != null) research.stop();
         if (residents != null) residents.stop();
         if (scanner != null) scanner.close();
+        if (placement != null) placement.closeAll();
         if (tasks != null) tasks.close();
         if (database != null) {
             try {
@@ -178,6 +183,20 @@ public final class BlockLords extends JavaPlugin {
             return target;
         }, path -> Msg.success(sender, "SQLite-Backup erstellt: " + path.getFileName()),
                 error -> Msg.error(sender, "Backup fehlgeschlagen: " + error.getMessage()));
+    }
+
+    public void itemTest(CommandSender sender) {
+        org.bukkit.inventory.ItemStack[] original = {
+                new org.bukkit.inventory.ItemStack(org.bukkit.Material.OAK_LOG, 32),
+                new org.bukkit.inventory.ItemStack(org.bukkit.Material.EMERALD, 4)
+        };
+        byte[] serialized = org.bukkit.inventory.ItemStack.serializeItemsAsBytes(original);
+        org.bukkit.inventory.ItemStack[] restored = org.bukkit.inventory.ItemStack.deserializeItemsFromBytes(serialized);
+        boolean valid = restored.length == 2 && restored[0].getType() == org.bukkit.Material.OAK_LOG
+                && restored[0].getAmount() == 32 && restored[1].getType() == org.bukkit.Material.EMERALD
+                && restored[1].getAmount() == 4;
+        if (valid) Msg.success(sender, "ItemStack-NBT-Roundtrip erfolgreich (" + serialized.length + " Bytes).");
+        else Msg.error(sender, "ItemStack-NBT-Roundtrip fehlgeschlagen.");
     }
 
     public void selfTest(CommandSender sender, BlueprintType type) {

@@ -134,3 +134,35 @@
 
 - Axon testet Kiste, Kistenmaterial, Versammlung, dorffweite Arbeiterzuweisung, Kompass und Admin-Teleport auf Paper 26.3/Java 25.
 - Danach folgen 0.2.3 Schematic-/Rotationsausbau und die Kolonie-Gründungsbasis; 0.2.4 aktive Bauhilfe und 0.2.5 Bauhütte/Builder-NPC gemäß Research-Dokument.
+
+
+## 2026-11-24 — 0.2.3-alpha.1, verankerte Preview und Hotbar-Werkzeugmodus
+
+### Implementiert
+
+- Preview-Sessions besitzen Verschieben und Rotation ohne neuen Konflikt mit der bestehenden Position; dieselbe Kollisionsprüfung gilt für Erstplatzierung und Anpassung.
+- Anker standardmäßig fixiert; Hotbar-Werkzeuge für Position, Rotation links/rechts, Anker, Bestätigen und Abbrechen.
+- **Migration V4** persistiert Originalinventar, Rüstung, Offhand/Extras, ausgewählten Slot, Dorf und Bauplan.
+- ItemStack-NBT-Serialisierung statt Eigenformat; Snapshot wird vor der ersten Werkzeug-Ersetzung gespeichert.
+- Werkzeuge besitzen PDC-Erkennung; Event-Sperren für Drop, Klick, Drag, Offhand-Swap, Container und Entity-Interaktionen.
+- Idempotente Wiederherstellung durch Ersetzen statt Addieren; Abbruchwege für Bestätigen, Abbrechen, Logout, Join, Tod, Weltwechsel, Reload und Serverstopp.
+- Logout-Race während Snapshot-Speicherung schließt die Session, ohne offline Werkzeuge zu installieren.
+- Alle Platzierungsaktionen bleiben über das Formular-/Menü-Fallback erreichbar.
+- `/bl admin itemtest` prüft den NBT-Roundtrip auf dem laufenden Server.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **23 Unit-Tests** erfolgreich.
+- Echter Start auf Paper 1.21.11 Build 132 mit FAWE 2.16.3 und Floodgate 2.2.5 Build 141.
+- Migrationen V1–V4 erfolgreich.
+- ItemStack-NBT-Roundtrip erfolgreich (169 Bytes).
+- FAWE-Selftest mit **99 Blöcken in 598 ms**; 27 Sekunden danach kein `LATE_FAILURE_IGNORED`.
+- Koordinatenloser Konsolen-Selftest wird verständlich als Spielerfunktion abgelehnt.
+- Sauberer Shutdown ohne BlockLords-Fehler.
+
+### Nächster Test durch Axon
+
+- Hotbar-Werkzeuge, Anker, Rotation und Verschieben mit echtem Spieler.
+- Wiederherstellung nach Bestätigen, Abbrechen, Logout/Join, Tod, Weltwechsel und Serverstopp.
+- Bedrock-Formular-Fallback und Multiplayer-Verhalten.
+- Danach folgen 0.2.3-alpha.2 Schematic-Loader/Herkunftsakte und die Kolonie-Gründungsbasis.
