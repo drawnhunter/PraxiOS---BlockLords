@@ -21,6 +21,7 @@ public final class Msg {
     public static void error(CommandSender receiver, String text) {
         receiver.sendMessage(Component.text("BlockLords · ", NamedTextColor.GOLD)
                 .append(Component.text(text, NamedTextColor.RED)));
+        org.bukkit.Bukkit.getLogger().warning("[BlockLords] " + receiver.getName() + ": " + text);
     }
 
     public static void plain(CommandSender receiver, String text) {

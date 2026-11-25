@@ -229,7 +229,7 @@ public final class ConstructionService {
                     repository.deleteSite(site.id());
                     return null;
                 }, error -> Msg.error(player, "Baustellen-Rollback fehlgeschlagen: " + error.getMessage()));
-                Msg.error(player, "Baustellenkiste konnte nicht an deiner Bestätigungsposition platziert werden.");
+                Msg.error(player, "Baustellenkiste konnte nicht vor dem Eingang platziert werden.");
                 return;
             }
             selectedSites.put(player.getUniqueId(), site.id());
@@ -242,21 +242,28 @@ public final class ConstructionService {
     }
 
     private BlockLink builderChest(Player player, Village village, PreviewSession preview) {
-        org.bukkit.Location position = player.getLocation();
-        if (!position.getWorld().getUID().equals(preview.location().world())
-                || !village.region().contains(position.getWorld().getUID(), position.getX(), position.getZ())) {
-            Msg.error(player, "Stelle dich zum Bestätigen innerhalb des Dorf-Claims auf einen freien Platz.");
+        BlueprintBlocks.OffsetBlock entrance = BlueprintBlocks.blocks(preview.type()).stream()
+                .filter(offset -> offset.data() instanceof org.bukkit.block.data.type.Door door
+                        && door.getHalf() == org.bukkit.block.data.type.Door.Half.BOTTOM)
+                .findFirst().orElseThrow();
+        org.bukkit.block.data.type.Door door = (org.bukkit.block.data.type.Door) entrance.data();
+        int[] rotated = rotate(2 + door.getFacing().getModX(), door.getFacing().getModZ(), preview.location().rotation());
+        Block block = player.getWorld().getBlockAt(preview.location().x() + rotated[0],
+                preview.location().y() + entrance.y(), preview.location().z() + rotated[1]);
+        if (!block.getWorld().getUID().equals(preview.location().world())
+                || !village.region().contains(block.getWorld().getUID(), block.getX(), block.getZ())) {
+            Msg.error(player, "Die Kiste vor dem Eingang würde den Dorf-Claim verlassen.");
             return null;
         }
-        Block block = position.getWorld().getBlockAt(position.getBlockX(), position.getBlockY(), position.getBlockZ());
         if (!block.getType().isAir() && !isReplaceableGrass(block.getType())) {
-            Msg.error(player, "Dein Standplatz ist für die Baustellenkiste belegt. Stelle dich auf einen freien Platz.");
+            Msg.error(player, "Die Position direkt vor dem Eingang ist belegt: " + block.getX() + "/" + block.getY()
+                    + "/" + block.getZ() + ". Bitte dort freiräumen.");
             return null;
         }
         boolean insideBuilding = BlueprintBlocks.blocks(preview.type()).stream()
                 .anyMatch(offset -> matches(block, preview.location(), offset));
         if (insideBuilding) {
-            Msg.error(player, "Du stehst innerhalb des Gebäudes. Stelle dich zum Bestätigen neben den Eingang.");
+            Msg.error(player, "Die Kistenposition liegt innerhalb des Gebäudes. Bitte den Eingangsbereich freiräumen.");
             return null;
         }
         return new BlockLink(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ());
@@ -291,11 +298,12 @@ public final class ConstructionService {
             int missing = original - accepted.getOrDefault(resource, 0);
             if (missing > 0) give(player, resource, missing);
         });
+        Map<ResourceType, Integer> updatedCounts = Map.copyOf(chestCounts(site));
         tasks.database(() -> {
             for (var entry : accepted.entrySet()) {
                 repository.recordContribution(site.id(), player.getUniqueId(), entry.getKey(), entry.getValue());
             }
-            repository.reconcileFromChest(site.id(), chestCounts(site));
+            repository.reconcileFromChest(site.id(), updatedCounts);
             return accepted;
         }, confirmed -> {
             refresh(village.id());
@@ -328,6 +336,7 @@ public final class ConstructionService {
             return withdrawn;
         }, withdrawn -> {
             Map<ResourceType, Integer> accepted = putIntoChest(chest, site, withdrawn);
+            Map<ResourceType, Integer> updatedCounts = Map.copyOf(chestCounts(site));
             tasks.database(() -> {
                 withdrawn.forEach((resource, original) -> {
                     int missing = original - accepted.getOrDefault(resource, 0);
@@ -339,7 +348,7 @@ public final class ConstructionService {
                         }
                     }
                 });
-                repository.reconcileFromChest(site.id(), chestCounts(site));
+                repository.reconcileFromChest(site.id(), updatedCounts);
                 return accepted;
             }, confirmed -> {
                 refresh(village.id());
@@ -539,6 +548,9 @@ public final class ConstructionService {
     }
 
     private Map<ResourceType, Integer> chestCounts(BuildSite site) {
+        if (!Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Kistenzugriff muss im Hauptthread erfolgen");
+        }
         Chest chest = chestFor(site);
         if (chest == null) return Map.of();
         Map<ResourceType, Integer> counts = new EnumMap<>(ResourceType.class);

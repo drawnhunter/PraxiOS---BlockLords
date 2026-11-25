@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ResidentIdentityAllocatorTest {
     @Test
@@ -30,6 +30,16 @@ class ResidentIdentityAllocatorTest {
         Resident numbered = resident("Bodo", 5);
         ResidentIdentityAllocator reloaded = new ResidentIdentityAllocator(List.of(existing, numbered));
         assertEquals(6, reloaded.next(null).number());
+    }
+
+    @Test
+    void repairsMissingNamesZeroAndDuplicateNumbers() {
+        List<Resident> repaired = ResidentService.repairIdentities(List.of(
+                resident(null, 0), resident("Astrid", 1), resident("Bodo", 1), resident("Clara", 0)));
+        assertEquals(4, repaired.size());
+        assertEquals(4, repaired.stream().map(Resident::number).distinct().count());
+        assertTrue(repaired.stream().allMatch(resident -> resident.number() > 0));
+        assertTrue(repaired.stream().allMatch(resident -> resident.displayName() != null && !resident.displayName().isBlank()));
     }
 
     private Resident resident(String name, int number) {

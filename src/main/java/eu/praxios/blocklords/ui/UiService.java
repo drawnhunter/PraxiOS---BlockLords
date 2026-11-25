@@ -258,7 +258,7 @@ public final class UiService {
         java.util.List<UiAction> actions = new java.util.ArrayList<>();
         actions.add(UiAction.of(Material.BOOK, "Wie wird ein Bewohner Arbeiter?", () -> { },
                 "Registrierten freien Bewohner im Detail selbst zuweisen.",
-                "Voraussetzung: fertige Farm oder Mine.",
+                "Voraussetzung: fertige Farm oder Mine. Farm = Bauernhaus + Feld.",
                 "Nahrung ermöglicht Produktion; ein Bett versorgt den Wohnraum."));
         for (Building building : construction.buildings(village.id())) {
             if (building.type() == BlueprintType.FARM || building.type() == BlueprintType.MINE) {
@@ -309,6 +309,17 @@ public final class UiService {
                 resident.hasBed() ? "Neues freies Bett suchen" : "Bett ist erforderlich"));
         actions.add(UiAction.of(Material.ANVIL, "Als Arbeiter zuweisen", () -> openResidentAssign(player, village, resident),
                 "Farm oder Mine im Dorf wählen"));
+        actions.add(UiAction.of(Material.ENDER_PEARL, "Zur Glocke teleportieren", () -> {
+            player.closeInventory();
+            residents.teleportToBell(player, village, resident);
+        }, "Teleportiert diesen Bewohner auf einen sicheren Platz neben die Dorfglocke."));
+        actions.add(UiAction.of(Material.STRUCTURE_VOID, "Aus Register entfernen", () -> {
+            player.closeInventory();
+            if (residents.canManage(player, village)) {
+                workers.removeVillager(resident.villager());
+                residents.removeResident(player, village, resident);
+            }
+        }, "Villager bleibt am Leben; Arbeits-, Bett- und Glockenzuordnung wird gelöscht."));
         Worker assigned = workers.workers(village.id()).stream().filter(worker -> worker.villager().equals(resident.villager()))
                 .findFirst().orElse(null);
         if (assigned != null) {

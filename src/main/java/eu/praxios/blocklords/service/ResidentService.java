@@ -26,21 +26,32 @@ public final class ResidentService {
     private final ResidentRepository repository;
     private final VillageService villages;
     private final TaskRunner tasks;
+    private final AuditService audit;
     private final Map<Long, List<Resident>> cache = new ConcurrentHashMap<>();
     private final Map<Long, ResidentIdentityAllocator> identities = new ConcurrentHashMap<>();
     private BukkitTask task;
 
     public ResidentService(JavaPlugin plugin, Supplier<BlockLordsConfig> config, ResidentRepository repository,
-                           VillageService villages, TaskRunner tasks) {
+                           VillageService villages, TaskRunner tasks, AuditService audit) {
         this.plugin = plugin;
         this.config = config;
         this.repository = repository;
         this.villages = villages;
         this.tasks = tasks;
+        this.audit = audit;
     }
 
     public void loadInitial(List<Village> villageList) throws Exception {
-        for (Village village : villageList) cache.put(village.id(), repository.find(village.id()));
+        for (Village village : villageList) {
+            List<Resident> stored = repository.find(village.id());
+            List<Resident> repaired = repairIdentities(stored);
+            if (!repaired.equals(stored)) {
+                repository.touchAll(village.id(), repaired);
+                plugin.getLogger().info("BlockLords: Bewohneridentitäten in Dorf #" + village.id() + " repariert.");
+            }
+            cache.put(village.id(), repaired);
+            identities.put(village.id(), new ResidentIdentityAllocator(repaired));
+        }
     }
 
     public void start() {
@@ -104,32 +115,45 @@ public final class ResidentService {
 
     /** Sneak + Rechtsklick auf die Dorfglocke: Vanilla-Versammlung und explizite Bestätigung. */
     public void assemble(Player player, Village village) {
+        World world = world(village).orElse(null);
+        if (world == null) {
+            Msg.error(player, "Die Dorfwelt ist nicht geladen.");
+            return;
+        }
         List<Villager> loaded = loadedVillagers(village);
         Map<UUID, Resident> previous = previous(village.id());
         Location bell = bellLocation(village);
+        Set<String> occupied = new HashSet<>();
         List<Resident> records = new ArrayList<>();
         int newlyConfirmed = 0;
         int withoutBed = 0;
+        int teleported = 0;
+        int notPlaced = 0;
         long now = System.currentTimeMillis();
         for (Villager villager : loaded) {
             BlockLink bed = bedInside(village, villager);
             Resident old = previous.get(villager.getUniqueId());
+            if (old != null && old.dead()) continue;
             if (old == null || old.status() == Resident.Status.UNCONFIRMED) newlyConfirmed++;
             if (bed == null) withoutBed++;
             villager.setMemory(MemoryKey.MEETING_POINT, bell);
+            Location destination = safeBellLocation(world, bell, occupied);
+            if (destination != null && villager.teleport(destination)) teleported++;
+            else notPlaced++;
             ResidentIdentityAllocator.Identity identity = identity(village.id(), old);
             records.add(new Resident(village.id(), villager.getUniqueId(), Resident.Status.CONFIRMED,
                     bed != null, bed, link(bell), old == null ? now : old.firstSeen(), now,
                     identity.name(), identity.number(), false));
         }
         persist(village, records);
-        world(village).ifPresent(world -> {
-            world.playSound(bell, Sound.BLOCK_BELL_USE, 1.0f, 1.0f);
-            world.spawnParticle(Particle.HAPPY_VILLAGER, bell.clone().add(0, 1, 0), 12, 0.5, 0.5, 0.5);
-        });
+        world.playSound(bell, Sound.BLOCK_BELL_USE, 1.0f, 1.0f);
+        world.spawnParticle(Particle.HAPPY_VILLAGER, bell.clone().add(0, 1, 0), 12, 0.5, 0.5, 0.5);
+        audit.log(player, "RESIDENT_ASSEMBLED", "Dorf #" + village.id() + " " + teleported + " teleportiert, "
+                + notPlaced + " ohne Platz");
         Msg.success(player, "Versammlung in '" + village.name() + "': " + records.size() + " versammelt, "
-                + newlyConfirmed + " neu bestätigt, " + withoutBed + " ohne Bett markiert.");
-        player.sendActionBar(Component.text("Dorfbewohner werden zur Glocke gerufen.", NamedTextColor.GOLD));
+                + teleported + " zur Glocke teleportiert, " + newlyConfirmed + " neu bestätigt, "
+                + withoutBed + " ohne Bett" + (notPlaced > 0 ? ", " + notPlaced + " ohne freien Platz." : "."));
+        player.sendActionBar(Component.text("Dorfbewohner werden zur Glocke gebracht.", NamedTextColor.GOLD));
     }
 
     public void assignBed(Player player, Village village, Resident resident) {
@@ -212,6 +236,111 @@ public final class ResidentService {
             cache.put(village.id(), living(village.id()));
             Msg.success(player, deleted + " verlorene Bewohner aus dem Register entfernt.");
         }, error -> Msg.error(player, "Verlorene Bewohner konnten nicht entfernt werden: " + error.getMessage()));
+    }
+
+    public void teleportToBell(Player player, Village village, Resident resident) {
+        if (!canManage(player, village)) return;
+        if (resident.dead()) {
+            Msg.error(player, "Verlorene Bewohner können nicht teleportiert werden.");
+            return;
+        }
+        World world = world(village).orElse(null);
+        if (world == null) {
+            Msg.error(player, "Die Dorfwelt ist nicht geladen.");
+            return;
+        }
+        if (!(Bukkit.getEntity(resident.villager()) instanceof Villager villager)) {
+            Msg.error(player, "Dieser Bewohner ist nicht geladen. Bitte betritt zuerst seinen Chunk.");
+            return;
+        }
+        Location bell = bellLocation(village);
+        Location destination = safeBellLocation(world, bell, new HashSet<>());
+        if (destination == null) {
+            Msg.error(player, "Kein sicherer freier Platz neben der Dorfglocke gefunden.");
+            return;
+        }
+        villager.setMemory(MemoryKey.MEETING_POINT, bell);
+        if (!villager.teleport(destination)) {
+            Msg.error(player, "Der Teleport wurde vom Server abgelehnt.");
+            return;
+        }
+        Resident updated = new Resident(village.id(), resident.villager(), Resident.Status.CONFIRMED,
+                resident.hasBed(), resident.bed(), link(bell), resident.firstSeen(), System.currentTimeMillis(),
+                resident.displayName(), resident.number(), false);
+        persist(village, List.of(updated));
+        audit.log(player, "RESIDENT_TELEPORTED", resident.displayLabel() + " zur Glocke, Dorf #" + village.id());
+        Msg.success(player, resident.displayLabel() + " wurde zur Dorfglocke teleportiert.");
+    }
+
+    public void removeResident(Player player, Village village, Resident resident) {
+        if (!canManage(player, village)) return;
+        if (resident.dead()) {
+            Msg.error(player, "Verlorene Bewohner bitte über den Verlorene-Bereich entfernen.");
+            return;
+        }
+        if (Bukkit.getEntity(resident.villager()) instanceof Villager villager) {
+            villager.setMemory(MemoryKey.HOME, null);
+            villager.setMemory(MemoryKey.MEETING_POINT, null);
+        }
+        tasks.database(() -> {
+            repository.deleteResident(village.id(), resident.villager());
+            return repository.find(village.id());
+        }, list -> {
+            cache.put(village.id(), list);
+            audit.log(player, "RESIDENT_REMOVED", resident.displayLabel() + " aus Register, Dorf #" + village.id());
+            Msg.success(player, resident.displayLabel() + " wurde aus dem Register entfernt. Der Villager bleibt am Leben.");
+        }, error -> Msg.error(player, "Bewohner konnte nicht aus dem Register entfernt werden: " + error.getMessage()));
+    }
+
+    static List<Resident> repairIdentities(List<Resident> stored) {
+        List<Resident> sorted = new ArrayList<>(stored);
+        sorted.sort(Comparator.comparingLong(Resident::firstSeen).thenComparing(resident -> resident.villager().toString()));
+        ResidentIdentityAllocator allocator = new ResidentIdentityAllocator(List.of());
+        Set<Integer> usedNumbers = new HashSet<>();
+        List<Resident> repaired = new ArrayList<>();
+        for (Resident resident : sorted) {
+            boolean preserve = resident.number() > 0 && resident.displayName() != null
+                    && !resident.displayName().isBlank() && usedNumbers.add(resident.number());
+            ResidentIdentityAllocator.Identity identity = preserve ? allocator.next(resident) : allocator.next(null);
+            usedNumbers.add(identity.number());
+            repaired.add(withIdentity(resident, identity));
+        }
+        return List.copyOf(repaired);
+    }
+
+    private static Resident withIdentity(Resident resident, ResidentIdentityAllocator.Identity identity) {
+        if (Objects.equals(resident.displayName(), identity.name()) && resident.number() == identity.number()) return resident;
+        return new Resident(resident.villageId(), resident.villager(), resident.status(), resident.hasBed(),
+                resident.bed(), resident.meetingPoint(), resident.firstSeen(), resident.lastSeen(),
+                identity.name(), identity.number(), resident.dead());
+    }
+
+    private static Location safeBellLocation(World world, Location bell, Set<String> occupied) {
+        int[][] offsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {2, 0}, {-2, 0}, {0, 2}, {0, -2},
+                {1, 1}, {-1, 1}, {1, -1}, {-1, -1}, {2, 1}, {-2, 1}, {2, -1}, {-2, -1}};
+        for (int dy = 0; dy >= -3; dy--) {
+            for (int[] offset : offsets) {
+                int x = bell.getBlockX() + offset[0];
+                int y = bell.getBlockY() + dy;
+                int z = bell.getBlockZ() + offset[1];
+                String key = world.getUID() + ":" + x + ":" + y + ":" + z;
+                if (occupied.contains(key)) continue;
+                Block feet = world.getBlockAt(x, y, z);
+                Block head = feet.getRelative(0, 1, 0);
+                Block ground = feet.getRelative(0, -1, 0);
+                if (!feet.getType().isAir() || !head.getType().isAir() || !ground.getType().isSolid()) continue;
+                occupied.add(key);
+                return new Location(world, x + 0.5, y, z + 0.5);
+            }
+        }
+        return null;
+    }
+
+    public boolean canManage(Player player, Village village) {
+        Role role = villages.role(village.id(), player.getUniqueId());
+        if (role == Role.LANDHERR || role == Role.GEFOLGSMANN) return true;
+        Msg.error(player, "Nur Landherr oder Gefolgsmann dürfen Bewohner verwalten.");
+        return false;
     }
 
     private Resident evaluate(Village village, Villager villager, Resident old, boolean forceConfirm) {

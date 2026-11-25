@@ -5,7 +5,7 @@ import java.util.Map;
 public enum BlueprintType {
     RATHAUS("Rathaus", 1, 50, false, Map.of(ResourceType.HOLZ, 32, ResourceType.STEIN, 16)),
     WOHNHAUS("Wohnhaus", 1, 40, false, Map.of(ResourceType.HOLZ, 32, ResourceType.STEIN, 16)),
-    FARM("Bauernhaus + Feld", 1, 40, true, Map.of(ResourceType.HOLZ, 16, ResourceType.STEIN, 8)),
+    FARM("Farm", 1, 40, true, Map.of(ResourceType.HOLZ, 16, ResourceType.STEIN, 8)),
     MINE("Mine", 2, 60, true, Map.of(ResourceType.HOLZ, 16, ResourceType.STEIN, 32, ResourceType.SMARAGD, 4)),
     LAGERHAUS("Lagerhaus", 2, 40, false, Map.of(ResourceType.HOLZ, 48, ResourceType.STEIN, 16, ResourceType.SMARAGD, 4)),
     BIBLIOTHEK("Bibliothek", 3, 80, false, Map.of(ResourceType.HOLZ, 32, ResourceType.STEIN, 16, ResourceType.SMARAGD, 8)),

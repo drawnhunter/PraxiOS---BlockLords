@@ -90,13 +90,13 @@ Die Gründungsquest verlangt Bett, Nahrungsquelle und Arbeitsblock und gibt gena
 
 ### 5.2 Baustellenkiste und Baupläne
 
-Nach Preview-Confirm entsteht eine echte Kiste an der validierten Fußposition des Spielers. Rechtsklick öffnet das Auftragsmenü, Sneak + Rechtsklick das reale Inventar. Inventar- und Rathausvorratstransfers landen als echte Items in der Kiste. `reconcileFromChest` leitet den Status aus dem realen Bestand ab. Beim Bau wird Material committet; normale Fehler geben es zurück, Timeouts lassen es sicher reserviert. FAWE überspringt die gespeicherte Kistenposition. Nach Abschluss bleibt die Kiste als Informations- und Restmaterialpunkt erhalten; ihre Koordinaten werden auch in das Gebäude übernommen.
+Nach Preview-Confirm entsteht eine echte Kiste einen Block vor der rotierten Eingangstür des Bauplans. Rechtsklick öffnet das Auftragsmenü, Sneak + Rechtsklick das reale Inventar. Inventar- und Rathausvorratstransfers landen als echte Items in der Kiste; der reale Bestand wird ausschließlich im Hauptthread gelesen. `reconcileFromChest` leitet den Status aus diesen erfassten Zahlen ab. Beim Bau wird Material committet; normale Fehler geben es zurück, Timeouts lassen es sicher reserviert. FAWE überspringt die gespeicherte Kistenposition. Nach Abschluss bleibt die Kiste als Informations- und Restmaterialpunkt erhalten; ihre Koordinaten werden auch in das Gebäude übernommen.
 
 Die Startbaupläne umfassen Rathaus, Wohnhaus, Farm, Mine, Lagerhaus, Bibliothek, Schmiede und Wohnhaus II. Die Mine besitzt eine echte Schmiedetafel. Das Bauernhaus besitzt ein Bett und ein Feld außerhalb der Hütte. Türen besitzen genau eine `half=bottom` und eine `half=top`, Betten genau einen `part=foot` und einen `part=head`. Directional Blockdaten rotieren mit. Diese Regeln wurden nicht nur kompiliert, sondern per echtem Server-`execute if block` nachgewiesen.
 
 ### 5.3 Bewohner und Arbeit
 
-Das Register nutzt `MEETING_POINT` und `HOME`: Dorfglocke = bestätigt, Bett im Claim = unbestätigt, andere = Wanderer. Die Versammlung per Sneak + Rechtsklick auf die Dorfglocke oder Arbeiter-Menü setzt den Vanilla-Meeting-Point, bestätigt Anwesende und meldet versammelte, neue und bettlose Bewohner. Die Zuweisung zu Farm/Mine nutzt das dorffweite Register ohne altes 12-Block-Limit. Bauer erhält Komposter, Minenarbeiter Schmiedetisch und beide werden mit `MemoryKey.JOB_SITE` verknüpft. Namen werden aus `ResidentNames` zufällig gewählt und als `Name #Nummer` angezeigt und persistiert. Nummern werden bereits bei der Vergabe reserviert, damit auch Batch-Scans keine Duplikate erzeugen. Verstorbene Bewohner erscheinen getrennt als Verlorene, verlieren ihre Arbeitszuweisung und können gemeinsam aus dem Register entfernt werden.
+Das Register nutzt `MEETING_POINT` und `HOME`: Dorfglocke = bestätigt, Bett im Claim = unbestätigt, andere = Wanderer. Die Versammlung per Sneak + Rechtsklick auf die Dorfglocke oder Arbeiter-Menü setzt den Vanilla-Meeting-Point, teleportiert geladene lebende Villager auf sichere Plätze neben die Glocke und meldet versammelte, neue, bettlose und nicht platzierbare Bewohner. Einzelteleport und Entfernen aus dem Register sind verfügbar; letzteres löscht POI-/Arbeitsdaten, aber tötet keinen Villager. Die Zuweisung zu Farm/Mine nutzt das dorffweite Register ohne altes 12-Block-Limit. Bauer erhält Komposter, Minenarbeiter Schmiedetisch und beide werden mit `MemoryKey.JOB_SITE` verknüpft. Namen werden aus `ResidentNames` zufällig gewählt und als `Name #Nummer` angezeigt und persistiert. Nummern werden bereits bei der Vergabe reserviert, damit auch Batch-Scans keine Duplikate erzeugen; `#0`, fehlende Namen und alte Duplikate werden beim Laden repariert. Verstorbene Bewohner erscheinen getrennt als Verlorene, verlieren ihre Arbeitszuweisung und können gemeinsam aus dem Register entfernt werden.
 
 ### 5.4 Hotbar-Menü und Edit-Modus
 
@@ -201,8 +201,8 @@ Ergebnisse:
 
 ### Eigener Verifier
 
-- Aktuelle Kriterien: `verifier/v2/acceptance.md`; `verifier/v1/` bleibt als historische Abnahme erhalten.
-- Build-/Testskript: `verifier/v2/check.sh`
+- Aktuelle Kriterien: `verifier/v3/acceptance.md`; `verifier/v1/` und `verifier/v2/` bleiben als historische Abnahmen erhalten.
+- Build-/Testskript: `verifier/v3/check.sh`
 - Protokolle: `verifier/runs/`
 - Bei geänderten Kriterien eine neue Verifier-Version anlegen, alte Kriterien nicht überschreiben.
 

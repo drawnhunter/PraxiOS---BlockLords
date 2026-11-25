@@ -288,3 +288,24 @@
 ### Nächster Schritt
 
 - Produktivdeployment durch den Coding-/Deploy-Agenten mit Datenbank-/JAR-Backup und Rollback-Pfad; anschließend Konsolen- und spielerische Live-Abnahme von #230.
+
+
+## 2026-11-25 — 0.2.7-alpha.2, Live-Hotfix aus Chat und Screenshots
+
+### Implementiert
+
+- **Materialtransfer repariert:** `contribute` und `fund` lesen die echte Baustellenkiste ausschließlich im Hauptthread. DB-Executors erhalten bereits erfasste Kistenzahlen; eine Guard verhindert künftige asynchrone Kistenzugriffe.
+- **Eingangskiste:** Die Kiste entsteht einen Block vor der rotierten unteren Eingangstür des Bauplans, nicht mehr an der Spielerposition. V6-Koordinaten, Legacy-Fallback, Kistenmenüs und FAWE-Ausschluss bleiben erhalten.
+- **Menüführung:** Kistenmenü schließt vor dem Hotbar-Snapshot; letzter Bauplanslot ist echte Zurück-Aktion statt funktionslosem Glasfüller. `Farm` erklärt Bauernhaus + Feld eindeutig.
+- **Diagnose:** Clientfehler werden zusätzlich mit Akteur als Warning im Serverlog geschrieben.
+- **Bewohner:** Alte `#0`-Werte, fehlende Namen und doppelte Nummern werden beim Laden repariert. Versammlung und Einzelaktion teleportieren auf sichere Plätze neben der Glocke. Entfernen aus dem Register löscht POI-/Arbeitsdaten ohne Villager-Tod; Berechtigungen und Audit sind abgesichert.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **40 Tests ohne Fehler, Fehlerfälle oder Überspringungen** erfolgreich.
+- `ConstructionServiceTest`: Inventar- und Dorfvorratstransfer erzeugen reale Kistenitems und `READY`; Eingangsposition wird bei 0° und 90° geprüft, blockierte Eingänge werden vor dem DB-Insert abgelehnt.
+- `ResidentServiceTest`: Drei Villager erhalten #1/#2/#3 und sichere Glockenplätze; Entfernen lässt den Villager gültig und lebendig und löscht HOME/MEETING_POINT.
+- `ResidentIdentityAllocatorTest`: `#0`, fehlende Namen und Duplikate werden eindeutig repariert.
+- JAR-SHA256: `fd5eb93bc21fee8542c2af29e65f53e96ec8f2fd502d893ad5ea1ad757f2b059`.
+- Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: BlockLords 0.2.7-alpha.2 aktiviert; Selftest RATHAUS mit `PASTE-30bb5331` und **99 Blöcken** erfolgreich.
+- Abnahmekriterien und Laufprotokolle liegen in `verifier/v3/` und `verifier/runs/`.

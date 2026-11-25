@@ -163,6 +163,11 @@ public final class WorkerService {
     }
 
     public void unassign(Player player, Village village, long workerId) {
+        Role role = villages.role(village.id(), player.getUniqueId());
+        if (role != Role.LANDHERR && role != Role.GEFOLGSMANN) {
+            Msg.error(player, "Nur Landherr oder Gefolgsmann dürfen Arbeitszuweisungen ändern.");
+            return;
+        }
         Worker worker = workers(village.id()).stream().filter(candidate -> candidate.id() == workerId).findFirst().orElse(null);
         if (worker == null) {
             Msg.error(player, "Arbeiter-ID " + workerId + " gehört nicht zu diesem Dorf.");

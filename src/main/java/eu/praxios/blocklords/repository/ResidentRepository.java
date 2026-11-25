@@ -89,6 +89,17 @@ public final class ResidentRepository {
         });
     }
 
+    public void deleteResident(long villageId, UUID villager) throws Exception {
+        database.inTransaction(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM residents WHERE village_id = ? AND villager_uuid = ?")) {
+                statement.setLong(1, villageId);
+                statement.setString(2, villager.toString());
+                statement.executeUpdate();
+            }
+            return null;
+        });
+    }
+
     private static BlockLink link(ResultSet result, String prefix) throws Exception {
         String world = result.getString(prefix + "_world");
         if (world == null) return null;

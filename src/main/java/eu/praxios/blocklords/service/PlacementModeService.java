@@ -47,6 +47,7 @@ public final class PlacementModeService {
 
     /** Root: Bauen, Baustellen, Bewohner, Vorschau; Zurück und Verlassen liegen in der Hotbar. */
     public void openRoot(Player player, Village village) {
+        player.closeInventory();
         SessionState current = active.get(player.getUniqueId());
         if (current != null) {
             active.put(player.getUniqueId(), current.withMenu(List.of("ROOT"), 0));
@@ -272,7 +273,7 @@ public final class PlacementModeService {
         if (end < types.size()) {
             set(player, 8, Material.ARROW, "MENU_NEXT", "Weiter", "Seite " + (page + 2) + "/" + pageCount);
         } else {
-            set(player, 8, Material.LIGHT_GRAY_STAINED_GLASS_PANE, "MENU_NOOP", " ", " ");
+            set(player, 8, Material.ARROW, "MENU_BACK_OR_EXIT", "Zurück", "Zurück zum Hauptmenü");
         }
         active.put(player.getUniqueId(), current.withMenu(List.of("ROOT", "BUILD"), page));
         player.updateInventory();

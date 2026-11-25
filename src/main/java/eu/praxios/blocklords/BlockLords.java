@@ -86,7 +86,7 @@ public final class BlockLords extends JavaPlugin {
             storage.loadInitial(villages.all());
             construction.loadInitial(villages.all());
             placement = new PlacementModeService(this, placementRepository, construction, tasks, logs, audit);
-            residents = new ResidentService(this, this::settings, residentRepository, villages, tasks);
+            residents = new ResidentService(this, this::settings, residentRepository, villages, tasks, audit);
             residents.loadInitial(villages.all());
             WorkerService workers = new WorkerService(workerRepository, storageRepository, construction, villages, residents, tasks, audit);
             workers.loadInitial(villages.all());
