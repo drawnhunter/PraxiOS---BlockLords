@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.5-alpha.1 (Phase 2)
+## Aktueller Stand: 0.2.7-alpha.1 (Phase 2)
 
 Enthalten:
 
@@ -29,6 +29,16 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.7-alpha.1 (Live-Feedback P0/P1)
+
+- **Bewohnernummern repariert:** Batch-Scans und spätere Registrierungen vergeben fortlaufende, eindeutige Nummern ohne erneutes `#1`.
+- **Verlorene Bewohner:** Todespersistenz, eigener Menübereich mit eigenem Item-Typ, automatische Entfernung aus Arbeitszuweisungen und gemeinsames Aufräumen nur der Verluste.
+- **Direkter Menüzugang:** `/bl` öffnet das Dorfmenü; ein Kompass-Eintrag stellt das Menü-Item ins Inventar.
+- **Baustellenkiste am Spieler:** Die bestätigte Fußposition wird validiert und in `build_sites` sowie `buildings` gespeichert; alte Datensätze behalten ihren Legacy-Fallback.
+- **Hotbar ohne Zweithand-Verlassen:** Zurück/Verlassen bleibt in der Hotbar, die Zweithand enthält kein Werkzeug mehr.
+- **Mehr Orientierung:** Level-Item mit fehlenden XP und nächster Freischaltung sowie kurze Erklärung der Arbeiterzuweisung.
+- **Migration V6:** Verlustmarkierung und persistente Kistenkoordinaten; V1–V5 bleiben unverändert und der V5→V6-Upgrade ist getestet.
 
 ### Neuerungen in 0.2.6-alpha.1 (Reparaturrunde)
 
@@ -113,8 +123,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.5-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.5-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.7-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.7-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -124,13 +134,13 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.5-alpha.1.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.7-alpha.1.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.5-alpha.1 aktiviert: Phase 2 ...`.
+3. Log prüfen: `BlockLords 0.2.7-alpha.1 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 
-Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. Entwicklung und Veröffentlichung erfolgen getrennt davon über dieses Repo.
+Entwicklung, Veröffentlichung, Deployment und Konsolenauswertung erfolgen über den aktiven Coding-/Deploy-Agenten. Alexander übernimmt zusätzlich die spielerische Abnahme und priorisiert das Feedback.
 
 ## Erster manueller Abnahmetest
 
@@ -150,7 +160,7 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 14. **Arbeiter testen:** Farm und Mine bauen, Bewohner in der Nähe platzieren und über `/bl workers` zuweisen. Nahrung einlagern und Produktionsbericht prüfen.
 15. **Forschung testen:** Bibliothek bauen, `/bl research start` ausführen und anschließend Wohnhaus II als Bauplan bestätigen.
 16. **Persistenz:** Nach Bau, Produktion und Forschung den Server neu starten. Gebäude, Lager, Arbeiterzuordnung, XP und Forschungsstatus müssen erhalten bleiben.
-17. **Baustellenkiste:** Nach Preview-Confirm muss eine echte Kiste am Gebäude stehen. Rechtsklick öffnet das Auftragsmenü; Inventar- und Vorratstransfers müssen im realen Kistenbestand erscheinen. FAWE darf die Kiste nicht ersetzen.
+17. **Baustellenkiste:** Nach Preview-Confirm muss eine echte Kiste an der bestätigten Spielerposition stehen. Rechtsklick öffnet das Auftragsmenü; Inventar- und Vorratstransfers müssen im realen Kistenbestand erscheinen. FAWE darf die Kiste nicht ersetzen und ihre Position muss nach Neustart sowie Gebäudeabschluss erhalten bleiben.
 18. **Bewohnerregister:** Bewohner mit Dorfglocken-Meeting-Point werden als bestätigt, Bettbewohner als unbestätigt erfasst. Sneak + Rechtsklick auf die Glocke muss Anwesende, neue Bestätigungen und bettlose Bewohner melden.
 19. **Bedienung:** `/bl menu` liefert den Kompass; Rechtsklick öffnet Menüs. `/bl admin selftest RATHAUS` funktioniert ohne Koordinaten. `/bl admin tp <ID>` findet einen sicheren Zielpunkt oder meldet einen Fehler.
 20. **Timeout-Race:** Nach erfolgreichem FAWE-Selftest mindestens 25 Sekunden warten. Es darf kein `LATE_FAILURE_IGNORED` nach `SUCCESS` erscheinen.
@@ -168,6 +178,7 @@ Deployment und Test auf dem OnePlus übernehmen Alexander beziehungsweise Axon. 
 
 | Befehl | Funktion |
 |---|---|
+| `/bl` | Dorfmenü am aktuellen Standort oder zur anvisierten Glocke öffnen |
 | `/bl menu` | Dorfmenü-Kompass erhalten; Rechtsklick öffnet Dorf-/Baumenüs |
 | `/bl info` | Dorfinfo zur anvisierten Glocke oder am aktuellen Standort |
 | `/bl quest` | Aktuellen Gründungsfortschritt anzeigen |

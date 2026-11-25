@@ -220,14 +220,16 @@ public final class ConstructionService {
         restore(preview);
         previews.remove(player.getUniqueId());
         if (validateAndCapture(player, village, preview.type(), preview.location(), preview) == null) return false;
-        tasks.database(() -> repository.createSite(village.id(), preview.type(), preview.location(), player.getUniqueId()), site -> {
+        BlockLink chest = builderChest(player, village, preview);
+        if (chest == null) return false;
+        tasks.database(() -> repository.createSite(village.id(), preview.type(), preview.location(), player.getUniqueId(), chest), site -> {
             restore(preview);
             if (!placeChest(site)) {
                 tasks.databaseVoid(() -> {
                     repository.deleteSite(site.id());
                     return null;
                 }, error -> Msg.error(player, "Baustellen-Rollback fehlgeschlagen: " + error.getMessage()));
-                Msg.error(player, "Baustellenkiste konnte nicht am vorgesehenen Anker platziert werden.");
+                Msg.error(player, "Baustellenkiste konnte nicht an deiner Bestätigungsposition platziert werden.");
                 return;
             }
             selectedSites.put(player.getUniqueId(), site.id());
@@ -237,6 +239,27 @@ public final class ConstructionService {
             Msg.info(player, "Nächstes: /bl build contribute oder /bl build fund. Danach /bl build start.");
         }, error -> Msg.error(player, "Baustelle konnte nicht angelegt werden: " + error.getMessage()));
         return true;
+    }
+
+    private BlockLink builderChest(Player player, Village village, PreviewSession preview) {
+        org.bukkit.Location position = player.getLocation();
+        if (!position.getWorld().getUID().equals(preview.location().world())
+                || !village.region().contains(position.getWorld().getUID(), position.getX(), position.getZ())) {
+            Msg.error(player, "Stelle dich zum Bestätigen innerhalb des Dorf-Claims auf einen freien Platz.");
+            return null;
+        }
+        Block block = position.getWorld().getBlockAt(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+        if (!block.getType().isAir() && !isReplaceableGrass(block.getType())) {
+            Msg.error(player, "Dein Standplatz ist für die Baustellenkiste belegt. Stelle dich auf einen freien Platz.");
+            return null;
+        }
+        boolean insideBuilding = BlueprintBlocks.blocks(preview.type()).stream()
+                .anyMatch(offset -> matches(block, preview.location(), offset));
+        if (insideBuilding) {
+            Msg.error(player, "Du stehst innerhalb des Gebäudes. Stelle dich zum Bestätigen neben den Eingang.");
+            return null;
+        }
+        return new BlockLink(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ());
     }
 
     public void cancelPreview(Player player) {
@@ -462,7 +485,7 @@ public final class ConstructionService {
 
     private boolean placeChest(BuildSite site) {
         Block block = chestBlock(site);
-        if (block == null || !block.getType().isAir()) return false;
+        if (block == null || !block.getType().isAir() && !isReplaceableGrass(block.getType())) return false;
         block.setType(Material.CHEST);
         if (!(block.getState() instanceof Chest chest)) return false;
         chest.customName(net.kyori.adventure.text.Component.text("Baustelle · " + site.type().displayName()));
@@ -471,11 +494,22 @@ public final class ConstructionService {
     }
 
     private Block chestBlock(BuildSite site) {
-        org.bukkit.World world = Bukkit.getWorld(site.location().world());
+        return chestBlock(site.location(), site.chest());
+    }
+
+    private Block chestBlock(Building building) {
+        return chestBlock(building.location(), building.chest());
+    }
+
+    private Block chestBlock(BuildLocation location, BlockLink chest) {
+        if (chest != null) {
+            org.bukkit.World world = Bukkit.getWorld(chest.world());
+            return world == null ? null : world.getBlockAt(chest.x(), chest.y(), chest.z());
+        }
+        org.bukkit.World world = Bukkit.getWorld(location.world());
         if (world == null) return null;
-        int[] rotated = rotate(4, 4, site.location().rotation());
-        return world.getBlockAt(site.location().x() + rotated[0], site.location().y() + 1,
-                site.location().z() + rotated[1]);
+        int[] rotated = rotate(4, 4, location.rotation());
+        return world.getBlockAt(location.x() + rotated[0], location.y() + 1, location.z() + rotated[1]);
     }
 
     private com.sk89q.worldedit.math.BlockVector3 chestVector(BuildSite site) {
@@ -495,15 +529,8 @@ public final class ConstructionService {
     }
 
     public Optional<Building> buildingAtChest(Block block) {
-        return buildings.values().stream().flatMap(List::stream).filter(building -> {
-            Block chest = chestBlock(new BuildSite(0, building.villageId(), building.type(), building.location(),
-                    BuildSite.Status.COLLECTING, villageServiceOwner(building), building.createdAt(), Map.of(), Map.of()));
-            return sameBlock(chest, block);
-        }).findFirst();
-    }
-
-    private UUID villageServiceOwner(Building building) {
-        return villages.byId(building.villageId()).map(Village::owner).orElse(new UUID(0, 0));
+        return buildings.values().stream().flatMap(List::stream)
+                .filter(building -> sameBlock(chestBlock(building), block)).findFirst();
     }
 
     private boolean sameBlock(Block first, Block second) {

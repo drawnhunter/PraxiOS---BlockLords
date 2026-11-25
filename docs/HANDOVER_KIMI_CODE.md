@@ -90,17 +90,17 @@ Die Gründungsquest verlangt Bett, Nahrungsquelle und Arbeitsblock und gibt gena
 
 ### 5.2 Baustellenkiste und Baupläne
 
-Nach Preview-Confirm entsteht eine echte Kiste am Bauplanknoten. Rechtsklick öffnet das Auftragsmenü, Sneak + Rechtsklick das reale Inventar. Inventar- und Rathausvorratstransfers landen als echte Items in der Kiste. `reconcileFromChest` leitet den Status aus dem realen Bestand ab. Beim Bau wird Material committet; normale Fehler geben es zurück, Timeouts lassen es sicher reserviert. FAWE überspringt die Kistenposition. Nach Abschluss bleibt die Kiste als Informations- und Restmaterialpunkt.
+Nach Preview-Confirm entsteht eine echte Kiste an der validierten Fußposition des Spielers. Rechtsklick öffnet das Auftragsmenü, Sneak + Rechtsklick das reale Inventar. Inventar- und Rathausvorratstransfers landen als echte Items in der Kiste. `reconcileFromChest` leitet den Status aus dem realen Bestand ab. Beim Bau wird Material committet; normale Fehler geben es zurück, Timeouts lassen es sicher reserviert. FAWE überspringt die gespeicherte Kistenposition. Nach Abschluss bleibt die Kiste als Informations- und Restmaterialpunkt erhalten; ihre Koordinaten werden auch in das Gebäude übernommen.
 
 Die Startbaupläne umfassen Rathaus, Wohnhaus, Farm, Mine, Lagerhaus, Bibliothek, Schmiede und Wohnhaus II. Die Mine besitzt eine echte Schmiedetafel. Das Bauernhaus besitzt ein Bett und ein Feld außerhalb der Hütte. Türen besitzen genau eine `half=bottom` und eine `half=top`, Betten genau einen `part=foot` und einen `part=head`. Directional Blockdaten rotieren mit. Diese Regeln wurden nicht nur kompiliert, sondern per echtem Server-`execute if block` nachgewiesen.
 
 ### 5.3 Bewohner und Arbeit
 
-Das Register nutzt `MEETING_POINT` und `HOME`: Dorfglocke = bestätigt, Bett im Claim = unbestätigt, andere = Wanderer. Die Versammlung per Sneak + Rechtsklick auf die Dorfglocke oder Arbeiter-Menü setzt den Vanilla-Meeting-Point, bestätigt Anwesende und meldet versammelte, neue und bettlose Bewohner. Die Zuweisung zu Farm/Mine nutzt das dorffweite Register ohne altes 12-Block-Limit. Bauer erhält Komposter, Minenarbeiter Schmiedetisch und beide werden mit `MemoryKey.JOB_SITE` verknüpft. Namen werden aus `ResidentNames` zufällig gewählt und als `Name #Nummer` angezeigt und persistiert.
+Das Register nutzt `MEETING_POINT` und `HOME`: Dorfglocke = bestätigt, Bett im Claim = unbestätigt, andere = Wanderer. Die Versammlung per Sneak + Rechtsklick auf die Dorfglocke oder Arbeiter-Menü setzt den Vanilla-Meeting-Point, bestätigt Anwesende und meldet versammelte, neue und bettlose Bewohner. Die Zuweisung zu Farm/Mine nutzt das dorffweite Register ohne altes 12-Block-Limit. Bauer erhält Komposter, Minenarbeiter Schmiedetisch und beide werden mit `MemoryKey.JOB_SITE` verknüpft. Namen werden aus `ResidentNames` zufällig gewählt und als `Name #Nummer` angezeigt und persistiert. Nummern werden bereits bei der Vergabe reserviert, damit auch Batch-Scans keine Duplikate erzeugen. Verstorbene Bewohner erscheinen getrennt als Verlorene, verlieren ihre Arbeitszuweisung und können gemeinsam aus dem Register entfernt werden.
 
 ### 5.4 Hotbar-Menü und Edit-Modus
 
-Die Glockenaktion „Bauen & Baustellen“ öffnet ein Hotbar-Root-Menü: Bauen, Baustellen, Bewohner, Vorschau und Zurück/Verlassen. „Bauen“ zeigt Baupläne in der Hotbar, acht pro Seite mit Weiter-Pfeil. Offhand geht stufenweise zurück und beendet am Root. Gesperrte Baupläne bleiben sichtbar und nennen die Freischaltbedingung. Nach Auswahl entsteht die Preview zwei Blöcke vor dem Spieler und wechselt direkt in den Edit-Modus mit X/Z ±, Rotation, Höhe und Bestätigen/Abbrechen.
+Die Glockenaktion „Bauen & Baustellen“ öffnet ein Hotbar-Root-Menü: Bauen, Baustellen, Bewohner, Vorschau und Zurück/Verlassen. „Bauen“ zeigt Baupläne in der Hotbar, acht pro Seite mit Weiter-Pfeil. Zurück und Verlassen liegen in der Hotbar; die Zweithand enthält kein Verlassen-Werkzeug. Gesperrte Baupläne bleiben sichtbar und nennen die Freischaltbedingung. Nach Auswahl entsteht die Preview zwei Blöcke vor dem Spieler und wechselt direkt in den Edit-Modus mit X/Z ±, Rotation, Höhe und Bestätigen/Abbrechen.
 
 Die Inventar-Session speichert Inventar, Rüstung, Offhand/Extras und Slot in SQLite. PDC-Werkzeuge und Event-Sperren verhindern Drops, Klicks, Drags, Offhand-Swaps und fremde Container. Wiederherstellung erfolgt durch Ersetzen statt Addieren und ist idempotent nach Bestätigen, Abbrechen, Logout, Tod, Weltwechsel, Reload und Serverstopp. Logout während Snapshot-Speicherung schließt die Session, ohne offline Werkzeuge zu installieren. Alle Platzierungsaktionen bleiben über Menü/Formular erreichbar.
 
@@ -201,14 +201,14 @@ Ergebnisse:
 
 ### Eigener Verifier
 
-- Kriterien: `verifier/v1/acceptance.md`
-- Build-/Testskript: `verifier/v1/check.sh`
+- Aktuelle Kriterien: `verifier/v2/acceptance.md`; `verifier/v1/` bleibt als historische Abnahme erhalten.
+- Build-/Testskript: `verifier/v2/check.sh`
 - Protokolle: `verifier/runs/`
-- Bei geänderten Kriterien neue Version `verifier/v2/`, nicht alte Kriterien überschreiben.
+- Bei geänderten Kriterien eine neue Verifier-Version anlegen, alte Kriterien nicht überschreiben.
 
-### Manuelle Live-Abnahme durch Axon
+### Live-Abnahme auf dem OnePlus
 
-Axon soll auf dem OnePlus/Mobian-Server mit Java 25 und Paper 26.3 testen:
+Der aktive Coding-/Deploy-Agent führt Deployment, Konsolenprüfung und technische Live-Tests auf dem OnePlus/Mobian-Server mit Java 25 und Paper 26.3 selbst durch. Alexander ergänzt die spielerische Abnahme:
 
 1. Glocke öffnen und Hotbar-Root prüfen.
 2. Bauplan auswählen, Preview 2 Blöcke vor Spieler und sofortige Edit-Hotbar prüfen.
@@ -221,13 +221,12 @@ Axon soll auf dem OnePlus/Mobian-Server mit Java 25 und Paper 26.3 testen:
 9. Golem-Kampf und Grasfreimachung prüfen.
 10. Logout/Tod/Serverstopp auf Inventarverlust oder Duplikate prüfen.
 
-Feedback kommt in #210; ältere Onboarding- und Research-Threads bleiben #201/#202 erhalten. Neues Material bitte mit Schritten, Log-Aktions-ID, Screenshot und Serverversion melden.
+Aktuelles Feedback kommt in #230; #210 bleibt als älterer Testverlauf erhalten, ebenso #201/#202 für Onboarding und Research. Neues Material bitte mit Schritten, Log-Aktions-ID, Screenshot und Serverversion melden.
 
 ## 10. Rollen- und Sicherheitsregeln
 
-- **Alexander:** Go/No-Go, Designentscheidungen, Prioritäten, Tokens.
-- **Axon:** Deployment, OnePlus/Mobian, MC-Panel, SSH, DNS/Netz, Live-Test und Logs.
-- **BLWB / künftig Kimi Code:** Code, Commits, Push, Releases, eigener Testserver, Verifier.
+- **Alexander:** Go/No-Go, Designentscheidungen, Prioritäten, Tokens und spielerische Abnahme.
+- **Kimi Code:** Code, Commits, Push, Releases, eigener Testserver, Verifier, Deployment, OnePlus/Mobian, MC-Panel, SSH, Konsolen- und Log-Auswertung.
 - **Bus:** Nachrichten, Status, Abstimmung und Testfeedback. GitHub bleibt Ort für Code, JARs, Releases und Research-Dokumente.
 - **Keine Tokens** in Ticket-Texten, Git-Dateien, Logs oder diesem Handover. PAT/Bus-Token werden ausschließlich über die dafür vorgesehenen Laufzeitparameter verwendet und regelmäßig rotiert.
 

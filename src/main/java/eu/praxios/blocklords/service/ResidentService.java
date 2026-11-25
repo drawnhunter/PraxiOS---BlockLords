@@ -4,7 +4,6 @@ import eu.praxios.blocklords.config.BlockLordsConfig;
 import eu.praxios.blocklords.model.*;
 import eu.praxios.blocklords.repository.ResidentRepository;
 import eu.praxios.blocklords.util.Msg;
-import eu.praxios.blocklords.util.ResidentNames;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
@@ -28,6 +27,7 @@ public final class ResidentService {
     private final VillageService villages;
     private final TaskRunner tasks;
     private final Map<Long, List<Resident>> cache = new ConcurrentHashMap<>();
+    private final Map<Long, ResidentIdentityAllocator> identities = new ConcurrentHashMap<>();
     private BukkitTask task;
 
     public ResidentService(JavaPlugin plugin, Supplier<BlockLordsConfig> config, ResidentRepository repository,
@@ -58,17 +58,25 @@ public final class ResidentService {
 
     public List<Resident> residents(long villageId) { return cache.getOrDefault(villageId, List.of()); }
 
+    public List<Resident> living(long villageId) {
+        return residents(villageId).stream().filter(resident -> !resident.dead()).toList();
+    }
+
+    public List<Resident> dead(long villageId) {
+        return residents(villageId).stream().filter(Resident::dead).toList();
+    }
+
     public List<Resident> free(long villageId, List<Worker> workers) {
         List<UUID> assigned = workers.stream().map(Worker::villager).toList();
-        return residents(villageId).stream().filter(resident -> !assigned.contains(resident.villager())).toList();
+        return living(villageId).stream().filter(resident -> !assigned.contains(resident.villager())).toList();
     }
 
     public long confirmed(long villageId) {
-        return residents(villageId).stream().filter(resident -> resident.status() == Resident.Status.CONFIRMED).count();
+        return living(villageId).stream().filter(resident -> resident.status() == Resident.Status.CONFIRMED).count();
     }
 
     public long unconfirmed(long villageId) {
-        return residents(villageId).stream().filter(resident -> resident.status() == Resident.Status.UNCONFIRMED).count();
+        return living(villageId).stream().filter(resident -> resident.status() == Resident.Status.UNCONFIRMED).count();
     }
 
     public void scanAll() {
@@ -82,6 +90,7 @@ public final class ResidentService {
         List<Resident> changed = new ArrayList<>();
         for (Villager villager : loaded) {
             Resident known = previous.get(villager.getUniqueId());
+            if (known != null && known.dead()) continue;
             if (known != null && known.bed() != null && villager.getMemory(MemoryKey.HOME) == null) {
                 villager.setMemory(MemoryKey.HOME, locationFromLink(known.bed()));
             }
@@ -108,10 +117,10 @@ public final class ResidentService {
             if (old == null || old.status() == Resident.Status.UNCONFIRMED) newlyConfirmed++;
             if (bed == null) withoutBed++;
             villager.setMemory(MemoryKey.MEETING_POINT, bell);
-            Identity identity = identity(village.id(), old);
+            ResidentIdentityAllocator.Identity identity = identity(village.id(), old);
             records.add(new Resident(village.id(), villager.getUniqueId(), Resident.Status.CONFIRMED,
                     bed != null, bed, link(bell), old == null ? now : old.firstSeen(), now,
-                    identity.name(), identity.number()));
+                    identity.name(), identity.number(), false));
         }
         persist(village, records);
         world(village).ifPresent(world -> {
@@ -124,6 +133,10 @@ public final class ResidentService {
     }
 
     public void assignBed(Player player, Village village, Resident resident) {
+        if (resident.dead()) {
+            Msg.error(player, "Verlorenen Bewohnern kann kein Bett zugewiesen werden.");
+            return;
+        }
         World world = Bukkit.getWorld(village.region().world());
         if (world == null) {
             Msg.error(player, "Die Dorfwelt ist nicht geladen.");
@@ -132,7 +145,7 @@ public final class ResidentService {
         Location center = Bukkit.getEntity(resident.villager()) instanceof Villager villager
                 ? villager.getLocation() : bellLocation(village);
         Set<String> occupied = new HashSet<>();
-        residents(village.id()).forEach(other -> {
+        living(village.id()).forEach(other -> {
             if (other.bed() != null) {
                 occupied.add(other.bed().world() + ":" + other.bed().x() + ":" + other.bed().y() + ":" + other.bed().z());
             }
@@ -160,12 +173,45 @@ public final class ResidentService {
         BlockLink link = new BlockLink(world.getUID(), nearest.getX(), nearest.getY(), nearest.getZ());
         Resident updated = new Resident(village.id(), resident.villager(), resident.status(), true, link,
                 resident.meetingPoint(), resident.firstSeen(), System.currentTimeMillis(),
-                resident.displayName(), resident.number());
+                resident.displayName(), resident.number(), resident.dead());
         if (Bukkit.getEntity(resident.villager()) instanceof Villager villager) {
             villager.setMemory(MemoryKey.HOME, nearest.getLocation());
         }
         persist(village, List.of(updated));
         Msg.success(player, "Bett zugewiesen: " + nearest.getX() + "/" + nearest.getY() + "/" + nearest.getZ() + ".");
+    }
+
+    public void markDead(UUID villager) {
+        Resident current = cache.values().stream().flatMap(List::stream)
+                .filter(resident -> resident.villager().equals(villager)).findFirst().orElse(null);
+        if (current == null || current.dead()) return;
+        Resident updated = new Resident(current.villageId(), current.villager(), current.status(), current.hasBed(),
+                current.bed(), current.meetingPoint(), current.firstSeen(), System.currentTimeMillis(),
+                current.displayName(), current.number(), true);
+        cache.put(current.villageId(), residents(current.villageId()).stream()
+                .map(resident -> resident.villager().equals(villager) ? updated : resident).toList());
+        tasks.database(() -> {
+            repository.markDead(villager);
+            return repository.find(current.villageId());
+        }, list -> cache.put(current.villageId(), list), error -> {
+            throw new IllegalStateException("Verlorener Bewohner konnte nicht gespeichert werden", error);
+        });
+    }
+
+    public void purgeDead(Player player, Village village) {
+        Role role = villages.role(village.id(), player.getUniqueId());
+        if (role != Role.LANDHERR && role != Role.GEFOLGSMANN) {
+            Msg.error(player, "Nur Landherr oder Gefolgsmann dürfen verlorene Bewohner entfernen.");
+            return;
+        }
+        if (dead(village.id()).isEmpty()) {
+            Msg.info(player, "Es sind keine verlorenen Bewohner im Register.");
+            return;
+        }
+        tasks.database(() -> repository.deleteDead(village.id()), deleted -> {
+            cache.put(village.id(), living(village.id()));
+            Msg.success(player, deleted + " verlorene Bewohner aus dem Register entfernt.");
+        }, error -> Msg.error(player, "Verlorene Bewohner konnten nicht entfernt werden: " + error.getMessage()));
     }
 
     private Resident evaluate(Village village, Villager villager, Resident old, boolean forceConfirm) {
@@ -175,25 +221,14 @@ public final class ResidentService {
         if (!confirmedByBell && bed == null && !forceConfirm) return null;
         Resident.Status status = confirmedByBell || forceConfirm ? Resident.Status.CONFIRMED : Resident.Status.UNCONFIRMED;
         long now = System.currentTimeMillis();
-        Identity identity = identity(village.id(), old);
+        ResidentIdentityAllocator.Identity identity = identity(village.id(), old);
         return new Resident(village.id(), villager.getUniqueId(), status, bed != null, bed,
                 meeting == null ? null : link(meeting), old == null ? now : old.firstSeen(), now,
-                identity.name(), identity.number());
+                identity.name(), identity.number(), false);
     }
 
-    private Identity identity(long villageId, Resident old) {
-        int number = old != null && old.number() > 0 ? old.number()
-                : residents(villageId).stream().mapToInt(Resident::number).max().orElse(0) + 1;
-        if (old != null && old.displayName() != null && !old.displayName().isBlank()) {
-            return new Identity(old.displayName(), number);
-        }
-        Set<String> used = new HashSet<>();
-        residents(villageId).forEach(resident -> used.add(resident.displayName()));
-        String name = ResidentNames.random();
-        for (int attempt = 0; attempt < 50 && used.contains(name); attempt++) {
-            name = ResidentNames.random();
-        }
-        return new Identity(name, number);
+    private ResidentIdentityAllocator.Identity identity(long villageId, Resident old) {
+        return identities.computeIfAbsent(villageId, id -> new ResidentIdentityAllocator(residents(id))).next(old);
     }
 
     private void persist(Village village, List<Resident> records) {
@@ -244,9 +279,6 @@ public final class ResidentService {
     private Location bellLocation(Village village) {
         return new Location(Bukkit.getWorld(village.region().world()), village.region().bellX() + 0.5,
                 village.region().bellY(), village.region().bellZ() + 0.5);
-    }
-
-    private record Identity(String name, int number) {
     }
 
     private Location locationFromLink(BlockLink link) {

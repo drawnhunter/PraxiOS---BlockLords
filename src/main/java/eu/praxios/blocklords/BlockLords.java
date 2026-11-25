@@ -106,6 +106,7 @@ public final class BlockLords extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new GuideItemListener(guide, villages, ui), this);
             getServer().getPluginManager().registerEvents(new BuilderChestListener(construction, villages, ui), this);
             getServer().getPluginManager().registerEvents(new PlacementModeListener(placement), this);
+            getServer().getPluginManager().registerEvents(new ResidentLifecycleListener(residents, workers), this);
             getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(founding, decay, production, villages, this), this);
 
             EconomyCommand economy = new EconomyCommand(villages, construction, storage, workers, research, ui, placement);

@@ -325,13 +325,18 @@ public final class VillageRepository {
         return villages;
     }
 
+    private static final int[] LEVEL_THRESHOLDS = {0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3300};
+
     public static int levelForXp(int xp) {
-        int[] thresholds = {0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3300};
         int level = 1;
-        for (int threshold : thresholds) {
+        for (int threshold : LEVEL_THRESHOLDS) {
             if (xp >= threshold) level++;
         }
         return Math.min(10, level - 1);
+    }
+
+    public static int xpForNextLevel(int currentLevel) {
+        return currentLevel < 1 || currentLevel >= 10 ? -1 : LEVEL_THRESHOLDS[currentLevel];
     }
 
     private static boolean regionsOverlap(ClaimRegion first, ClaimRegion second) {

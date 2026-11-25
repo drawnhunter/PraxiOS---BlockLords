@@ -155,7 +155,10 @@ public final class UiService {
                 "Hotbar-Menü: Bauen, Baustellen, Bewohner und Vorschau."));
         actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG, "Bewohner", () -> openWorkers(player, village)));
         actions.add(UiAction.of(Material.ENCHANTED_BOOK, "Bibliothek & Forschung", () -> openResearch(player, village)));
-        actions.add(UiAction.of(Material.COMPASS, "Dorf vermessen", () -> scanner.requestAndNotify(village, player)));
+        actions.add(UiAction.of(Material.EXPERIENCE_BOTTLE, "Dorf-Level " + village.level(), () -> { }, levelLore(village)));
+        actions.add(UiAction.of(Material.COMPASS, "Dorfmenü-Kompass", () -> Bukkit.dispatchCommand(player, "bl menu"),
+                "Gibt dir den Kompass zum Öffnen des Dorfmenüs ins Inventar."));
+        actions.add(UiAction.of(Material.MAP, "Dorf vermessen", () -> scanner.requestAndNotify(village, player)));
         actions.add(UiAction.of(Material.BARRIER, "Schließen", player::closeInventory));
         openActions(player, "BlockLords · " + village.name(), content, actions);
     }
@@ -253,28 +256,51 @@ public final class UiService {
 
     public void openWorkers(Player player, Village village) {
         java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.BOOK, "Wie wird ein Bewohner Arbeiter?", () -> { },
+                "Registrierten freien Bewohner im Detail selbst zuweisen.",
+                "Voraussetzung: fertige Farm oder Mine.",
+                "Nahrung ermöglicht Produktion; ein Bett versorgt den Wohnraum."));
         for (Building building : construction.buildings(village.id())) {
             if (building.type() == BlueprintType.FARM || building.type() == BlueprintType.MINE) {
                 long assigned = workers.workers(village.id()).stream().filter(worker -> worker.buildingId() == building.id()).count();
                 actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG,
                         "#" + building.id() + " " + building.type().displayName() + " · " + assigned + " Arbeiter",
-                        () -> workers.assign(player, village, building.id()), "Freien Bewohner im Umkreis zuweisen."));
+                        () -> workers.assign(player, village, building.id()), "Freien registrierten Bewohner zuweisen."));
             }
         }
-        residents.residents(village.id()).forEach(resident -> actions.add(UiAction.of(Material.NAME_TAG,
-                "Bewohner " + resident.displayLabel(), () -> openResident(player, village, resident),
+        residents.living(village.id()).forEach(resident -> actions.add(UiAction.of(Material.NAME_TAG,
+                resident.displayLabel(), () -> openResident(player, village, resident),
                 resident.hasBed() ? "Bett vorhanden · Details" : "Bett fehlt · Details")));
+        if (!residents.dead(village.id()).isEmpty()) {
+            actions.add(UiAction.of(Material.SKELETON_SKULL, "Verlorene · " + residents.dead(village.id()).size(),
+                    () -> openDeadResidents(player, village), "Verlorene Bewohner anzeigen und entfernen."));
+        }
         workers.workers(village.id()).forEach(worker -> actions.add(UiAction.of(Material.NAME_TAG,
                 "Arbeiter #" + worker.id() + " entfernen", () -> workers.unassign(player, village, worker.id()),
                 worker.job() + " · Gebäude #" + worker.buildingId())));
         actions.add(UiAction.of(Material.BELL, "Versammlung läuten", () -> residents.assemble(player, village),
                 "Bestätigt Anwesende und meldet neue sowie bettlose Bewohner."));
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
-        String content = "Register: " + residents.residents(village.id()).size() + " Bewohner · "
+        String content = "Register: " + residents.living(village.id()).size() + " lebende Bewohner · "
                 + residents.confirmed(village.id()) + " bestätigt · " + residents.unconfirmed(village.id()) + " unbestätigt · "
-                + residents.free(village.id(), workers.workers(village.id())).size() + " frei.\n"
+                + residents.free(village.id(), workers.workers(village.id())).size() + " frei · "
+                + residents.dead(village.id()).size() + " verloren.\n"
                 + "Sneak + Rechtsklick auf die Dorfglocke startet ebenfalls die Versammlung.";
         openActions(player, "Bewohner · " + village.name(), content, actions);
+    }
+
+    public void openDeadResidents(Player player, Village village) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        residents.dead(village.id()).forEach(resident -> actions.add(UiAction.of(Material.SKELETON_SKULL,
+                resident.displayLabel(), () -> { }, "Verloren · Namen und Nummer bleiben bis zum Aufräumen erhalten.")));
+        if (!residents.dead(village.id()).isEmpty()) {
+            actions.add(UiAction.of(Material.BARRIER, "Verlorene entfernen", () -> {
+                player.closeInventory();
+                residents.purgeDead(player, village);
+            }, "Entfernt alle verlorenen Einträge aus diesem Dorfregister."));
+        }
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openWorkers(player, village)));
+        openActions(player, "Verlorene · " + village.name(), "Nur nachweislich verstorbene Bewohner stehen hier.", actions);
     }
 
     public void openResident(Player player, Village village, Resident resident) {
@@ -290,8 +316,7 @@ public final class UiService {
                     () -> workers.unassign(player, village, assigned.id())));
         }
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openWorkers(player, village)));
-        openActions(player, "Bewohner " + resident.displayLabel(),
-                residentText(village, resident, assigned), actions);
+        openActions(player, resident.displayLabel(), residentText(village, resident, assigned), actions);
     }
 
     public void openResidentAssign(Player player, Village village, Resident resident) {
@@ -435,6 +460,27 @@ public final class UiService {
 
     private boolean bedrockAvailable(Player player) {
         return bedrock != null && bedrock.available(player, config.get().bedrockForms());
+    }
+
+    private String[] levelLore(Village village) {
+        if (village.level() >= 10) {
+            return new String[]{"[x] Höchstes Level erreicht", village.xp() + " XP"};
+        }
+        int required = eu.praxios.blocklords.repository.VillageRepository.xpForNextLevel(village.level());
+        int missing = Math.max(0, required - village.xp());
+        return new String[]{
+                "[x] Aktuelles Level: " + village.level() + " · " + village.xp() + " XP",
+                "[ ] Level " + (village.level() + 1) + ": " + required + " XP (noch " + missing + ")",
+                "Freischaltung: " + nextLevelUnlock(village.level() + 1)
+        };
+    }
+
+    private String nextLevelUnlock(int level) {
+        return Arrays.stream(BlueprintType.values())
+                .filter(type -> type.requiredLevel() == level)
+                .map(BlueprintType::displayName)
+                .reduce((left, right) -> left + ", " + right)
+                .orElse("Weitere Entwicklung folgt in späteren Phasen.");
     }
 
     private String statsText(Village village) {

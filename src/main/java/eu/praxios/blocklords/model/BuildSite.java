@@ -5,7 +5,8 @@ import java.util.UUID;
 
 public record BuildSite(long id, long villageId, BlueprintType type, BuildLocation location,
                         Status status, UUID createdBy, long createdAt,
-                        Map<ResourceType, Integer> required, Map<ResourceType, Integer> contributed) {
+                        Map<ResourceType, Integer> required, Map<ResourceType, Integer> contributed,
+                        BlockLink chest) {
     public enum Status { COLLECTING, READY, BUILDING }
 
     public int remaining(ResourceType resource) {

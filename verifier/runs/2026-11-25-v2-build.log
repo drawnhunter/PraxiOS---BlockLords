@@ -1,0 +1,10 @@
+2026-11-25T19:09:00+01:00 | Kommando: `./gradlew clean build --no-daemon` mit Java 21.0.13.1 und IPv4 | Exit-Code: 0
+Vorher `git diff --check`: bestanden
+Tests: 35
+Failures: 0
+Errors: 0
+Skipped: 0
+Enthalten: ResidentIdentityAllocator, ResidentService mit drei gleichzeitig versammelten Villagern (#1/#2/#3), Verlustpersistenz/Purge, ConstructionService mit echtem Preview-Confirm und Ablehnung im Gebäude, Kistenpersistenz, V5→V6-Upgrade, Level-Schwellen
+JAR: build/libs/BlockLords-0.2.7-alpha.1.jar
+SHA256: fa13a2a1d2ff89d5010feb1fa5276d57875218e4768b0b0535eae35485ff4b78
+Ergebnis: bestanden

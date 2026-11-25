@@ -16,13 +16,15 @@ public final class ConstructionRepository {
         this.database = database;
     }
 
-    public BuildSite createSite(long villageId, BlueprintType type, BuildLocation location, UUID creator) throws Exception {
+    public BuildSite createSite(long villageId, BlueprintType type, BuildLocation location, UUID creator,
+                                BlockLink chest) throws Exception {
         long now = System.currentTimeMillis();
         return database.inTransaction(connection -> {
             long id;
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO build_sites(village_id, type, world_uuid, x, y, z, rotation, status, created_by, created_at) "
-                            + "VALUES (?, ?, ?, ?, ?, ?, ?, 'COLLECTING', ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    "INSERT INTO build_sites(village_id, type, world_uuid, x, y, z, rotation, status, created_by, created_at, "
+                            + "chest_world, chest_x, chest_y, chest_z) "
+                            + "VALUES (?, ?, ?, ?, ?, ?, ?, 'COLLECTING', ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 statement.setLong(1, villageId);
                 statement.setString(2, type.name());
                 statement.setString(3, location.world().toString());
@@ -32,6 +34,7 @@ public final class ConstructionRepository {
                 statement.setInt(7, location.rotation());
                 statement.setString(8, creator.toString());
                 statement.setLong(9, now);
+                setLink(statement, 10, chest);
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
@@ -49,7 +52,7 @@ public final class ConstructionRepository {
                 statement.executeBatch();
             }
             return new BuildSite(id, villageId, type, location, BuildSite.Status.COLLECTING, creator, now,
-                    type.cost(), Map.of());
+                    type.cost(), Map.of(), chest);
         });
     }
 
@@ -191,8 +194,9 @@ public final class ConstructionRepository {
             long now = System.currentTimeMillis();
             long id;
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO buildings(village_id, type, level, world_uuid, x, y, z, rotation, created_at) "
-                            + "VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    "INSERT INTO buildings(village_id, type, level, world_uuid, x, y, z, rotation, created_at, "
+                            + "chest_world, chest_x, chest_y, chest_z) "
+                            + "VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 statement.setLong(1, site.villageId());
                 statement.setString(2, site.type().name());
                 statement.setString(3, site.location().world().toString());
@@ -201,6 +205,7 @@ public final class ConstructionRepository {
                 statement.setInt(6, site.location().z());
                 statement.setInt(7, site.location().rotation());
                 statement.setLong(8, now);
+                setLink(statement, 9, site.chest());
                 statement.executeUpdate();
                 try (ResultSet keys = statement.getGeneratedKeys()) {
                     keys.next();
@@ -211,7 +216,7 @@ public final class ConstructionRepository {
                 statement.setLong(1, siteId);
                 statement.executeUpdate();
             }
-            return new Building(id, site.villageId(), site.type(), 1, site.location(), now);
+            return new Building(id, site.villageId(), site.type(), 1, site.location(), now, site.chest());
         });
     }
 
@@ -321,13 +326,34 @@ public final class ConstructionRepository {
                 new BuildLocation(UUID.fromString(result.getString("world_uuid")), result.getInt("x"), result.getInt("y"),
                         result.getInt("z"), result.getInt("rotation")),
                 BuildSite.Status.valueOf(result.getString("status")), UUID.fromString(result.getString("created_by")),
-                result.getLong("created_at"), type.cost(), Map.copyOf(contributed));
+                result.getLong("created_at"), type.cost(), Map.copyOf(contributed), link(result, "chest"));
     }
 
     private static Building mapBuilding(ResultSet result) throws Exception {
         return new Building(result.getLong("id"), result.getLong("village_id"),
                 BlueprintType.valueOf(result.getString("type")), result.getInt("level"),
                 new BuildLocation(UUID.fromString(result.getString("world_uuid")), result.getInt("x"), result.getInt("y"),
-                        result.getInt("z"), result.getInt("rotation")), result.getLong("created_at"));
+                        result.getInt("z"), result.getInt("rotation")), result.getLong("created_at"), link(result, "chest"));
+    }
+
+    private static BlockLink link(ResultSet result, String prefix) throws Exception {
+        String world = result.getString(prefix + "_world");
+        if (world == null) return null;
+        return new BlockLink(UUID.fromString(world), result.getInt(prefix + "_x"),
+                result.getInt(prefix + "_y"), result.getInt(prefix + "_z"));
+    }
+
+    private static void setLink(PreparedStatement statement, int index, BlockLink link) throws Exception {
+        if (link == null) {
+            statement.setNull(index, java.sql.Types.VARCHAR);
+            statement.setNull(index + 1, java.sql.Types.INTEGER);
+            statement.setNull(index + 2, java.sql.Types.INTEGER);
+            statement.setNull(index + 3, java.sql.Types.INTEGER);
+        } else {
+            statement.setString(index, link.world().toString());
+            statement.setInt(index + 1, link.x());
+            statement.setInt(index + 2, link.y());
+            statement.setInt(index + 3, link.z());
+        }
     }
 }

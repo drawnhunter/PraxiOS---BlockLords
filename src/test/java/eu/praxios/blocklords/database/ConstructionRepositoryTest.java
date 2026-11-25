@@ -40,7 +40,8 @@ class ConstructionRepositoryTest {
 
     @Test
     void contributionsBecomeReadyAndCompleteBuilding() throws Exception {
-        BuildSite site = construction.createSite(village.id(), BlueprintType.RATHAUS, location(), player);
+        BuildSite site = construction.createSite(village.id(), BlueprintType.RATHAUS, location(), player, chest());
+        assertEquals(chest(), construction.findSite(site.id()).orElseThrow().chest());
         assertEquals(32, construction.contribute(site.id(), player, ResourceType.HOLZ, 40));
         assertEquals(BuildSite.Status.COLLECTING, construction.findSite(site.id()).orElseThrow().status());
         assertEquals(16, construction.contribute(site.id(), player, ResourceType.STEIN, 20));
@@ -50,15 +51,17 @@ class ConstructionRepositoryTest {
         construction.markBuilding(site.id());
         Building building = construction.completeSite(site.id());
         assertEquals(BlueprintType.RATHAUS, building.type());
+        assertEquals(chest(), building.chest());
         assertTrue(construction.findSites(village.id()).isEmpty());
         assertEquals(1, construction.findBuildings(village.id()).size());
+        assertEquals(chest(), construction.findBuildings(village.id()).getFirst().chest());
     }
 
     @Test
     void storageFundingIsAtomicAndCountedOnce() throws Exception {
         storage.deposit(village.id(), player, ResourceType.HOLZ, 20, 100);
         storage.deposit(village.id(), player, ResourceType.STEIN, 10, 100);
-        BuildSite site = construction.createSite(village.id(), BlueprintType.FARM, location(), player);
+        BuildSite site = construction.createSite(village.id(), BlueprintType.FARM, location(), player, chest());
         assertEquals(16, construction.fundFromStorage(site.id(), player, ResourceType.HOLZ, 99));
         assertEquals(8, construction.fundFromStorage(site.id(), player, ResourceType.STEIN, 99));
         assertEquals(4, storage.balances(village.id()).get(ResourceType.HOLZ));
@@ -68,7 +71,7 @@ class ConstructionRepositoryTest {
 
     @Test
     void chestInventoryControlsReadyState() throws Exception {
-        BuildSite site = construction.createSite(village.id(), BlueprintType.FARM, location(), player);
+        BuildSite site = construction.createSite(village.id(), BlueprintType.FARM, location(), player, chest());
         construction.reconcileFromChest(site.id(), Map.of(ResourceType.HOLZ, 16));
         assertEquals(BuildSite.Status.COLLECTING, construction.findSite(site.id()).orElseThrow().status());
         construction.reconcileFromChest(site.id(), Map.of(ResourceType.HOLZ, 16, ResourceType.STEIN, 8));
@@ -82,5 +85,9 @@ class ConstructionRepositoryTest {
 
     private BuildLocation location() {
         return new BuildLocation(village.region().world(), 10, 65, 10, 0);
+    }
+
+    private BlockLink chest() {
+        return new BlockLink(village.region().world(), 8, 65, 8);
     }
 }

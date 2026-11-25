@@ -1,0 +1,11 @@
+ALTER TABLE residents ADD COLUMN dead INTEGER NOT NULL DEFAULT 0 CHECK (dead IN (0, 1));
+
+ALTER TABLE build_sites ADD COLUMN chest_world TEXT;
+ALTER TABLE build_sites ADD COLUMN chest_x INTEGER;
+ALTER TABLE build_sites ADD COLUMN chest_y INTEGER;
+ALTER TABLE build_sites ADD COLUMN chest_z INTEGER;
+
+ALTER TABLE buildings ADD COLUMN chest_world TEXT;
+ALTER TABLE buildings ADD COLUMN chest_x INTEGER;
+ALTER TABLE buildings ADD COLUMN chest_y INTEGER;
+ALTER TABLE buildings ADD COLUMN chest_z INTEGER;

@@ -260,3 +260,31 @@
 
 - Hotbar-Root, Bauplan-Pagination, Zurück/Verlassen, sofortiger Edit-Modus, Namen/#Nummern, Feld, Türen und Betten auf Paper 26.3/Java 25.
 - Danach folgen Schematic-Loader/Herkunftsakte und die Kolonie-Gründungsbasis.
+
+
+## 2026-11-25 — 0.2.7-alpha.1, Live-Feedback P0/P1 aus #230
+
+### Implementiert
+
+- **P0 Bewohnernummern:** Ein dorfspezifischer Identity-Allocator reserviert Nummern und Namen bereits bei der Vergabe. Mehrere neue Villager im selben Scan erhalten dadurch aufsteigende Nummern; spätere Scans und Neustarts setzen nach dem gespeicherten Maximum fort.
+- **P0 Anzeige und Verlustverwaltung:** Kein doppeltes „Bewohner Bewohner“ mehr. Verstorbene Villager werden persistent als verloren markiert, aus freien Bewohnern und Arbeitszuweisungen entfernt, in einem eigenen Menübereich angezeigt und können gemeinsam gelöscht werden.
+- **Migration V6:** `residents.dead` sowie nullable Kistenkoordinaten an `build_sites` und `buildings`. Alte Datensätze behalten den bisherigen rotierten Kisten-Fallback; V1–V5 bleiben unverändert.
+- **Baustellenkiste:** Die freie Fußposition beim Preview-Confirm wird gegen Claim, Belegung und Gebäudefootprint geprüft, gespeichert und beim Gebäudeabschluss übernommen. Kistenmenüs, Restmaterial und FAWE-Ausschluss verwenden dieselbe Position.
+- **Menüzugang:** `/bl` öffnet für Spieler direkt das Dorfmenü; ein Kompass-Eintrag stellt das Menü-Item ins Inventar.
+- **Quick-Wins:** Zurück/Verlassen nur noch in der Hotbar, Level-Item mit aktuellem Stand/fehlenden XP/nächster Freischaltung und kurze Erklärung der Arbeiterzuweisung.
+- **Tests:** FAWE 2.16.3 steht auch im Testklassenpfad; das offizielle EngineHub-Repository ergänzt dessen eigene Laufzeitabhängigkeiten.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **35 Tests ohne Fehler, Fehlerfälle oder Überspringungen** erfolgreich.
+- `ResidentServiceTest`: Drei gleichzeitig versammelte Villager erhalten exakt **#1/#2/#3**.
+- `ConstructionServiceTest`: Preview-Confirm erzeugt die Kiste an der Spielerposition und persistiert sie; Position im Gebäude wird vor dem DB-Insert abgelehnt.
+- `MigrationUpgradeTest`: Echte V1–V5-Datenbank wird auf V6 angehoben; Bewohner und alte Baustellen/Gebäude mit Legacy-Fallback bleiben lesbar.
+- Echter Start auf Paper 1.21.11 Build 132 mit FAWE 2.16.3; Migrationen V1–V6 und Aktivierung erfolgreich.
+- FAWE-Selftest RATHAUS: **99 Blöcke**, Aktions-ID `PASTE-ac2903ae`, `SUCCESS` nach 7.891 ms.
+- `/bl admin list`, `/bl admin backup`, RCON und TPS geprüft. Nach Erfolg deutlich mehr als 27 Sekunden kein `LATE_FAILURE_IGNORED` oder `LATE_SUCCESS_IGNORED`.
+- Sauberer Shutdown ohne BlockLords-Fehler. Abnahmekriterien und Laufprotokolle liegen in `verifier/v2/` und `verifier/runs/`.
+
+### Nächster Schritt
+
+- Produktivdeployment durch den Coding-/Deploy-Agenten mit Datenbank-/JAR-Backup und Rollback-Pfad; anschließend Konsolen- und spielerische Live-Abnahme von #230.

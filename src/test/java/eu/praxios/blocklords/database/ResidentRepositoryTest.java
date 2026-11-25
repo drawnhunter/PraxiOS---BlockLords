@@ -19,18 +19,53 @@ class ResidentRepositoryTest {
     @Test
     void residentNameAndNumberPersist() throws Exception {
         try (Database database = new Database(temp.resolve("residents.db"))) {
-            new MigrationRunner(database, Logger.getLogger("test")).migrate();
-            UUID player = UUID.randomUUID();
-            Village village = new VillageRepository(database).createVillage("Namensdorf", player,
-                    new ClaimRegion(UUID.randomUUID(), 0, 64, 0, 48), 4, 20, false, 21);
-            ResidentRepository repository = new ResidentRepository(database);
-            Resident resident = new Resident(village.id(), UUID.randomUUID(), Resident.Status.CONFIRMED,
-                    false, null, null, 1, 1, "Astrid", 1);
+            ResidentRepository repository = repository(database);
+            Village village = village(database, "Namensdorf");
+            Resident resident = resident(village, "Astrid", 1);
             repository.touchAll(village.id(), List.of(resident));
             Resident loaded = repository.find(village.id()).getFirst();
             assertEquals("Astrid #1", loaded.displayLabel());
             assertEquals("Astrid", loaded.displayName());
             assertEquals(1, loaded.number());
+            assertFalse(loaded.dead());
         }
+    }
+
+    @Test
+    void deathSurvivesTouchAndOnlyDeadResidentsArePurged() throws Exception {
+        try (Database database = new Database(temp.resolve("resident-loss.db"))) {
+            ResidentRepository repository = repository(database);
+            Village village = village(database, "Verlustdorf");
+            Resident dead = resident(village, "Astrid", 1);
+            Resident living = resident(village, "Bodo", 2);
+            repository.touchAll(village.id(), List.of(dead, living));
+            repository.markDead(dead.villager());
+            repository.touchAll(village.id(), List.of(dead));
+
+            List<Resident> loaded = repository.find(village.id());
+            Resident marked = loaded.stream().filter(resident -> resident.villager().equals(dead.villager())).findFirst().orElseThrow();
+            assertTrue(marked.dead());
+            assertFalse(loaded.stream().filter(resident -> resident.villager().equals(living.villager())).findFirst().orElseThrow().dead());
+
+            assertEquals(1, repository.deleteDead(village.id()));
+            List<Resident> remaining = repository.find(village.id());
+            assertEquals(1, remaining.size());
+            assertEquals(living.villager(), remaining.getFirst().villager());
+        }
+    }
+
+    private ResidentRepository repository(Database database) throws Exception {
+        new MigrationRunner(database, Logger.getLogger("test")).migrate();
+        return new ResidentRepository(database);
+    }
+
+    private Village village(Database database, String name) throws Exception {
+        return new VillageRepository(database).createVillage(name, UUID.randomUUID(),
+                new ClaimRegion(UUID.randomUUID(), 0, 64, 0, 48), 4, 20, false, 21);
+    }
+
+    private Resident resident(Village village, String name, int number) {
+        return new Resident(village.id(), UUID.randomUUID(), Resident.Status.CONFIRMED,
+                false, null, null, 1, 1, name, number, false);
     }
 }

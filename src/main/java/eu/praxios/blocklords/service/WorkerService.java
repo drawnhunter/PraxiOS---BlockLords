@@ -176,4 +176,18 @@ public final class WorkerService {
         audit.log(player, "WORKER_UNASSIGNED", "Arbeiter #" + workerId);
         Msg.success(player, "Arbeiter-Zuordnung aufgehoben.");
     }
+
+    public void removeVillager(UUID villager) {
+        boolean assigned = workers.values().stream().flatMap(List::stream)
+                .anyMatch(worker -> worker.villager().equals(villager));
+        if (!assigned) return;
+        workers.replaceAll((villageId, list) -> list.stream()
+                .filter(worker -> !worker.villager().equals(villager)).toList());
+        tasks.databaseVoid(() -> {
+            repository.removeVillager(villager);
+            return null;
+        }, error -> {
+            throw new IllegalStateException("Arbeitszuweisung eines verlorenen Bewohners konnte nicht entfernt werden", error);
+        });
+    }
 }

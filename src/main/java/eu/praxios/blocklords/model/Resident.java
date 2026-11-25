@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public record Resident(long villageId, UUID villager, Status status, boolean hasBed,
                        BlockLink bed, BlockLink meetingPoint, long firstSeen, long lastSeen,
-                       String displayName, int number) {
+                       String displayName, int number, boolean dead) {
     public enum Status { CONFIRMED, UNCONFIRMED }
 
     public String displayLabel() {

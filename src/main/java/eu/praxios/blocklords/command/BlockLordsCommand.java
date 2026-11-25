@@ -63,7 +63,8 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            help(sender);
+            if (sender instanceof Player player) ui.openTargetInfo(player);
+            else help(sender);
             return true;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {

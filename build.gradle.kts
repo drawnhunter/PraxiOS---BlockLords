@@ -4,12 +4,13 @@ plugins {
 }
 
 group = "eu.praxios"
-version = "0.2.6-alpha.1"
+version = "0.2.7-alpha.1"
 
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.opencollab.dev/main/")
+    maven("https://maven.enginehub.org/repo/")
 }
 
 val paperApi = "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
@@ -28,6 +29,8 @@ dependencies {
     testImplementation(paperApi)
     testImplementation("org.junit.jupiter:junit-jupiter:6.0.1")
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.116.2")
+    testRuntimeOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core:2.16.3")
+    testRuntimeOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.16.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

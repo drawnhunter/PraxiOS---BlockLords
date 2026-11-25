@@ -65,4 +65,14 @@ public final class WorkerRepository {
             return null;
         });
     }
+
+    public void removeVillager(UUID villager) throws Exception {
+        database.inTransaction(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM workers WHERE villager_uuid = ?")) {
+                statement.setString(1, villager.toString());
+                statement.executeUpdate();
+            }
+            return null;
+        });
+    }
 }

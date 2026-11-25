@@ -45,7 +45,7 @@ public final class PlacementModeService {
         this.toolKey = new NamespacedKey(plugin, "placement_tool");
     }
 
-    /** Root: Bauen, Baustellen, Bewohner, Vorschau; offhand = zurück/verlassen. */
+    /** Root: Bauen, Baustellen, Bewohner, Vorschau; Zurück und Verlassen liegen in der Hotbar. */
     public void openRoot(Player player, Village village) {
         SessionState current = active.get(player.getUniqueId());
         if (current != null) {
@@ -250,7 +250,6 @@ public final class PlacementModeService {
         set(player, 3, Material.COMPASS, "MENU_PREVIEW", "Vorschau bearbeiten", "Vorhandene Vorschau in den Edit-Modus bringen");
         set(player, 7, Material.ARROW, "MENU_BACK_OR_EXIT", "Zurück", "Bis zum Root zurück; dort Verlassen");
         set(player, 8, Material.BARRIER, "MENU_BACK_OR_EXIT", "Verlassen", "Beendet den Modus und stellt das Inventar wieder her");
-        setOffhand(player, Material.BARRIER, "MENU_BACK_OR_EXIT", "Zurück / Verlassen", "Eine Stufe zurück; am Root beenden");
         player.updateInventory();
     }
 
@@ -275,7 +274,6 @@ public final class PlacementModeService {
         } else {
             set(player, 8, Material.LIGHT_GRAY_STAINED_GLASS_PANE, "MENU_NOOP", " ", " ");
         }
-        setOffhand(player, Material.ARROW, "MENU_BACK_OR_EXIT", "Zurück / Verlassen", "Zurück zum Root, dort Verlassen");
         active.put(player.getUniqueId(), current.withMenu(List.of("ROOT", "BUILD"), page));
         player.updateInventory();
     }
@@ -291,7 +289,6 @@ public final class PlacementModeService {
         set(player, 6, Material.FEATHER, "UP", "Hoch +1", "Eine Ebene nach oben");
         set(player, 7, Material.ANVIL, "DOWN", "Runter −1", "Eine Ebene nach unten");
         set(player, 8, Material.EMERALD, "CONFIRM_OR_CANCEL", "Bestätigen / Abbrechen", "Rechtsklick = bestätigen · Sneak = abbrechen");
-        setOffhand(player, Material.ARROW, "MENU_BACK_OR_EXIT", "Zurück / Verlassen", "Zurück zur Bauplanauswahl");
         player.getInventory().setHeldItemSlot(0);
         player.updateInventory();
         player.sendActionBar(Component.text("Baumodus aktiv · Anker fixiert", NamedTextColor.GOLD));
@@ -304,10 +301,6 @@ public final class PlacementModeService {
 
     private void set(Player player, int slot, Material material, String action, String name, String lore) {
         player.getInventory().setItem(slot, tool(material, action, name, lore));
-    }
-
-    private void setOffhand(Player player, Material material, String action, String name, String lore) {
-        player.getInventory().setItemInOffHand(tool(material, action, name, lore));
     }
 
     private int currentVillageLevel(SessionState current) {
