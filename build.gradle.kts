@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "eu.praxios"
-version = "0.2.5-alpha.1"
+version = "0.2.6-alpha.1"
 
 repositories {
     mavenCentral()
@@ -27,6 +27,7 @@ dependencies {
 
     testImplementation(paperApi)
     testImplementation("org.junit.jupiter:junit-jupiter:6.0.1")
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.116.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

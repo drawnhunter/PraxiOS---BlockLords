@@ -231,3 +231,32 @@
 
 - Bewohnerdetail, Bettzuweisung, Arbeitsgebäudewahl, echte Job-Site-Verknüpfung und P3-Kurztexte auf Paper 26.3/Java 25.
 - Danach folgen Schematic-Loader/Herkunftsakte und die Kolonie-Gründungsbasis.
+
+
+## 2026-11-25 — 0.2.6-alpha.1, Hotbar-Menüführung und Bauplanreparatur
+
+### Implementiert
+
+- Glockenaktion „Bauen & Baustellen“ öffnet jetzt ein **Hotbar-Root-Menü**: Bauen, Baustellen, Bewohner, Vorschau sowie Zurück/Verlassen.
+- „Bauen“ zeigt Baupläne in der Hotbar, **8 pro Seite** mit Weiter-Pfeil. Offhand-Aktion geht stufenweise zurück und beendet am Root.
+- Gesperrte Baupläne bleiben sichtbar und nennen die erforderliche Dorf-Level-Freischaltung im Itemtext.
+- Auswahl startet die Preview **2 Blöcke vor dem Spieler** und wechselt direkt in den Edit-Modus; keine automatische Platzierung über der Glocke.
+- Menübegriff **Bewohner** statt Arbeiter; Bewohner erhalten Namen aus `ResidentNames` plus fortlaufende `#Nummer`, persistent in Migration V5.
+- Bauernhaus: Feld liegt außerhalb der Hütte, ein vollständiges Bett im Inneren. Türen besitzen echte `half=bottom/top`; Betten echte `part=foot/head`.
+- Directional Blockdaten bleiben bei Rotation korrekt.
+- Verifier-Ordner mit Abnahmekriterien, Build-/Serverläufen und reproduzierbarem Checkskript.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **28 Unit-Tests** erfolgreich.
+- Echter Start auf Paper 1.21.11 Build 132 mit FAWE 2.16.3 und Floodgate 2.2.5 Build 141.
+- Migrationen V1–V5 erfolgreich.
+- FARM: **119 Blöcke**, MINE mit 90°-Rotation: **102 Blöcke**.
+- Direkte Blockstate-Nachweise bestanden: Tür `half=bottom/top`, Bett `part=foot/head`, Feld außerhalb, Schmiedetisch vorhanden.
+- 27 Sekunden nach Erfolg kein `LATE_FAILURE_IGNORED`.
+- Sauberer Shutdown ohne BlockLords-Fehler.
+
+### Nächster Test durch Axon
+
+- Hotbar-Root, Bauplan-Pagination, Zurück/Verlassen, sofortiger Edit-Modus, Namen/#Nummern, Feld, Türen und Betten auf Paper 26.3/Java 25.
+- Danach folgen Schematic-Loader/Herkunftsakte und die Kolonie-Gründungsbasis.

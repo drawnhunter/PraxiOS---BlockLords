@@ -30,6 +30,16 @@ Enthalten:
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
 
+### Neuerungen in 0.2.6-alpha.1 (Reparaturrunde)
+
+- **Hotbar-Menü ab der Glocke:** Bauen, Baustellen, Bewohner und Vorschau. Baupläne erscheinen in der Hotbar; mehr als acht Objekte werden mit Weiter-Pfeil paginiert.
+- **Zurück/Verlassen:** Offhand-Aktion geht stufenweise zurück bis zum Root und beendet dort den Modus.
+- **Gesperrte Baupläne:** bleiben sichtbar und erklären Levelbedarf und Freischaltung direkt im Itemtext.
+- **Vorschau und Hotbar:** Auswahl startet die Vorschau 2 Blöcke vor dem Spieler und wechselt direkt in den Edit-Modus, nicht mehr über der Glocke.
+- **Bewohnernamen:** große Namensliste plus fortlaufende `#Nummer`; Anzeige als `Name #Nummer` statt UUID-Fragment.
+- **Bauplanreparatur:** Feld neben dem Bauernhaus, vollständige Betten aus Kopf-/Fußteil, Türen mit oberer/unterer Hälfte.
+- **Verifier:** `verifier/` enthält Abnahmekriterien und Laufprotokolle; 28 Unit-Tests plus echter Paper-/Blockstate-Lauf.
+
 ### Neuerungen in 0.2.5-alpha.1 (P2/P3)
 
 - **Echte Job-Sites:** Komposter und Schmiedetisch werden zugewiesen und mit `MemoryKey.JOB_SITE` verknüpft; die Mine enthält jetzt eine echte Schmiedetafel.

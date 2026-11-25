@@ -151,8 +151,9 @@ public final class UiService {
                 + "\n" + statsText(village);
         java.util.List<UiAction> actions = new java.util.ArrayList<>();
         actions.add(UiAction.of(Material.CHEST, "Dorfvorrat", () -> openStorage(player, village), storage.summary(village.id())));
-        actions.add(UiAction.of(Material.OAK_PLANKS, "Bauen & Baustellen", () -> openBuild(player, village)));
-        actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG, "Arbeiter", () -> openWorkers(player, village)));
+        actions.add(UiAction.of(Material.OAK_PLANKS, "Bauen & Baustellen", () -> placement.openRoot(player, village),
+                "Hotbar-Menü: Bauen, Baustellen, Bewohner und Vorschau."));
+        actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG, "Bewohner", () -> openWorkers(player, village)));
         actions.add(UiAction.of(Material.ENCHANTED_BOOK, "Bibliothek & Forschung", () -> openResearch(player, village)));
         actions.add(UiAction.of(Material.COMPASS, "Dorf vermessen", () -> scanner.requestAndNotify(village, player)));
         actions.add(UiAction.of(Material.BARRIER, "Schließen", player::closeInventory));
@@ -177,7 +178,7 @@ public final class UiService {
     }
 
     public void openBuildPage(Player player, Village village, int page) {
-        List<BlueprintType> types = construction.available(village);
+        List<BlueprintType> types = java.util.Arrays.asList(BlueprintType.values());
         int pageSize = 8;
         int safePage = Math.max(0, Math.min(page, Math.max(0, (types.size() - 1) / pageSize)));
         int start = safePage * pageSize;
@@ -187,8 +188,12 @@ public final class UiService {
             actions.add(UiAction.of(Material.OAK_PLANKS, type.displayName() + " · Vorschau",
                     () -> {
                         player.closeInventory();
-                        construction.preview(player, village, type);
-                    }, "Kosten: " + type.cost(), "Erforderliches Dorf-Level: " + type.requiredLevel()));
+                        if (construction.previewInFront(player, village, type)) {
+                            placement.enterExisting(player);
+                        }
+                    }, type.requiredLevel() > village.level()
+                            ? "Gesperrt: benötigt Level " + type.requiredLevel() + " · aktuell " + village.level()
+                            : "Kosten: " + type.cost()));
         }
         if (safePage > 0) {
             actions.add(UiAction.of(Material.ARROW, "Zurück · Seite " + safePage,
@@ -257,7 +262,7 @@ public final class UiService {
             }
         }
         residents.residents(village.id()).forEach(resident -> actions.add(UiAction.of(Material.NAME_TAG,
-                "Bewohner " + resident.villager().toString().substring(0, 8), () -> openResident(player, village, resident),
+                "Bewohner " + resident.displayLabel(), () -> openResident(player, village, resident),
                 resident.hasBed() ? "Bett vorhanden · Details" : "Bett fehlt · Details")));
         workers.workers(village.id()).forEach(worker -> actions.add(UiAction.of(Material.NAME_TAG,
                 "Arbeiter #" + worker.id() + " entfernen", () -> workers.unassign(player, village, worker.id()),
@@ -269,7 +274,7 @@ public final class UiService {
                 + residents.confirmed(village.id()) + " bestätigt · " + residents.unconfirmed(village.id()) + " unbestätigt · "
                 + residents.free(village.id(), workers.workers(village.id())).size() + " frei.\n"
                 + "Sneak + Rechtsklick auf die Dorfglocke startet ebenfalls die Versammlung.";
-        openActions(player, "Arbeiter · " + village.name(), content, actions);
+        openActions(player, "Bewohner · " + village.name(), content, actions);
     }
 
     public void openResident(Player player, Village village, Resident resident) {
@@ -285,7 +290,7 @@ public final class UiService {
                     () -> workers.unassign(player, village, assigned.id())));
         }
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openWorkers(player, village)));
-        openActions(player, "Bewohner " + resident.villager().toString().substring(0, 8),
+        openActions(player, "Bewohner " + resident.displayLabel(),
                 residentText(village, resident, assigned), actions);
     }
 

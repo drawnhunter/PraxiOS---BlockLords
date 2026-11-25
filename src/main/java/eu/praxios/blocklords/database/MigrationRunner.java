@@ -19,7 +19,8 @@ public final class MigrationRunner {
             "V1__phase1_foundation.sql",
             "V2__phase2_economy.sql",
             "V3__residents.sql",
-            "V4__placement_sessions.sql");
+            "V4__placement_sessions.sql",
+            "V5__resident_names.sql");
     private final Database database;
     private final Logger logger;
 

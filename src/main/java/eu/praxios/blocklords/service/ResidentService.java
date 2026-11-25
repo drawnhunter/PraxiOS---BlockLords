@@ -4,6 +4,7 @@ import eu.praxios.blocklords.config.BlockLordsConfig;
 import eu.praxios.blocklords.model.*;
 import eu.praxios.blocklords.repository.ResidentRepository;
 import eu.praxios.blocklords.util.Msg;
+import eu.praxios.blocklords.util.ResidentNames;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
@@ -107,8 +108,10 @@ public final class ResidentService {
             if (old == null || old.status() == Resident.Status.UNCONFIRMED) newlyConfirmed++;
             if (bed == null) withoutBed++;
             villager.setMemory(MemoryKey.MEETING_POINT, bell);
+            Identity identity = identity(village.id(), old);
             records.add(new Resident(village.id(), villager.getUniqueId(), Resident.Status.CONFIRMED,
-                    bed != null, bed, link(bell), old == null ? now : old.firstSeen(), now));
+                    bed != null, bed, link(bell), old == null ? now : old.firstSeen(), now,
+                    identity.name(), identity.number()));
         }
         persist(village, records);
         world(village).ifPresent(world -> {
@@ -156,7 +159,8 @@ public final class ResidentService {
         }
         BlockLink link = new BlockLink(world.getUID(), nearest.getX(), nearest.getY(), nearest.getZ());
         Resident updated = new Resident(village.id(), resident.villager(), resident.status(), true, link,
-                resident.meetingPoint(), resident.firstSeen(), System.currentTimeMillis());
+                resident.meetingPoint(), resident.firstSeen(), System.currentTimeMillis(),
+                resident.displayName(), resident.number());
         if (Bukkit.getEntity(resident.villager()) instanceof Villager villager) {
             villager.setMemory(MemoryKey.HOME, nearest.getLocation());
         }
@@ -171,8 +175,25 @@ public final class ResidentService {
         if (!confirmedByBell && bed == null && !forceConfirm) return null;
         Resident.Status status = confirmedByBell || forceConfirm ? Resident.Status.CONFIRMED : Resident.Status.UNCONFIRMED;
         long now = System.currentTimeMillis();
+        Identity identity = identity(village.id(), old);
         return new Resident(village.id(), villager.getUniqueId(), status, bed != null, bed,
-                meeting == null ? null : link(meeting), old == null ? now : old.firstSeen(), now);
+                meeting == null ? null : link(meeting), old == null ? now : old.firstSeen(), now,
+                identity.name(), identity.number());
+    }
+
+    private Identity identity(long villageId, Resident old) {
+        int number = old != null && old.number() > 0 ? old.number()
+                : residents(villageId).stream().mapToInt(Resident::number).max().orElse(0) + 1;
+        if (old != null && old.displayName() != null && !old.displayName().isBlank()) {
+            return new Identity(old.displayName(), number);
+        }
+        Set<String> used = new HashSet<>();
+        residents(villageId).forEach(resident -> used.add(resident.displayName()));
+        String name = ResidentNames.random();
+        for (int attempt = 0; attempt < 50 && used.contains(name); attempt++) {
+            name = ResidentNames.random();
+        }
+        return new Identity(name, number);
     }
 
     private void persist(Village village, List<Resident> records) {
@@ -223,6 +244,9 @@ public final class ResidentService {
     private Location bellLocation(Village village) {
         return new Location(Bukkit.getWorld(village.region().world()), village.region().bellX() + 0.5,
                 village.region().bellY(), village.region().bellZ() + 0.5);
+    }
+
+    private record Identity(String name, int number) {
     }
 
     private Location locationFromLink(BlockLink link) {

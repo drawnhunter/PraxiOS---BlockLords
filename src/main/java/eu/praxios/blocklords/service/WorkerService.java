@@ -97,7 +97,8 @@ public final class WorkerService {
             if (villager != null) {
                 villager.setProfession(job == Worker.Job.FARMER ? Villager.Profession.FARMER : Villager.Profession.MASON);
                 villager.setMemory(MemoryKey.JOB_SITE, jobSiteLocation(building));
-                villager.customName(Component.text(job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter"));
+                villager.customName(Component.text((job == Worker.Job.FARMER ? "Bauer · " : "Minenarbeiter · ")
+                        + residentName(village, villager.getUniqueId())));
                 villager.setCustomNameVisible(true);
             }
             villages.markActivity(village, player.getUniqueId());
@@ -141,13 +142,19 @@ public final class WorkerService {
             if (villager != null) {
                 villager.setProfession(job == Worker.Job.FARMER ? Villager.Profession.FARMER : Villager.Profession.MASON);
                 villager.setMemory(MemoryKey.JOB_SITE, jobSiteLocation(building));
-                villager.customName(Component.text(job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter"));
+                villager.customName(Component.text((job == Worker.Job.FARMER ? "Bauer · " : "Minenarbeiter · ")
+                        + residentName(village, villager.getUniqueId())));
                 villager.setCustomNameVisible(true);
             }
             villages.markActivity(village, player.getUniqueId());
             audit.log(player, "WORKER_ASSIGNED", job + " " + residentId + " Gebäude #" + buildingId);
             Msg.success(player, (job == Worker.Job.FARMER ? "Bauer" : "Minenarbeiter") + " zugewiesen. Nächstes: Nahrung einlagern.");
         }, error -> Msg.error(player, "Arbeiter konnte nicht zugewiesen werden: " + error.getMessage()));
+    }
+
+    private String residentName(Village village, UUID villagerId) {
+        return residents.residents(village.id()).stream().filter(resident -> resident.villager().equals(villagerId))
+                .findFirst().map(Resident::displayLabel).orElse("Bewohner");
     }
 
     private Location jobSiteLocation(Building building) {

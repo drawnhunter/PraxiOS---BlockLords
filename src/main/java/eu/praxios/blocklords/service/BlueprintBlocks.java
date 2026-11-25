@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/** Kleine kontrollierte Startbaupläne; später können diese durch Schematic-Dateien ersetzt werden. */
+/** Kontrollierte Startbaupläne mit korrekten Mehrblock-States für Türen und Betten. */
 public final class BlueprintBlocks {
     private BlueprintBlocks() {
     }
@@ -30,18 +30,23 @@ public final class BlueprintBlocks {
                 blocks.add(new OffsetBlock(x, 4, z, data(roof)));
             }
         }
-        blocks.add(new OffsetBlock(2, 1, 0, data(Material.OAK_DOOR)));
-        blocks.add(new OffsetBlock(2, 2, 0, data(Material.OAK_DOOR)));
+        // Eine Tür = untere und obere Hälfte; beide bleiben directional.
+        blocks.add(new OffsetBlock(2, 1, 0, door(false)));
+        blocks.add(new OffsetBlock(2, 2, 0, door(true)));
         switch (type) {
             case RATHAUS -> blocks.add(new OffsetBlock(2, 1, 2, data(Material.LECTERN)));
             case WOHNHAUS -> addBeds(blocks, 2);
             case WOHNHAUS_II -> addBeds(blocks, 3);
             case FARM -> {
-                for (int x = 1; x <= 3; x++) {
-                    blocks.add(new OffsetBlock(x, 1, 2, data(Material.FARMLAND)));
-                    blocks.add(new OffsetBlock(x, 2, 2, data(Material.WHEAT)));
-                }
+                addBeds(blocks, 1);
                 blocks.add(new OffsetBlock(2, 1, 1, data(Material.COMPOSTER)));
+                // Feld liegt außerhalb der 5x5-Hütte: x=6..8, z=1..3.
+                for (int x = 6; x <= 8; x++) {
+                    for (int z = 1; z <= 3; z++) {
+                        blocks.add(new OffsetBlock(x, 0, z, data(Material.FARMLAND)));
+                        blocks.add(new OffsetBlock(x, 1, z, data(Material.WHEAT)));
+                    }
+                }
             }
             case MINE -> {
                 blocks.add(new OffsetBlock(2, 1, 1, data(Material.SMITHING_TABLE)));
@@ -71,8 +76,21 @@ public final class BlueprintBlocks {
 
     private static void addBeds(List<OffsetBlock> blocks, int count) {
         for (int index = 0; index < count; index++) {
-            blocks.add(new OffsetBlock(1 + index, 1, 2, data(Material.RED_BED)));
+            int x = 1 + index;
+            // Fuß bei z=2, Kopf bei z=1; facing=north zeigt vom Fuß zum Kopf.
+            blocks.add(new OffsetBlock(x, 1, 2, bed(false)));
+            blocks.add(new OffsetBlock(x, 1, 1, bed(true)));
         }
+    }
+
+    private static BlockData door(boolean upper) {
+        return Bukkit.createBlockData("minecraft:oak_door[half=" + (upper ? "upper" : "lower")
+                + ",facing=north,hinge=left,open=false,powered=false]");
+    }
+
+    private static BlockData bed(boolean head) {
+        return Bukkit.createBlockData("minecraft:red_bed[part=" + (head ? "head" : "foot")
+                + ",facing=north,occupied=false]");
     }
 
     private static BlockData data(Material material) {

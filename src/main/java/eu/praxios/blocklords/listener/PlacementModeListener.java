@@ -1,6 +1,8 @@
 package eu.praxios.blocklords.listener;
 
 import eu.praxios.blocklords.service.PlacementModeService;
+import eu.praxios.blocklords.ui.ActionMenuHolder;
+import eu.praxios.blocklords.ui.MenuHolder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,21 +42,27 @@ public final class PlacementModeListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player player && placement.isActive(player)) {
+        if (event.getWhoClicked() instanceof Player player && placement.isActive(player)
+                && !(event.getInventory().getHolder() instanceof MenuHolder)
+                && !(event.getInventory().getHolder() instanceof ActionMenuHolder)) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
-        if (event.getWhoClicked() instanceof Player player && placement.isActive(player)) {
+        if (event.getWhoClicked() instanceof Player player && placement.isActive(player)
+                && !(event.getInventory().getHolder() instanceof MenuHolder)
+                && !(event.getInventory().getHolder() instanceof ActionMenuHolder)) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onOpen(InventoryOpenEvent event) {
-        if (event.getPlayer() instanceof Player player && placement.isActive(player)) {
+        if (event.getPlayer() instanceof Player player && placement.isActive(player)
+                && !(event.getInventory().getHolder() instanceof MenuHolder)
+                && !(event.getInventory().getHolder() instanceof ActionMenuHolder)) {
             event.setCancelled(true);
         }
     }

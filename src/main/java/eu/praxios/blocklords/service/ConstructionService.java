@@ -91,6 +91,10 @@ public final class ConstructionService {
                 .toList();
     }
 
+    public boolean previewInFront(Player player, Village village, BlueprintType type) {
+        return previewAt(player, village, type, defaultPlacementLocation(player));
+    }
+
     public boolean preview(Player player, Village village, BlueprintType type) {
         Block target = player.getTargetBlockExact(6);
         BuildLocation location = target != null

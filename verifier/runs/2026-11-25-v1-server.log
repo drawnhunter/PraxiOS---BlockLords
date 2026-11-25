@@ -1,0 +1,8 @@
+2026-11-25T17:44:22Z | Kommando: echter Paper-1.21.11-Start mit FAWE 2.16.3/Floodgate 2.2.5 | Exit-Code: 0
+Migration V1-V5: bestanden
+FAWE FARM 0 80 0: 119 Blöcke, 545 ms
+FAWE MINE 10 80 10 Rotation 90: 102 Blöcke, 105 ms
+Tür bottom/top, Bett foot/head, Feld außerhalb und Schmiedetisch: alle `execute if block`-Tests bestanden
+27 Sekunden nach Erfolg: kein LATE_FAILURE_IGNORED
+Shutdown: sauber, kein BlockLords-Fehler
+Ergebnis: bestanden; Live-Abnahme der Menüführung durch Axon folgt
