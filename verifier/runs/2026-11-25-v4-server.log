@@ -1,0 +1,10 @@
+2026-11-25T23:52:40+01:00 | Paper 1.21.11 Build 132, Java 21.0.13.1, FAWE 2.16.3 | isolierter localhost-Server
+Plugin: BlockLords 0.2.7-alpha.3 aktiviert, 0 Dörfer
+RCON `bl admin list`: bestanden, keine Dörfer registriert
+RCON `bl admin backup`: aufgerufen
+RCON `forceload add 0 0 0 0`: Chunk bereits force-geladen
+RCON `bl admin selftest RATHAUS 0 80 0`: PASTE-024a7dfa, 99 Blöcke, 5351 ms, SUCCESS
+RCON `tps`: 19,6 / 19,6 / 19,6 zum Abrufzeitpunkt
+Nach Erfolg mehr als 27 Sekunden gewartet: kein LATE_FAILURE_IGNORED, kein LATE_SUCCESS_IGNORED, kein BlockLords-Fehler
+Shutdown per RCON `stop`: BlockLords und FAWE sauber deaktiviert, Welten gespeichert
+Ergebnis: bestanden

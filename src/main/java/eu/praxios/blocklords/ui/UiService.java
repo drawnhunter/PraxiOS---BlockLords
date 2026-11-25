@@ -155,12 +155,39 @@ public final class UiService {
                 "Hotbar-Menü: Bauen, Baustellen, Bewohner und Vorschau."));
         actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG, "Bewohner", () -> openWorkers(player, village)));
         actions.add(UiAction.of(Material.ENCHANTED_BOOK, "Bibliothek & Forschung", () -> openResearch(player, village)));
-        actions.add(UiAction.of(Material.EXPERIENCE_BOTTLE, "Dorf-Level " + village.level(), () -> { }, levelLore(village)));
+        actions.add(UiAction.of(Material.BOOK, "Dorf Infos", () -> openVillageInfo(player, village), levelLore(village)));
         actions.add(UiAction.of(Material.COMPASS, "Dorfmenü-Kompass", () -> Bukkit.dispatchCommand(player, "bl menu"),
                 "Gibt dir den Kompass zum Öffnen des Dorfmenüs ins Inventar."));
         actions.add(UiAction.of(Material.MAP, "Dorf vermessen", () -> scanner.requestAndNotify(village, player)));
         actions.add(UiAction.of(Material.BARRIER, "Schließen", player::closeInventory));
         openActions(player, "BlockLords · " + village.name(), content, actions);
+    }
+
+    public void openVillageInfo(Player player, Village village) {
+        java.util.List<UiAction> actions = new java.util.ArrayList<>();
+        actions.add(UiAction.of(Material.PAPER, "Dorfname", () -> { }, village.name()));
+        actions.add(UiAction.of(Material.PLAYER_HEAD, "Landherr", () -> { }, ownerName(village)));
+        actions.add(UiAction.of(Material.EXPERIENCE_BOTTLE, "Dorf-Level " + village.level(), () -> { }, levelLore(village)));
+        long assigned = workers.workers(village.id()).size();
+        int freeJobs = construction.buildings(village.id()).stream().filter(building -> building.type().workplace())
+                .mapToInt(building -> (int) Math.max(0, workers.capacity() - workers.workers(village.id()).stream()
+                        .filter(worker -> worker.buildingId() == building.id()).count())).sum();
+        actions.add(UiAction.of(Material.ANVIL, "Arbeiter · " + assigned, () -> { }, freeJobs + " freie Arbeitsplätze."));
+        actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG, "Bewohner · " + residents.living(village.id()).size(),
+                () -> openWorkers(player, village), residents.confirmed(village.id()) + " bestätigt · "
+                + residents.unconfirmed(village.id()) + " unbestätigt"));
+        long homeless = residents.living(village.id()).stream().filter(resident -> !resident.hasBed()).count();
+        long beds = scanner.fresh(village).map(stats -> (long) stats.beds()).orElse(0L);
+        actions.add(UiAction.of(Material.RED_BED, "Betten & Obdachlose", () -> { },
+                beds + " Betten · " + homeless + " Bewohner ohne Bett"));
+        actions.add(UiAction.of(Material.CHEST, "Dorfvorrat", () -> openStorage(player, village), storage.summary(village.id())));
+        for (BlueprintType type : BlueprintType.values()) {
+            actions.add(UiAction.of(Material.OAK_PLANKS, type.displayName() + " · +" + type.xp() + " Dorf-XP",
+                    () -> { }, "Erstmaliger Bauabschluss"));
+        }
+        actions.add(UiAction.of(Material.MAP, "Dorf vermessen", () -> scanner.requestAndNotify(village, player)));
+        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
+        openActions(player, "Dorf Infos · " + village.name(), "Dorfdaten und XP für erstmalige Bauabschlüsse.", actions);
     }
 
     public void openStorage(Player player, Village village) {
@@ -246,6 +273,10 @@ public final class UiService {
         actions.add(UiAction.of(Material.ENDER_CHEST, "Dorfvorrat verwenden", () -> construction.fund(player, village)));
         actions.add(UiAction.of(Material.ANVIL, "FAWE-Bau starten", () -> construction.start(player, village),
                 site.complete() ? "Alle Materialien vorhanden." : "Rest: " + remaining(site)));
+        actions.add(UiAction.of(Material.BARRIER, "Baustelle abbrechen", () -> {
+            player.closeInventory();
+            construction.cancelSite(player, village, site.id());
+        }, "Gibt das gesamte Kistenmaterial zurück und entfernt die Baustelle."));
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openSites(player, village)));
         int required = site.required().values().stream().mapToInt(Integer::intValue).sum();
         int supplied = site.contributed().values().stream().mapToInt(Integer::intValue).sum();
@@ -263,9 +294,10 @@ public final class UiService {
         for (Building building : construction.buildings(village.id())) {
             if (building.type() == BlueprintType.FARM || building.type() == BlueprintType.MINE) {
                 long assigned = workers.workers(village.id()).stream().filter(worker -> worker.buildingId() == building.id()).count();
+                long free = Math.max(0, workers.capacity() - assigned);
                 actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG,
-                        "#" + building.id() + " " + building.type().displayName() + " · " + assigned + " Arbeiter",
-                        () -> workers.assign(player, village, building.id()), "Freien registrierten Bewohner zuweisen."));
+                        "#" + building.id() + " " + building.type().displayName() + " · " + assigned + "/" + workers.capacity() + " Arbeiter",
+                        () -> workers.assign(player, village, building.id()), free + "/" + workers.capacity() + " Arbeitsplätze frei."));
             }
         }
         residents.living(village.id()).forEach(resident -> actions.add(UiAction.of(Material.NAME_TAG,
@@ -351,8 +383,11 @@ public final class UiService {
         if (assigned != null) {
             text.append("Beruf: ").append(assigned.job()).append(" · Gebäude #").append(assigned.buildingId()).append("\n");
             construction.building(assigned.buildingId()).ifPresent(building -> {
-                text.append("Job-Site: ").append(building.location().x() + 2).append("/")
-                        .append(building.location().y() + 1).append("/").append(building.location().z() + 1).append("\n");
+                org.bukkit.Location jobSite = construction.jobSiteLocation(building);
+                if (jobSite != null) {
+                    text.append("Job-Site: ").append(jobSite.getBlockX()).append("/")
+                            .append(jobSite.getBlockY()).append("/").append(jobSite.getBlockZ()).append("\n");
+                }
             });
         }
         java.util.List<String> missing = new java.util.ArrayList<>();

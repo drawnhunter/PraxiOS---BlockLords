@@ -309,3 +309,24 @@
 - JAR-SHA256: `fd5eb93bc21fee8542c2af29e65f53e96ec8f2fd502d893ad5ea1ad757f2b059`.
 - Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: BlockLords 0.2.7-alpha.2 aktiviert; Selftest RATHAUS mit `PASTE-30bb5331` und **99 Blöcken** erfolgreich.
 - Abnahmekriterien und Laufprotokolle liegen in `verifier/v3/` und `verifier/runs/`.
+
+
+## 2026-11-25 — 0.2.7-alpha.3, Schutz, Dorfinfos und Arbeiterlimit
+
+### Implementiert
+
+- **Unzerstörbare Baustellenkisten:** Abbau, Explosionen, Feuer und Kolben werden verhindert. Bewusster Abbruch über `/bl build cancel <ID>` oder das Menü mit vollständiger Itemrückgabe und Audit statt versehentlichem Blockverlust.
+- **Kiste und Komposter:** Kiste innen bei `(2, 1, 3)`, Komposter seitlich bei `(3, 1, 2)`. Job-Site und Anzeige verwenden dieselbe rotierte Bauplanposition; V6-Koordinaten und alte Positionen bleiben gültig.
+- **Arbeiterlimit:** `workers.per-building` mit Default 2, auch wenn alte Configs den Schlüssel noch nicht enthalten. Dritte Zuweisung wird verweigert, bestehende Bestände bleiben erhalten. UI zeigt Belegung und freie Plätze `x/2`.
+- **Dorf Infos:** Mehrzeiliges Menü für Dorfname, Landherr, Level/XP/Freischaltung, Bewohner, Arbeiter/freie Plätze, Betten/Obdachlose, Vorrat und XP-Quellen.
+- **XP-Feedback:** Bauabschluss meldet Zuwachs, Gesamt-XP und Level; Level-up zeigt Titel und Sound.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **47 Tests ohne Fehler, Fehlerfälle oder Überspringungen** erfolgreich.
+- `ConstructionServiceTest`: Kiste innen bei 0°/90°, Kistenschutz, Abbruch mit kompletter Itemrückgabe und rotierte Job-Site.
+- `WorkerServiceTest`: zwei Zuweisungen erlaubt, dritte abgelehnt; bestehende Zuweisungen über dem Limit bleiben erhalten.
+- `BlockLordsConfigTest`: fehlender Limit-Schlüssel verwendet 2, ungültige Werte werden abgelehnt.
+- JAR-SHA256: `4b80c3c96d95a2e5b9acb629e32d81d8ccc18092d31fe33f57f64d941a9dd4dc`.
+- Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: BlockLords 0.2.7-alpha.3 aktiviert; Selftest RATHAUS mit `PASTE-024a7dfa` und **99 Blöcken** erfolgreich.
+- Abnahmekriterien und Laufprotokolle liegen in `verifier/v4/` und `verifier/runs/`.

@@ -76,7 +76,17 @@ public final class EconomyCommand {
             case "left" -> construction.rotatePreview(player, -90);
             case "right" -> construction.rotatePreview(player, 90);
             case "confirm" -> construction.confirmPreview(player);
-            case "cancel" -> construction.cancelPreview(player);
+            case "cancel" -> {
+                if (args.length >= 3) {
+                    try {
+                        construction.cancelSite(player, village, Long.parseLong(args[2]));
+                    } catch (NumberFormatException exception) {
+                        Msg.error(player, "Baustellen-ID muss eine Zahl sein.");
+                    }
+                } else {
+                    construction.cancelPreview(player);
+                }
+            }
             case "contribute" -> construction.contribute(player, village);
             case "fund" -> construction.fund(player, village);
             case "start" -> construction.start(player, village);

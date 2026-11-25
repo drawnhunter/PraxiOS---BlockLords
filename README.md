@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.7-alpha.2 (Phase 2)
+## Aktueller Stand: 0.2.7-alpha.3 (Phase 2)
 
 Enthalten:
 
@@ -29,6 +29,14 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.7-alpha.3 (Schutz, Dorfinfos und Arbeiterlimit)
+
+- **Unzerstörbare Baustellenkisten:** Abbau, Explosionen, Feuer und Kolben werden verhindert; bewusster Abbruch über `/bl build cancel <ID>` oder das Menü mit kompletter Itemrückgabe.
+- **Bessere Platzierung:** Kiste innen bei `(2, 1, 3)`, Komposter seitlich bei `(3, 1, 2)`; Job-Site und Anzeige verwenden dieselbe Rotation.
+- **Arbeiterlimit:** Standardmäßig zwei Arbeiter pro Gebäude mit `x/2` Belegung und freien Plätzen. Alte Configs erhalten den Default automatisch, bestehende Zuweisungen bleiben erhalten.
+- **Dorf Infos:** Mehrzeiliges Menü für Name, Landherr, Level, Bewohner, Arbeiter, Betten/Obdachlose, Vorrat und XP-Quellen.
+- **Sichtbare Belohnung:** Bauabschluss meldet XP-Zuwachs, Gesamt-XP und Level; Level-up zeigt Titel und spielt einen Sound.
 
 ### Neuerungen in 0.2.7-alpha.2 (Live-Hotfix)
 
@@ -131,8 +139,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.7-alpha.2.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.7-alpha.2-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.7-alpha.3.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.7-alpha.3-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -142,9 +150,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.7-alpha.2.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.7-alpha.3.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.7-alpha.1 aktiviert: Phase 2 ...`.
+3. Log prüfen: `BlockLords 0.2.7-alpha.3 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 

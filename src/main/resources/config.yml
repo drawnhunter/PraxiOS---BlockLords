@@ -36,6 +36,9 @@ ui:
 residents:
   scan-interval-ticks: 200
 
+workers:
+  per-building: 2
+
 economy:
   storage-base-capacity: 1728
   storage-per-warehouse: 1728

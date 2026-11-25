@@ -20,3 +20,9 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Datei: `verifier/v3/acceptance.md`
 - Zweck: Live-Hotfix aus Chat/Screenshots — Thread-sichere Kistenmaterialien, Eingangskiste, Menü-/Log-Korrekturen und Bewohneraktionen.
 - Prüfungen: Contribute/Fund, Eingangsrotation, Identitätsreparatur, sichere Versammlung, Entfernen ohne Entity-Tod sowie Paper-/FAWE-Lauf.
+
+## v4 — 2026-11-25
+
+- Datei: `verifier/v4/acceptance.md`
+- Zweck: Kistenschutz und bewusster Abbruch, Kiste innen, Komposter-/Job-Site-Position, Arbeiterlimit und Dorfinfos/XP.
+- Prüfungen: Schutz und Itemrückgabe, Rotation, Arbeiterlimit, alte Config ohne Limit, vollständiger Build und Paper-/FAWE-Lauf.

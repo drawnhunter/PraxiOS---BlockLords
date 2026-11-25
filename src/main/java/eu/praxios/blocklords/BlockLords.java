@@ -88,7 +88,7 @@ public final class BlockLords extends JavaPlugin {
             placement = new PlacementModeService(this, placementRepository, construction, tasks, logs, audit);
             residents = new ResidentService(this, this::settings, residentRepository, villages, tasks, audit);
             residents.loadInitial(villages.all());
-            WorkerService workers = new WorkerService(workerRepository, storageRepository, construction, villages, residents, tasks, audit);
+            WorkerService workers = new WorkerService(workerRepository, storageRepository, construction, villages, residents, tasks, audit, this::settings);
             workers.loadInitial(villages.all());
             research = new ResearchService(this, this::settings, researchRepository, villageRepository,
                     storage, villages, construction, tasks, audit);
@@ -105,6 +105,7 @@ public final class BlockLords extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new MenuListener(ui), this);
             getServer().getPluginManager().registerEvents(new GuideItemListener(guide, villages, ui), this);
             getServer().getPluginManager().registerEvents(new BuilderChestListener(construction, villages, ui), this);
+            getServer().getPluginManager().registerEvents(new BuilderChestProtectionListener(construction), this);
             getServer().getPluginManager().registerEvents(new PlacementModeListener(placement), this);
             getServer().getPluginManager().registerEvents(new ResidentLifecycleListener(residents, workers), this);
             getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(founding, decay, production, villages, this), this);

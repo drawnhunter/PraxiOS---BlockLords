@@ -25,10 +25,12 @@ public final class WorkerService {
     private final ResidentService residents;
     private final TaskRunner tasks;
     private final AuditService audit;
+    private final java.util.function.Supplier<eu.praxios.blocklords.config.BlockLordsConfig> config;
     private final Map<Long, List<Worker>> workers = new ConcurrentHashMap<>();
 
     public WorkerService(WorkerRepository repository, StorageRepository storage, ConstructionService construction,
-                         VillageService villages, ResidentService residents, TaskRunner tasks, AuditService audit) {
+                         VillageService villages, ResidentService residents, TaskRunner tasks, AuditService audit,
+                         java.util.function.Supplier<eu.praxios.blocklords.config.BlockLordsConfig> config) {
         this.repository = repository;
         this.storage = storage;
         this.construction = construction;
@@ -36,6 +38,7 @@ public final class WorkerService {
         this.residents = residents;
         this.tasks = tasks;
         this.audit = audit;
+        this.config = config;
     }
 
     public void loadInitial(List<Village> villageList) throws Exception {
@@ -43,6 +46,17 @@ public final class WorkerService {
     }
 
     public List<Worker> workers(long villageId) { return workers.getOrDefault(villageId, List.of()); }
+
+    public int capacity() {
+        return config.get().workersPerBuilding();
+    }
+
+    private boolean hasCapacity(Player player, Village village, long buildingId) {
+        long assigned = workers(village.id()).stream().filter(worker -> worker.buildingId() == buildingId).count();
+        if (assigned < capacity()) return true;
+        Msg.error(player, "Dieses Gebäude ist voll: " + assigned + "/" + capacity() + " Arbeitsplätze belegt.");
+        return false;
+    }
 
     public void refresh(long villageId) {
         tasks.database(() -> repository.find(villageId), list -> workers.put(villageId, list), error -> {
@@ -70,6 +84,7 @@ public final class WorkerService {
             Msg.error(player, "Dieses Gebäude bietet in Phase 2 keinen Produktionsberuf.");
             return;
         }
+        if (!hasCapacity(player, village, buildingId)) return;
         org.bukkit.World world = org.bukkit.Bukkit.getWorld(building.location().world());
         if (world == null) {
             Msg.error(player, "Die Gebäudewelt ist nicht geladen.");
@@ -108,6 +123,11 @@ public final class WorkerService {
     }
 
     public void assignResident(Player player, Village village, long buildingId, UUID residentId) {
+        Role role = villages.role(village.id(), player.getUniqueId());
+        if (role != Role.LANDHERR && role != Role.GEFOLGSMANN) {
+            Msg.error(player, "Nur Landherr oder Gefolgsmann dürfen Arbeiter zuweisen.");
+            return;
+        }
         Resident candidate = residents.free(village.id(), workers(village.id())).stream()
                 .filter(resident -> resident.villager().equals(residentId)).findFirst().orElse(null);
         if (candidate == null) {
@@ -128,6 +148,7 @@ public final class WorkerService {
             Msg.error(player, "Dieses Gebäude bietet keinen Produktionsberuf.");
             return;
         }
+        if (!hasCapacity(player, village, buildingId)) return;
         org.bukkit.World world = org.bukkit.Bukkit.getWorld(building.location().world());
         if (world == null) {
             Msg.error(player, "Die Gebäudewelt ist nicht geladen.");
@@ -158,8 +179,7 @@ public final class WorkerService {
     }
 
     private Location jobSiteLocation(Building building) {
-        org.bukkit.World world = Bukkit.getWorld(building.location().world());
-        return new Location(world, building.location().x() + 2, building.location().y() + 1, building.location().z() + 1);
+        return construction.jobSiteLocation(building);
     }
 
     public void unassign(Player player, Village village, long workerId) {

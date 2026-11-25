@@ -82,36 +82,36 @@ class ConstructionServiceTest {
     }
 
     @Test
-    void confirmCreatesChestAtEntranceAndPersistsIt() throws Exception {
+    void confirmCreatesChestInsideAndPersistsIt() throws Exception {
         BuildLocation origin = new BuildLocation(world.getUID(), 6, 65, 0, 0);
         assertTrue(construction.previewAt(player, village, BlueprintType.RATHAUS, origin));
         assertTrue(construction.confirmPreview(player));
-        await(() -> world.getBlockAt(8, 66, -1).getType() == Material.CHEST);
+        await(() -> world.getBlockAt(8, 66, 3).getType() == Material.CHEST);
 
         List<BuildSite> sites = repository.findSites(village.id());
         assertEquals(1, sites.size());
-        assertEquals(new BlockLink(world.getUID(), 8, 66, -1), sites.getFirst().chest());
-        await(() -> construction.siteAtChest(world.getBlockAt(8, 66, -1)).isPresent());
+        assertEquals(new BlockLink(world.getUID(), 8, 66, 3), sites.getFirst().chest());
+        await(() -> construction.siteAtChest(world.getBlockAt(8, 66, 3)).isPresent());
         assertNotEquals(Material.CHEST, world.getBlockAt(player.getLocation()).getType());
     }
 
     @Test
-    void confirmRotatesEntranceWithPreview() throws Exception {
+    void confirmRotatesInsideChestWithPreview() throws Exception {
         BuildLocation origin = new BuildLocation(world.getUID(), 10, 65, 10, 90);
         assertTrue(construction.previewAt(player, village, BlueprintType.RATHAUS, origin));
         assertTrue(construction.confirmPreview(player));
-        await(() -> world.getBlockAt(11, 66, 12).getType() == Material.CHEST);
-        assertEquals(new BlockLink(world.getUID(), 11, 66, 12), repository.findSites(village.id()).getFirst().chest());
+        await(() -> world.getBlockAt(7, 66, 12).getType() == Material.CHEST);
+        assertEquals(new BlockLink(world.getUID(), 7, 66, 12), repository.findSites(village.id()).getFirst().chest());
     }
 
     @Test
-    void confirmRejectsBlockedEntranceBeforeCreatingSite() throws Exception {
+    void confirmRejectsBlockedInsideChestPositionBeforeCreatingSite() throws Exception {
         BuildLocation origin = new BuildLocation(world.getUID(), 6, 65, 0, 0);
-        world.getBlockAt(8, 66, -1).setType(Material.STONE);
+        world.getBlockAt(8, 66, 3).setType(Material.STONE);
         assertTrue(construction.previewAt(player, village, BlueprintType.RATHAUS, origin));
         assertFalse(construction.confirmPreview(player));
         assertTrue(repository.findSites(village.id()).isEmpty());
-        assertEquals(Material.STONE, world.getBlockAt(8, 66, -1).getType());
+        assertEquals(Material.STONE, world.getBlockAt(8, 66, 3).getType());
     }
 
     @Test
@@ -121,7 +121,7 @@ class ConstructionServiceTest {
         construction.contribute(player, village);
         await(() -> construction.sites(village.id()).getFirst().status() == BuildSite.Status.READY);
 
-        Chest chest = (Chest) world.getBlockAt(8, 66, -1).getState();
+        Chest chest = (Chest) world.getBlockAt(8, 66, 3).getState();
         assertEquals(32, count(chest, Material.OAK_LOG));
         assertEquals(16, count(chest, Material.COBBLESTONE));
         assertFalse(player.getInventory().contains(Material.OAK_LOG));
@@ -136,11 +136,42 @@ class ConstructionServiceTest {
         construction.fund(player, village);
         await(() -> construction.sites(village.id()).getFirst().status() == BuildSite.Status.READY);
 
-        Chest chest = (Chest) world.getBlockAt(8, 66, -1).getState();
+        Chest chest = (Chest) world.getBlockAt(8, 66, 3).getState();
         assertEquals(32, count(chest, Material.OAK_LOG));
         assertEquals(16, count(chest, Material.COBBLESTONE));
         assertEquals(0, storageRepository.balances(village.id()).getOrDefault(ResourceType.HOLZ, 0));
         assertEquals(0, storageRepository.balances(village.id()).getOrDefault(ResourceType.STEIN, 0));
+    }
+
+    @Test
+    void jobSiteUsesBlueprintCoordinatesAndRotation() {
+        Building building = new Building(1, village.id(), BlueprintType.FARM, 1,
+                new BuildLocation(world.getUID(), 10, 65, 10, 90), 1, null);
+        Location jobSite = construction.jobSiteLocation(building);
+        assertNotNull(jobSite);
+        assertEquals(8, jobSite.getBlockX());
+        assertEquals(66, jobSite.getBlockY());
+        assertEquals(13, jobSite.getBlockZ());
+    }
+
+    @Test
+    void cancelReturnsAllItemsAndChestCannotBeBroken() throws Exception {
+        createSite(new BuildLocation(world.getUID(), 6, 65, 0, 0));
+        player.getInventory().addItem(new ItemStack(Material.OAK_LOG, 32), new ItemStack(Material.COBBLESTONE, 16));
+        construction.contribute(player, village);
+        await(() -> construction.sites(village.id()).getFirst().status() == BuildSite.Status.READY);
+
+        org.bukkit.block.Block chestBlock = world.getBlockAt(8, 66, 3);
+        var listener = new eu.praxios.blocklords.listener.BuilderChestProtectionListener(construction);
+        org.bukkit.event.block.BlockBreakEvent breakEvent = new org.bukkit.event.block.BlockBreakEvent(chestBlock, player);
+        listener.onBreak(breakEvent);
+        assertTrue(breakEvent.isCancelled());
+
+        construction.cancelSite(player, village, construction.sites(village.id()).getFirst().id());
+        await(() -> construction.sites(village.id()).isEmpty());
+        assertTrue(player.getInventory().contains(Material.OAK_LOG, 32));
+        assertTrue(player.getInventory().contains(Material.COBBLESTONE, 16));
+        assertEquals(Material.AIR, chestBlock.getType());
     }
 
     private BuildSite createSite(BuildLocation origin) throws Exception {

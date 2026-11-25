@@ -45,6 +45,16 @@ class BlueprintBlocksTest {
     }
 
     @Test
+    void farmComposterIsAwayFromDoorAndBuilderChest() {
+        var composter = BlueprintBlocks.blocks(BlueprintType.FARM).stream()
+                .filter(block -> block.data().getMaterial().name().equals("COMPOSTER")).findFirst().orElseThrow();
+        assertEquals(3, composter.x());
+        assertEquals(2, composter.z());
+        assertTrue(composter.x() != 2 || composter.z() != 0);
+        assertTrue(composter.x() != 2 || composter.z() != 3);
+    }
+
+    @Test
     void mineContainsRealSmithingTable() {
         assertTrue(BlueprintBlocks.blocks(BlueprintType.MINE).stream()
                 .anyMatch(block -> block.data().getMaterial().name().equals("SMITHING_TABLE")));

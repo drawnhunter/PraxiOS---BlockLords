@@ -39,7 +39,7 @@ public final class BlueprintBlocks {
             case WOHNHAUS_II -> addBeds(blocks, 3);
             case FARM -> {
                 addBeds(blocks, 1);
-                blocks.add(new OffsetBlock(2, 1, 1, data(Material.COMPOSTER)));
+                blocks.add(new OffsetBlock(3, 1, 2, data(Material.COMPOSTER)));
                 // Feld liegt außerhalb der 5x5-Hütte: x=6..8, z=1..3.
                 for (int x = 6; x <= 8; x++) {
                     for (int z = 1; z <= 3; z++) {

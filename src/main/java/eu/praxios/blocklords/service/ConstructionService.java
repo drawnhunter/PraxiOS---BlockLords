@@ -229,7 +229,7 @@ public final class ConstructionService {
                     repository.deleteSite(site.id());
                     return null;
                 }, error -> Msg.error(player, "Baustellen-Rollback fehlgeschlagen: " + error.getMessage()));
-                Msg.error(player, "Baustellenkiste konnte nicht vor dem Eingang platziert werden.");
+                Msg.error(player, "Baustellenkiste konnte nicht im hinteren Innenraum platziert werden.");
                 return;
             }
             selectedSites.put(player.getUniqueId(), site.id());
@@ -246,17 +246,16 @@ public final class ConstructionService {
                 .filter(offset -> offset.data() instanceof org.bukkit.block.data.type.Door door
                         && door.getHalf() == org.bukkit.block.data.type.Door.Half.BOTTOM)
                 .findFirst().orElseThrow();
-        org.bukkit.block.data.type.Door door = (org.bukkit.block.data.type.Door) entrance.data();
-        int[] rotated = rotate(2 + door.getFacing().getModX(), door.getFacing().getModZ(), preview.location().rotation());
+        int[] rotated = rotate(2, 3, preview.location().rotation());
         Block block = player.getWorld().getBlockAt(preview.location().x() + rotated[0],
                 preview.location().y() + entrance.y(), preview.location().z() + rotated[1]);
         if (!block.getWorld().getUID().equals(preview.location().world())
                 || !village.region().contains(block.getWorld().getUID(), block.getX(), block.getZ())) {
-            Msg.error(player, "Die Kiste vor dem Eingang würde den Dorf-Claim verlassen.");
+            Msg.error(player, "Die Kiste im hinteren Innenraum würde den Dorf-Claim verlassen.");
             return null;
         }
         if (!block.getType().isAir() && !isReplaceableGrass(block.getType())) {
-            Msg.error(player, "Die Position direkt vor dem Eingang ist belegt: " + block.getX() + "/" + block.getY()
+            Msg.error(player, "Die Kistenposition im hinteren Innenraum ist belegt: " + block.getX() + "/" + block.getY()
                     + "/" + block.getZ() + ". Bitte dort freiräumen.");
             return null;
         }
@@ -379,6 +378,7 @@ public final class ConstructionService {
             Msg.error(player, "Es fehlt noch Material: " + remainingFromCounts(site, counts));
             return;
         }
+        int previousLevel = village.level();
         tasks.database(() -> {
             repository.markBuilding(site.id());
             return site;
@@ -402,7 +402,23 @@ public final class ConstructionService {
                 villages.markActivity(village, player.getUniqueId());
                 audit.log(player, "BUILDING_COMPLETED", completion.building().type() + " #" + completion.building().id());
                 Msg.success(player, completion.building().type().displayName() + " fertiggestellt: " + count + " Blöcke.");
-                Msg.success(player, "Dorf-Level " + completion.village().level() + " · XP " + completion.village().xp() + ".");
+                int gainedXp = site.type().xp();
+                Msg.success(player, "+" + gainedXp + " Dorf-XP · Gesamt " + completion.village().xp()
+                        + " · Level " + completion.village().level() + ".");
+                if (completion.village().level() > previousLevel) {
+                    player.showTitle(net.kyori.adventure.title.Title.title(
+                            net.kyori.adventure.text.Component.text("Dorf-Level " + completion.village().level(),
+                                    net.kyori.adventure.text.format.NamedTextColor.GOLD),
+                            net.kyori.adventure.text.Component.text("+" + gainedXp + " Dorf-XP",
+                                    net.kyori.adventure.text.format.NamedTextColor.YELLOW),
+                            net.kyori.adventure.title.Title.Times.times(
+                                    java.time.Duration.ofMillis(500), java.time.Duration.ofMillis(3000), java.time.Duration.ofMillis(1000))));
+                    player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+                } else {
+                    player.sendActionBar(net.kyori.adventure.text.Component.text("+" + gainedXp + " Dorf-XP · "
+                            + site.type().displayName(), net.kyori.adventure.text.format.NamedTextColor.GOLD));
+                    player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.2f);
+                }
                 if (site.type().workplace()) {
                     Msg.info(player, "Nächster Schritt: /bl workers öffnen, registrierte Bewohner zuweisen und Nahrung einlagern.");
                 }
@@ -420,6 +436,56 @@ public final class ConstructionService {
                 }
             });
         }, error -> Msg.error(player, "Baustart fehlgeschlagen: " + error.getMessage()));
+    }
+
+    public void cancelSite(Player player, Village village, long siteId) {
+        Role role = villages.role(village.id(), player.getUniqueId());
+        if (role != Role.LANDHERR && role != Role.GEFOLGSMANN) {
+            Msg.error(player, "Nur Landherr oder Gefolgsmann dürfen Baustellen abbrechen.");
+            return;
+        }
+        BuildSite site = selectedSite(player, village).filter(candidate -> candidate.id() == siteId)
+                .orElseGet(() -> sites(village.id()).stream().filter(candidate -> candidate.id() == siteId).findFirst().orElse(null));
+        if (site == null) {
+            Msg.error(player, "Baustelle #" + siteId + " gehört nicht zu diesem Dorf.");
+            return;
+        }
+        if (site.status() == BuildSite.Status.BUILDING) {
+            Msg.error(player, "Diese Baustelle wird bereits gebaut. Warte auf Abschluss oder Fehlermeldung.");
+            return;
+        }
+        Chest chest = chestFor(site);
+        List<ItemStack> items = chest == null ? List.of() : Arrays.stream(chest.getInventory().getContents())
+                .filter(Objects::nonNull).map(ItemStack::clone).toList();
+        Block chestBlock = chestBlock(site);
+        tasks.database(() -> {
+            repository.deleteSite(siteId);
+            return true;
+        }, deleted -> {
+            items.forEach(item -> player.getInventory().addItem(item).values()
+                    .forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left)));
+            if (chestBlock != null && chestBlock.getType() == Material.CHEST) chestBlock.setType(Material.AIR);
+            selectedSites.remove(player.getUniqueId());
+            refresh(village.id());
+            audit.log(player, "BUILD_SITE_CANCELLED", "Baustelle #" + siteId + " " + site.type());
+            Msg.success(player, "Baustelle #" + siteId + " abgebrochen. Das gesamte Kistenmaterial wurde zurückgegeben.");
+        }, error -> Msg.error(player, "Baustelle konnte nicht abgebrochen werden: " + error.getMessage()));
+    }
+
+    public org.bukkit.Location jobSiteLocation(Building building) {
+        Material jobMaterial = switch (building.type()) {
+            case FARM -> Material.COMPOSTER;
+            case MINE -> Material.SMITHING_TABLE;
+            default -> null;
+        };
+        if (jobMaterial == null) return null;
+        BlueprintBlocks.OffsetBlock job = BlueprintBlocks.blocks(building.type()).stream()
+                .filter(offset -> offset.data().getMaterial() == jobMaterial).findFirst().orElseThrow();
+        org.bukkit.World world = Bukkit.getWorld(building.location().world());
+        if (world == null) return null;
+        int[] rotated = rotate(job.x(), job.z(), building.location().rotation());
+        return new org.bukkit.Location(world, building.location().x() + rotated[0] + 0.5,
+                building.location().y() + job.y(), building.location().z() + rotated[1] + 0.5);
     }
 
     public Optional<Building> building(long id) {
