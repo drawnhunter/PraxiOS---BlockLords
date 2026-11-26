@@ -39,6 +39,21 @@ residents:
 workers:
   per-building: 2
 
+missions:
+  personal-offers: 2
+  village-offers: 1
+  offer-refresh-hours: 24
+  targets:
+    HOLZ_32: 32
+    STEIN_32: 32
+    BAUSTELLE_32: 32
+    NAHRUNG_120: 120
+  xp:
+    HOLZ_32: 20
+    STEIN_32: 20
+    BAUSTELLE_32: 20
+    NAHRUNG_120: 40
+
 economy:
   storage-base-capacity: 1728
   storage-per-warehouse: 1728

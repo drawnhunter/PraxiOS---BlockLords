@@ -51,11 +51,13 @@ public final class UiService {
     private final ResearchService research;
     private final ResidentService residents;
     private final PlacementModeService placement;
+    private final MissionUiService missionUi;
 
     public UiService(Supplier<BlockLordsConfig> config, VillageService villages, FoundingService founding,
                      VillageScanner scanner, TaskRunner tasks, ConstructionService construction,
                      StorageService storage, WorkerService workers, ResearchService research,
-                     ResidentService residents, PlacementModeService placement) {
+                     ResidentService residents, PlacementModeService placement,
+                     eu.praxios.blocklords.service.MissionService missions) {
         this.config = config;
         this.villages = villages;
         this.founding = founding;
@@ -78,6 +80,7 @@ public final class UiService {
             }
         }
         this.bedrock = candidate;
+        this.missionUi = new MissionUiService(missions, this);
     }
 
     public void openBell(Player player, Block bell) {
@@ -153,6 +156,8 @@ public final class UiService {
         actions.add(UiAction.of(Material.CHEST, "Dorfvorrat", () -> openStorage(player, village), storage.summary(village.id())));
         actions.add(UiAction.of(Material.OAK_PLANKS, "Bauen & Baustellen", () -> placement.openRoot(player, village),
                 "Hotbar-Menü: Bauen, Baustellen, Bewohner und Vorschau."));
+        actions.add(UiAction.of(Material.WRITABLE_BOOK, "Missionen", () -> openMissions(player, village),
+                "Zwei persönliche Angebote und eine Dorfmission · kein Verfall."));
         actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG, "Bewohner", () -> openWorkers(player, village)));
         actions.add(UiAction.of(Material.ENCHANTED_BOOK, "Bibliothek & Forschung", () -> openResearch(player, village)));
         actions.add(UiAction.of(Material.BOOK, "Dorf Infos", () -> openVillageInfo(player, village), levelLore(village)));
@@ -161,6 +166,10 @@ public final class UiService {
         actions.add(UiAction.of(Material.MAP, "Dorf vermessen", () -> scanner.requestAndNotify(village, player)));
         actions.add(UiAction.of(Material.BARRIER, "Schließen", player::closeInventory));
         openActions(player, "BlockLords · " + village.name(), content, actions);
+    }
+
+    public void openMissions(Player player, Village village) {
+        missionUi.open(player, village);
     }
 
     public void openVillageInfo(Player player, Village village) {

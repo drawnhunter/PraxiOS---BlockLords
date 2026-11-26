@@ -38,3 +38,9 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Datei: `verifier/v6/acceptance.md`
 - Zweck: Kapazität pro Ressource statt globalem Gesamtlimit.
 - Prüfungen: getrennte Einlagerungs-/Produktionskapazitäten, voller/leerer/normaler Lagerpfad, vollständiger Build und Paper-/FAWE-Lauf.
+
+## v7 — 2026-11-26
+
+- Datei: `verifier/v7/acceptance.md`
+- Zweck: Persönliche und gemeinsame Missionen mit echtem Fortschritt, Erst-XP, kostenlosem Ersetzen und angepinntem nächsten Schritt.
+- Prüfungen: V6→V7-Upgrade, Lager-/Baustellenereignisse, Idempotenz, Mehrspieler, Wiederholungs-XP, Config-Defaults, MockBukkit-Menüfluss und Paper-/FAWE-Lauf.

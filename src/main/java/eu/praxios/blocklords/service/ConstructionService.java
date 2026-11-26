@@ -29,6 +29,7 @@ public final class ConstructionService {
     private final FaweBuilder builder;
     private final TaskRunner tasks;
     private final AuditService audit;
+    private final java.util.function.Consumer<Long> missionCompletionNotifier;
     private final Map<UUID, PreviewSession> previews = new ConcurrentHashMap<>();
     private final Map<UUID, Long> selectedSites = new ConcurrentHashMap<>();
     private final Map<Long, List<BuildSite>> sites = new ConcurrentHashMap<>();
@@ -38,6 +39,13 @@ public final class ConstructionService {
     public ConstructionService(ConstructionRepository repository, VillageRepository villageRepository,
                                VillageService villages, StorageService storage, StorageRepository storageRepository,
                                FaweBuilder builder, TaskRunner tasks, AuditService audit) {
+        this(repository, villageRepository, villages, storage, storageRepository, builder, tasks, audit, ignored -> { });
+    }
+
+    public ConstructionService(ConstructionRepository repository, VillageRepository villageRepository,
+                               VillageService villages, StorageService storage, StorageRepository storageRepository,
+                               FaweBuilder builder, TaskRunner tasks, AuditService audit,
+                               java.util.function.Consumer<Long> missionCompletionNotifier) {
         this.repository = repository;
         this.villageRepository = villageRepository;
         this.villages = villages;
@@ -46,6 +54,7 @@ public final class ConstructionService {
         this.builder = builder;
         this.tasks = tasks;
         this.audit = audit;
+        this.missionCompletionNotifier = missionCompletionNotifier;
     }
 
     public void loadInitial(List<Village> villageList) throws Exception {
@@ -306,6 +315,7 @@ public final class ConstructionService {
             return accepted;
         }, confirmed -> {
             refresh(village.id());
+            if (!confirmed.isEmpty()) missionCompletionNotifier.accept(village.id());
             villages.markActivity(village, player.getUniqueId());
             audit.log(player, "BUILD_CONTRIBUTION", "Baustellenkiste #" + site.id() + " " + confirmed);
             Msg.success(player, "Material in Baustellenkiste #" + site.id() + " geliefert: " + confirmed);
@@ -341,17 +351,21 @@ public final class ConstructionService {
                     int missing = original - accepted.getOrDefault(resource, 0);
                     if (missing > 0) {
                         try {
-                            storageRepository.deposit(village.id(), player.getUniqueId(), resource, missing, storage.capacity(village.id()));
+                            storageRepository.refund(village.id(), player.getUniqueId(), resource, missing, storage.capacity(village.id()));
                         } catch (Exception exception) {
                             throw new RuntimeException(exception);
                         }
                     }
                 });
+                for (var entry : accepted.entrySet()) {
+                    repository.recordContribution(site.id(), player.getUniqueId(), entry.getKey(), entry.getValue());
+                }
                 repository.reconcileFromChest(site.id(), updatedCounts);
                 return accepted;
             }, confirmed -> {
                 refresh(village.id());
                 storage.refresh(village.id());
+                if (!confirmed.isEmpty()) missionCompletionNotifier.accept(village.id());
                 villages.markActivity(village, player.getUniqueId());
                 audit.log(player, "BUILD_STORAGE_FUNDING", "Baustellenkiste #" + site.id() + " " + confirmed);
                 Msg.success(player, "Dorfvorrat in die Baustellenkiste übertragen: " + confirmed);

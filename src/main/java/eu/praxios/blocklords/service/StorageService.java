@@ -21,18 +21,26 @@ public final class StorageService {
     private final TaskRunner tasks;
     private final AuditService audit;
     private final VillageService villageService;
+    private final java.util.function.Consumer<Long> missionCompletionNotifier;
     private final Map<Long, Map<ResourceType, Integer>> balances = new ConcurrentHashMap<>();
     private final Map<Long, Integer> capacities = new ConcurrentHashMap<>();
 
     public StorageService(Supplier<BlockLordsConfig> config, StorageRepository repository,
                           ConstructionRepository construction, TaskRunner tasks, AuditService audit,
                           VillageService villageService) {
+        this(config, repository, construction, tasks, audit, villageService, ignored -> { });
+    }
+
+    public StorageService(Supplier<BlockLordsConfig> config, StorageRepository repository,
+                          ConstructionRepository construction, TaskRunner tasks, AuditService audit,
+                          VillageService villageService, java.util.function.Consumer<Long> missionCompletionNotifier) {
         this.config = config;
         this.repository = repository;
         this.construction = construction;
         this.tasks = tasks;
         this.audit = audit;
         this.villageService = villageService;
+        this.missionCompletionNotifier = missionCompletionNotifier;
     }
 
     public void loadInitial(List<Village> villages) throws Exception {
@@ -92,6 +100,7 @@ public final class StorageService {
                 return;
             }
             refresh(village.id());
+            missionCompletionNotifier.accept(village.id());
             villagesActivity(village, player);
             int count = accepted.values().stream().mapToInt(Integer::intValue).sum();
             Msg.success(player, count + " Ressourcen in '" + village.name() + "' eingelagert.");
@@ -116,6 +125,7 @@ public final class StorageService {
             }
             if (actual < removed) give(player, resource, removed - actual);
             refresh(village.id());
+            missionCompletionNotifier.accept(village.id());
             villagesActivity(village, player);
             Msg.success(player, actual + " " + resource.displayName() + " eingelagert."
                     + (actual < removed ? " Rest wegen Lagerkapazität zurückgegeben." : ""));

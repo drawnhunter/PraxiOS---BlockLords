@@ -11,7 +11,7 @@ commands:
   blocklords:
     aliases: [bl]
     description: BlockLords-Dorfinfo, Gründung und Verwaltung
-    usage: /bl info|quest|found <Name>|admin
+    usage: /bl info|quest|found <Name>|missions|admin
 permissions:
   blocklords.admin:
     description: BlockLords-Administration, Altparzellen und Audit

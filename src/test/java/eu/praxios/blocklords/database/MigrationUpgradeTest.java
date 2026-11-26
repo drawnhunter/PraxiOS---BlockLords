@@ -1,9 +1,15 @@
 package eu.praxios.blocklords.database;
 
 import eu.praxios.blocklords.model.ClaimRegion;
+import eu.praxios.blocklords.model.Mission;
+import eu.praxios.blocklords.model.MissionDefinition;
+import eu.praxios.blocklords.model.MissionType;
+import eu.praxios.blocklords.model.ResourceType;
 import eu.praxios.blocklords.model.Village;
 import eu.praxios.blocklords.repository.ConstructionRepository;
+import eu.praxios.blocklords.repository.MissionRepository;
 import eu.praxios.blocklords.repository.ResidentRepository;
+import eu.praxios.blocklords.repository.StorageRepository;
 import eu.praxios.blocklords.repository.VillageRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -100,6 +106,53 @@ class MigrationUpgradeTest {
                 return null;
             });
         }
+    }
+
+    @Test
+    void v6DatabaseUpgradesToMissionsWithoutRetroactiveRewards() throws Exception {
+        try (Database database = new Database(temp.resolve("v6-missions-upgrade.db"))) {
+            applyV6(database);
+            UUID owner = UUID.randomUUID();
+            VillageRepository villages = new VillageRepository(database);
+            Village village = villages.createVillage("Bestandsdorf", owner,
+                    new ClaimRegion(UUID.randomUUID(), 0, 64, 0, 48), 4, 20, false, 21);
+            StorageRepository storage = new StorageRepository(database);
+            storage.deposit(village.id(), owner, ResourceType.HOLZ, 64, 1_728);
+            villages.addXp(village.id(), 40);
+
+            new MigrationRunner(database, Logger.getLogger("test")).migrate();
+
+            assertTrue(columnExists(database, "missions", "id"));
+            assertTrue(columnExists(database, "mission_events", "id"));
+            assertTrue(columnExists(database, "mission_event_links", "mission_id"));
+            assertTrue(columnExists(database, "mission_xp_grants", "mission_id"));
+            assertEquals(64, storage.balances(village.id()).get(ResourceType.HOLZ));
+            assertEquals(40, villages.findById(village.id()).orElseThrow().xp());
+            MissionRepository missions = new MissionRepository(database, villages);
+            assertTrue(missions.current(village.id(), owner).isEmpty());
+            var definitions = java.util.Arrays.stream(MissionType.values()).map(MissionDefinition::defaults).toList();
+            var offers = missions.prepareOffers(village.id(), owner, 2, 1, definitions, 1_000L, 86_400_000L);
+            assertEquals(3, offers.size());
+            assertTrue(offers.stream().allMatch(view -> view.mission().status() == Mission.Status.OFFERED));
+            assertTrue(offers.stream().allMatch(view -> view.mission().progress() == 0));
+            assertEquals(40, villages.findById(village.id()).orElseThrow().xp());
+        }
+    }
+
+    private void applyV6(Database database) throws Exception {
+        applyV5(database);
+        database.inTransaction(connection -> {
+            for (String sql : loadStatements("V6__resident_loss_and_chest_locations.sql")) {
+                try (Statement statement = connection.createStatement()) {
+                    statement.execute(sql);
+                }
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO schema_migrations(version, name, applied_at) VALUES (6, 'V6__resident_loss_and_chest_locations.sql', 1)")) {
+                statement.executeUpdate();
+            }
+            return null;
+        });
     }
 
     private List<String> loadStatements(String name) throws Exception {

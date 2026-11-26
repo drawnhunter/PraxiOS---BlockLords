@@ -1,5 +1,7 @@
 package eu.praxios.blocklords.config;
 
+import eu.praxios.blocklords.model.MissionDefinition;
+import eu.praxios.blocklords.model.MissionType;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +38,10 @@ public final class BlockLordsConfig {
     private final long researchDurationMillis;
     private final long residentScanTicks;
     private final int workersPerBuilding;
+    private final int missionPersonalOffers;
+    private final int missionVillageOffers;
+    private final long missionOfferRefreshMillis;
+    private final List<MissionDefinition> missionDefinitions;
     private final String logLevel;
     private final long actionTimeoutTicks;
     private final boolean debug;
@@ -80,6 +86,16 @@ public final class BlockLordsConfig {
         researchDurationMillis = positive(config, "economy.research-duration-seconds", 1, 86_400) * 1000L;
         residentScanTicks = positive(config, "residents.scan-interval-ticks", 20, 72_000);
         workersPerBuilding = config.isInt("workers.per-building") ? positive(config, "workers.per-building", 1, 1000) : 2;
+        missionPersonalOffers = positiveOrDefault(config, "missions.personal-offers", 1, 3, 2);
+        missionVillageOffers = positiveOrDefault(config, "missions.village-offers", 1, 3, 1);
+        missionOfferRefreshMillis = positiveOrDefault(config, "missions.offer-refresh-hours", 1, 8760, 24) * 3_600_000L;
+        List<MissionDefinition> definitions = new ArrayList<>();
+        for (MissionType type : MissionType.values()) {
+            int target = positiveOrDefault(config, "missions.targets." + type.name(), 1, 1_000_000, type.defaultTarget());
+            int xp = positiveOrDefault(config, "missions.xp." + type.name(), 0, 100_000, type.defaultXp());
+            definitions.add(new MissionDefinition(type, target, xp));
+        }
+        missionDefinitions = List.copyOf(definitions);
         logLevel = config.getString("logging.level", "INFO").toUpperCase(java.util.Locale.ROOT);
         if (!logLevel.equals("INFO") && !logLevel.equals("DEBUG")) {
             throw new IllegalArgumentException("logging.level muss INFO oder DEBUG sein.");
@@ -97,6 +113,10 @@ public final class BlockLordsConfig {
             throw new IllegalArgumentException(path + " muss zwischen " + min + " und " + max + " liegen.");
         }
         return value;
+    }
+
+    private int positiveOrDefault(FileConfiguration config, String path, int min, int max, int defaultValue) {
+        return config.get(path) == null ? defaultValue : positive(config, path, min, max);
     }
 
     private List<ItemStack> readStarterItems(FileConfiguration config) {
@@ -150,6 +170,10 @@ public final class BlockLordsConfig {
     public long researchDurationMillis() { return researchDurationMillis; }
     public long residentScanTicks() { return residentScanTicks; }
     public int workersPerBuilding() { return workersPerBuilding; }
+    public int missionPersonalOffers() { return missionPersonalOffers; }
+    public int missionVillageOffers() { return missionVillageOffers; }
+    public long missionOfferRefreshMillis() { return missionOfferRefreshMillis; }
+    public List<MissionDefinition> missionDefinitions() { return missionDefinitions; }
     public String logLevel() { return logLevel; }
     public long actionTimeoutTicks() { return actionTimeoutTicks; }
     public boolean debug() { return debug; }

@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.7-alpha.5 (Phase 2)
+## Aktueller Stand: 0.2.8-alpha.1 (Phase 2)
 
 Enthalten:
 
@@ -26,9 +26,18 @@ Enthalten:
 - virtueller Vorrat mit physischer Ein-/Auszahlung, Kapazitätsgrenzen ohne Ressourcenverfall,
 - Arbeiterzuweisung für Farm und Mine mit zeitbasierter Online-/Offline-Produktion,
 - Dorf-XP, Level 1–10, Bibliotheksforschung und Wohnhaus-II-Freischaltung,
-- gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
+- persönliche und gemeinsame Missionen mit echtem Fortschritt und einmaliger Dorf-XP,
+- gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter, Forschung und Missionen.
 
-**Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+**Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Einwanderung, Mitgliederverwaltung, persönliche Parzellen und eine ausführliche Produktionsbilanz sind weitere Phase-2-Schritte. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.8-alpha.1 (Missionen und nächste Schritte)
+
+- **Drei klare Angebote:** Zwei persönliche Missionen und eine gemeinsame Dorfmission, erreichbar über das Dorfmenü, `/bl missions`, Java-Chest-GUI und Bedrock-Formulare.
+- **Echte Beiträge:** Holz-/Stein-Einlagerung, Baustellenhilfe und gemeinsame Nahrungsversorgung zählen nur tatsächlich angenommene Ressourcen nach Missionsannahme; Refunds, Entnahmen und Produktion erzeugen keinen Fortschritt.
+- **Einmalige Dorf-XP:** Persönliche Erstabschlüsse geben 20 XP, die erste Dorfmission 40 XP. Wiederholungen geben keine XP und melden das auch korrekt; keine zusätzliche Smaragd-/Itemquelle.
+- **Ohne Termindruck:** Kostenlos ersetzen mit Bestätigung bei Fortschritt, keine ablaufenden aktiven Missionen, persönlich anpinnbar und kurzer Hinweis beim nächsten Login.
+- **Migration V7:** Persistente Angebote, Fortschritte, eindeutige Ereignisse und Erst-XP-Zuordnungen. Bestehende Dörfer erhalten keine rückwirkenden Abschlüsse oder Belohnungen.
 
 ### Neuerungen in 0.2.7-alpha.5 (Kapazität pro Ressource)
 
@@ -153,8 +162,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.7-alpha.5.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.7-alpha.5-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.8-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.8-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -164,9 +173,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.7-alpha.5.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.8-alpha.1.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.7-alpha.3 aktiviert: Phase 2 ...`.
+3. Log prüfen: `BlockLords 0.2.8-alpha.1 aktiviert: Phase 2 ...` sowie die Migration `V7__missions.sql`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 
@@ -203,6 +212,7 @@ Entwicklung, Veröffentlichung, Deployment und Konsolenauswertung erfolgen über
 27. **Job-Sites:** Bauer erhält Komposter, Minenarbeiter erhält Schmiedetisch. `/bl admin selftest MINE <x> <y> <z> <Rotation>` muss die echte Schmiedetafel erzeugen.
 28. **Bewohnerdetail:** Alle registrierten Bewohner mit/ohne Bett öffnen, Anforderungen lesen, freies Bett zuweisen und Arbeitsgebäude auswählen.
 29. **P3-Texte:** Kurze Hinweise lesen und befolgen; Detailinformationen bleiben per Klick verfügbar, nicht als lange Chat-Anweisung.
+30. **Missionen:** `/bl missions` öffnet zwei persönliche Angebote und eine Dorfmission. Holzmission annehmen und in Teilbeträgen 32 Holz einlagern; Fortschritt und einmalige XP prüfen. Wiederholung gibt 0 XP. Baustellenhilfe und gemeinsame Nahrungsmission testen, Mission kostenlos ersetzen und persönliche Mission anpinnen. Neustart/Login darf weder Fortschritt noch Belohnung duplizieren; Bedrock nutzt dieselben Aktionen als Formular.
 
 ## Befehle
 
@@ -217,6 +227,7 @@ Entwicklung, Veröffentlichung, Deployment und Konsolenauswertung erfolgen über
 | `/bl build` | Baupläne öffnen; `preview`, `tools`, `move`, `left`, `right`, `confirm`, `cancel`, `contribute`, `fund`, `start`, `sites`, `select` |
 | `/bl workers` | Arbeiterübersicht; `assign <Gebäude-ID>`, `unassign <Arbeiter-ID>` |
 | `/bl research` | Forschung öffnen beziehungsweise mit `start` beginnen |
+| `/bl missions` | Zwei persönliche Angebote und eine Dorfmission öffnen; `accept <ID>`, `replace <ID> [confirm]`, `pin <ID>` |
 | `/bl level` | Dorf-Level, XP und Status anzeigen |
 | `/bl admin selftest <Typ> <x> <y> <z>` | Direkten FAWE-Baupfad ohne Dorfveränderung diagnostizieren |
 | `/bl admin list` | Dorf-IDs, Level und Status anzeigen |

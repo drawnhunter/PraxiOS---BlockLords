@@ -11,9 +11,15 @@ import java.util.*;
 
 public final class ConstructionRepository {
     private final Database database;
+    private final MissionRepository missions;
 
     public ConstructionRepository(Database database) {
+        this(database, null);
+    }
+
+    public ConstructionRepository(Database database, MissionRepository missions) {
         this.database = database;
+        this.missions = missions;
     }
 
     public BuildSite createSite(long villageId, BlueprintType type, BuildLocation location, UUID creator,
@@ -144,6 +150,7 @@ public final class ConstructionRepository {
 
     public void recordContribution(long siteId, UUID player, ResourceType resource, int amount) throws Exception {
         database.inTransaction(connection -> {
+            if (amount <= 0) return null;
             try (PreparedStatement statement = connection.prepareStatement(
                     "INSERT INTO build_site_contributors(site_id, player_uuid, resource, amount, contributed_at) VALUES (?, ?, ?, ?, ?)")) {
                 statement.setLong(1, siteId);
@@ -152,6 +159,10 @@ public final class ConstructionRepository {
                 statement.setInt(4, amount);
                 statement.setLong(5, System.currentTimeMillis());
                 statement.executeUpdate();
+            }
+            BuildSite site = findSite(connection, siteId);
+            if (missions != null) {
+                missions.recordBuildContribution(connection, site.villageId(), player, resource, amount, siteId);
             }
             return null;
         });
@@ -274,6 +285,9 @@ public final class ConstructionRepository {
             statement.setInt(4, actual);
             statement.setLong(5, System.currentTimeMillis());
             statement.executeUpdate();
+        }
+        if (missions != null) {
+            missions.recordBuildContribution(connection, site.villageId(), player, resource, actual, siteId);
         }
         boolean complete = site.required().keySet().stream()
                 .allMatch(requiredResource -> site.remaining(requiredResource) - (requiredResource == resource ? actual : 0) == 0);

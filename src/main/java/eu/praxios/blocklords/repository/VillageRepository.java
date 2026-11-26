@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class VillageRepository {
@@ -144,28 +145,43 @@ public final class VillageRepository {
         });
     }
 
+    public Optional<Village> findById(long villageId) throws Exception {
+        return database.read(connection -> findById(connection, villageId));
+    }
+
+    Optional<Village> findById(Connection connection, long villageId) throws Exception {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM villages WHERE id=?")) {
+            statement.setLong(1, villageId);
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next() ? Optional.of(mapVillage(result)) : Optional.empty();
+            }
+        }
+    }
+
     public Village addXp(long villageId, int amount) throws Exception {
-        return database.inTransaction(connection -> {
-            Village current;
-            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM villages WHERE id = ?")) {
-                statement.setLong(1, villageId);
-                try (ResultSet result = statement.executeQuery()) {
-                    if (!result.next()) throw new IllegalArgumentException("Dorf " + villageId + " existiert nicht.");
-                    current = mapVillage(result);
-                }
+        return database.inTransaction(connection -> addXp(connection, villageId, amount));
+    }
+
+    Village addXp(Connection connection, long villageId, int amount) throws Exception {
+        Village current;
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM villages WHERE id = ?")) {
+            statement.setLong(1, villageId);
+            try (ResultSet result = statement.executeQuery()) {
+                if (!result.next()) throw new IllegalArgumentException("Dorf " + villageId + " existiert nicht.");
+                current = mapVillage(result);
             }
-            int xp = current.xp() + Math.max(0, amount);
-            int level = levelForXp(xp);
-            Village updated = new Village(current.id(), current.name(), current.owner(), current.region(), level, xp,
-                    current.status(), current.createdAt(), current.lastActivity());
-            try (PreparedStatement statement = connection.prepareStatement("UPDATE villages SET xp = ?, level = ? WHERE id = ?")) {
-                statement.setInt(1, xp);
-                statement.setInt(2, level);
-                statement.setLong(3, villageId);
-                statement.executeUpdate();
-            }
-            return updated;
-        });
+        }
+        int xp = current.xp() + Math.max(0, amount);
+        int level = levelForXp(xp);
+        Village updated = new Village(current.id(), current.name(), current.owner(), current.region(), level, xp,
+                current.status(), current.createdAt(), current.lastActivity());
+        try (PreparedStatement statement = connection.prepareStatement("UPDATE villages SET xp = ?, level = ? WHERE id = ?")) {
+            statement.setInt(1, xp);
+            statement.setInt(2, level);
+            statement.setLong(3, villageId);
+            statement.executeUpdate();
+        }
+        return updated;
     }
 
     public void setFeature(long villageId, String key, boolean enabled) throws Exception {

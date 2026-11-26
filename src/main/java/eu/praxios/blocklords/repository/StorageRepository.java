@@ -12,9 +12,15 @@ import java.util.UUID;
 
 public final class StorageRepository {
     private final Database database;
+    private final MissionRepository missions;
 
     public StorageRepository(Database database) {
+        this(database, null);
+    }
+
+    public StorageRepository(Database database, MissionRepository missions) {
         this.database = database;
+        this.missions = missions;
     }
 
     public Map<ResourceType, Integer> balances(long villageId) throws Exception {
@@ -22,11 +28,23 @@ public final class StorageRepository {
     }
 
     public int deposit(long villageId, UUID player, ResourceType resource, int amount, int capacity) throws Exception {
+        return depositInternal(villageId, player, resource, amount, capacity, true);
+    }
+
+    public int refund(long villageId, UUID player, ResourceType resource, int amount, int capacity) throws Exception {
+        return depositInternal(villageId, player, resource, amount, capacity, false);
+    }
+
+    private int depositInternal(long villageId, UUID player, ResourceType resource, int amount, int capacity,
+                                boolean trackMission) throws Exception {
         return database.inTransaction(connection -> {
             int actual = Math.max(0, Math.min(amount, capacity - balances(connection, villageId).getOrDefault(resource, 0)));
             if (actual <= 0) return 0;
             change(connection, villageId, resource, actual);
             transaction(connection, villageId, player, resource, actual, "DEPOSIT");
+            if (trackMission && missions != null) {
+                missions.recordStorageDeposit(connection, villageId, player, resource, actual);
+            }
             return actual;
         });
     }

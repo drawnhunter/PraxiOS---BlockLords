@@ -18,10 +18,11 @@ public final class EconomyCommand {
     private final ResearchService research;
     private final UiService ui;
     private final PlacementModeService placement;
+    private final MissionService missions;
 
     public EconomyCommand(VillageService villages, ConstructionService construction, StorageService storage,
                           WorkerService workers, ResearchService research, UiService ui,
-                          PlacementModeService placement) {
+                          PlacementModeService placement, MissionService missions) {
         this.villages = villages;
         this.construction = construction;
         this.storage = storage;
@@ -29,6 +30,7 @@ public final class EconomyCommand {
         this.research = research;
         this.ui = ui;
         this.placement = placement;
+        this.missions = missions;
     }
 
     public boolean handle(CommandSender sender, String[] args) {
@@ -47,6 +49,7 @@ public final class EconomyCommand {
             case "storage" -> storage(player, village, args);
             case "workers" -> workers(player, village, args);
             case "research" -> research(player, village, args);
+            case "missions" -> missions(player, village, args);
             case "level" -> Msg.info(player, "Dorf '" + village.name() + "': Level " + village.level()
                     + ", XP " + village.xp() + ", Status " + village.status() + ".");
             default -> Msg.error(player, "Unbekannter Bereich.");
@@ -155,6 +158,31 @@ public final class EconomyCommand {
             else Msg.error(player, "Verwende assign oder unassign.");
         } catch (NumberFormatException exception) {
             Msg.error(player, "ID muss eine Zahl sein.");
+        }
+    }
+
+    private void missions(Player player, Village village, String[] args) {
+        if (args.length == 1 || args[1].equalsIgnoreCase("list")) {
+            ui.openMissions(player, village);
+            return;
+        }
+        if (args.length < 3) {
+            Msg.error(player, "/bl missions accept <ID> · replace <ID> [confirm] · pin <ID>");
+            return;
+        }
+        long id;
+        try {
+            id = Long.parseLong(args[2]);
+        } catch (NumberFormatException exception) {
+            Msg.error(player, "Missions-ID muss eine Zahl sein.");
+            return;
+        }
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "accept" -> missions.accept(player, village, id, () -> { });
+            case "replace" -> missions.replace(player, village, id,
+                    args.length >= 4 && args[3].equalsIgnoreCase("confirm"), () -> { });
+            case "pin" -> missions.pin(player, village, id, () -> { });
+            default -> Msg.error(player, "Verwende accept, replace oder pin.");
         }
     }
 

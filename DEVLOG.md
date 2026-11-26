@@ -368,3 +368,30 @@
 - JAR-SHA256: `c53af908faaeb6e1e8ca7ba5aa0ea195654572362914419f86e7682cb28986d0`.
 - Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: BlockLords 0.2.7-alpha.5 aktiviert; Selftest RATHAUS mit `PASTE-6f5e5311` und **99 Blöcken** erfolgreich.
 - Abnahmekriterien und Laufprotokolle liegen in `verifier/v6/` und `verifier/runs/`.
+
+
+## 2026-11-26 — 0.2.8-alpha.1, Missionen und nächste Schritte
+
+### Implementiert
+
+- **Drei klare Angebote:** Zwei persönliche Missionen und eine gemeinsame Dorfmission über Dorfmenü, `/bl missions`, Chest-GUI und die vorhandenen Bedrock-Formulare. Annehmen, Details, kostenloses Ersetzen mit Fortschrittswarnung und persönliches Anpinnen.
+- **Vier Startmissionen:** 32 Holz oder Stein einlagern, 32 benötigte Ressourcen an Baustellen liefern und gemeinsam 120 Nahrung einlagern. Zielwerte und XP sind validiert konfigurierbar.
+- **Echte Fortschritte:** Nur tatsächlich akzeptierte Einlagerungen nach Missionsannahme und reale Baustellenbeiträge aus Inventar oder Dorfvorrat zählen. Entnahmen, Produktion, Erstattungen und nicht angenommene Items erzeugen keinen Fortschritt.
+- **Einmalige Dorf-XP:** Persönliche Erstabschlüsse 20 XP, erste Dorfmission 40 XP. Eindeutige Ereignis- und XP-Ledger verhindern Doppelzählung und Doppelbelohnung; Wiederholungen geben 0 XP und melden dies korrekt. Keine zusätzlichen Smaragd-/Itembelohnungen.
+- **Ohne Termindruck:** Angenommene oder angepinnte Missionen verfallen nicht. Unangenommene Angebote können nach konfigurierbarer Frist beim Öffnen wechseln. Ein angepinnter nächster Schritt erscheint als einzelne kurze Zeile beim Login.
+- **Migration V7:** Missionen, Ereignisse, Fortschrittsverknüpfungen und Erst-XP-Zuordnungen sind persistent. Missionsabschluss und XP erfolgen atomar in SQLite; alte Dörfer erhalten keine rückwirkenden Abschlüsse oder XP.
+- Mitgliedschafts- und Dorfprüfung, Audit-Einträge und gemeinsame `UiAction`-Menüs für Java/Bedrock; keine neue Abhängigkeit oder Java-only-Bedienung.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **65 Tests ohne Fehler, Fehlerfälle oder Überspringungen** erfolgreich; `git diff --check` bestanden.
+- `MigrationUpgradeTest`: echte V6-Datenbank mit Lager und vorhandenen XP auf V7; Bestände bleiben erhalten, keine Altbelohnung. `MissionRepositoryTest`: Angebotslebenszyklus, Teilbeträge, Rechte, Mehrspieler, Lager-/Baustellenfortschritt, Idempotenz und Erst-/Wiederholungs-XP.
+- `MissionServiceTest`: Spieler öffnet Missionsmenü, nimmt Holzmission an, lagert in Teilbeträgen ein, erhält einmalige XP-Meldung und bei Wiederholung korrekt 0 XP; Ersetzen verlangt Bestätigung und erhält Ressourcen; Pin-/Login-Hinweis und Fremdenablehnung geprüft.
+- Finales JAR-SHA256: `043f1328f61fb9c77aaae31b97709099c329670cf843dd4d75f74df343562220`. Alle 356 Laufzeit-Einträge sind per CRC mit dem zuvor auf Paper getesteten JAR identisch.
+- Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: V7 aktiv, Missionsbefehl registriert, Selftest RATHAUS mit `PASTE-00a04a1b` und **99 Blöcken** erfolgreich. Nach mehr als 27 Sekunden kein `LATE_FAILURE`/`LATE_SUCCESS`; BlockLords und FAWE sauber beendet.
+- Abnahmekriterien und Laufprotokolle liegen in `verifier/v7/` und `verifier/runs/`.
+
+### Offene Live-Abnahme
+
+- Produktivdeployment mit alpha.5-JAR-, Config- und DB-Backup, Remote-SHA und Versions-/Migrationsprüfung.
+- Alexander prüft Missionsmenü, Teilfortschritt, echte und wiederholte XP, Baustellenhilfe, Dorfmission, kostenloses Ersetzen, Pinnen und Bedrock-Formulare. Ohne tatsächlichen Spielertest bleibt die visuelle Abnahme offen.

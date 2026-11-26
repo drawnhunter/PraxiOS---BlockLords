@@ -63,8 +63,9 @@ public final class BlockLords extends JavaPlugin {
             QuestRepository questRepository = new QuestRepository(database);
             OwnershipRepository ownershipRepository = new OwnershipRepository(database);
             AuditRepository auditRepository = new AuditRepository(database);
-            ConstructionRepository constructionRepository = new ConstructionRepository(database);
-            StorageRepository storageRepository = new StorageRepository(database);
+            MissionRepository missionRepository = new MissionRepository(database, villageRepository);
+            ConstructionRepository constructionRepository = new ConstructionRepository(database, missionRepository);
+            StorageRepository storageRepository = new StorageRepository(database, missionRepository);
             WorkerRepository workerRepository = new WorkerRepository(database);
             ResearchRepository researchRepository = new ResearchRepository(database);
             ResidentRepository residentRepository = new ResidentRepository(database);
@@ -73,16 +74,18 @@ public final class BlockLords extends JavaPlugin {
             AuditService audit = new AuditService(auditRepository, tasks, logs);
             VillageService villages = new VillageService(villageRepository, legacyRepository, tasks);
             villages.loadInitial();
+            MissionService missions = new MissionService(this::settings, missionRepository, villages, tasks, audit);
             GuideItemService guide = new GuideItemService(this);
             FoundingService founding = new FoundingService(this::settings, villageRepository, questRepository, villages, tasks, audit, guide);
             ProtectionService protection = new ProtectionService(villages, audit);
             AltSelectionService alt = new AltSelectionService(legacyRepository, villages, tasks, audit);
             decay = new DecayService(this, this::settings, villages);
             scanner = new VillageScanner(this, this::settings, tasks);
-            StorageService storage = new StorageService(this::settings, storageRepository, constructionRepository, tasks, audit, villages);
+            StorageService storage = new StorageService(this::settings, storageRepository, constructionRepository, tasks, audit, villages,
+                    missions::announceCompletions);
             faweBuilder = new FaweBuilder(this, tasks, logs, this::settings);
             ConstructionService construction = new ConstructionService(constructionRepository, villageRepository,
-                    villages, storage, storageRepository, faweBuilder, tasks, audit);
+                    villages, storage, storageRepository, faweBuilder, tasks, audit, missions::announceCompletions);
             storage.loadInitial(villages.all());
             construction.loadInitial(villages.all());
             placement = new PlacementModeService(this, placementRepository, construction, tasks, logs, audit);
@@ -96,7 +99,7 @@ public final class BlockLords extends JavaPlugin {
             production = new ProductionService(this, this::settings, workerRepository, storageRepository,
                     villages, storage, tasks);
             UiService ui = new UiService(this::settings, villages, founding, scanner, tasks,
-                    construction, storage, workers, research, residents, placement);
+                    construction, storage, workers, research, residents, placement, missions);
             founding.setQuestUpdateHandler(ui::handleQuestUpdate);
 
             getServer().getPluginManager().registerEvents(new BellListener(ui, founding, villages, residents), this);
@@ -108,9 +111,9 @@ public final class BlockLords extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new BuilderChestProtectionListener(construction), this);
             getServer().getPluginManager().registerEvents(new PlacementModeListener(placement), this);
             getServer().getPluginManager().registerEvents(new ResidentLifecycleListener(residents, workers), this);
-            getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(founding, decay, production, villages, this), this);
+            getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(founding, decay, production, villages, this, missions), this);
 
-            EconomyCommand economy = new EconomyCommand(villages, construction, storage, workers, research, ui, placement);
+            EconomyCommand economy = new EconomyCommand(villages, construction, storage, workers, research, ui, placement, missions);
             BlockLordsCommand executor = new BlockLordsCommand(this, villages, founding, ui, protection, alt, audit,
                     tasks, villageRepository, decay, economy, guide);
             PluginCommand command = getCommand("blocklords");

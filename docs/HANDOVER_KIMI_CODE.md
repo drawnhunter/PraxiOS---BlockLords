@@ -1,19 +1,20 @@
 # BlockLords — Übergabeprotokoll an Kimi Code
 
 **Datum:** 26.11.2026  
-**Von:** BLWB / Kimi  
-**Für:** Kimi Code, Alexander, Axon  
-**Repo:** https://github.com/drawnhunter/PraxiOS---BlockLords  
-**Aktueller Produktstand:** **0.2.6-alpha.1**  
-**Release-Commit:** `4c2e7879ca48c9193d799e33cb6819228b3dc045`  
-**JAR-SHA256:** `8b0e74f574f2041078cb16ec673c5bacaf1237337c94f12afc1f7ed9f6db754d`  
-**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.6-alpha.1.jar
+**Von:** BLWB / Kimi, fortgeschrieben von Brix
+**Für:** Kimi Code (Brix), Alexander
+**Repo:** https://github.com/drawnhunter/PraxiOS---BlockLords
+**Aktueller Produktstand:** **0.2.7-alpha.5**
+**Release-Commit:** `dd38b4a259394bbd208b5f50c389845dcb50101d`
+**JAR-SHA256:** `c53af908faaeb6e1e8ca7ba5aa0ea195654572362914419f86e7682cb28986d0`
+**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.7-alpha.5.jar
+**Entwicklungsziel:** **0.2.8-alpha.1**, Missionen und nächste Schritte
 
 ## 1. Zweck und Prioritäten
 
-BlockLords ist ein kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfplugin für den PraxiOS-Familien-SMP. Das Ziel ist kein generisches Claim-Plugin, sondern ein nachvollziehbares Dorfleben: Spieler gründen Dörfer, bauen gemeinsam, registrieren Bewohner, weisen Berufe zu und entwickeln später freiwillige Wettkämpfe und Diplomatie. Die wichtigste aktuelle Arbeitsregel lautet: **Bestehende Live-Fehler zuerst, neue Systeme erst nach stabiler Abnahme.** Alexander entscheidet über Spielregeln und Go/No-Go, Axon deployed und testet auf dem OnePlus/Mobian-Server, BLWB beziehungsweise künftig Kimi Code entwickelt und veröffentlicht.
+BlockLords ist ein kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfplugin für den PraxiOS-Familien-SMP. Das Ziel ist kein generisches Claim-Plugin, sondern ein nachvollziehbares Dorfleben: Spieler gründen Dörfer, bauen gemeinsam, registrieren Bewohner, weisen Berufe zu und entwickeln später freiwillige Wettkämpfe und Diplomatie. Die wichtigste aktuelle Arbeitsregel lautet: **Bestehende Live-Fehler zuerst, neue Systeme erst nach stabiler Abnahme.** Alexander entscheidet über Spielregeln, Prioritäten und Go/No-Go. Brix entwickelt, testet, veröffentlicht, deployed und wertet die Konsole aus; Alexander übernimmt die spielerische Abnahme. Axon ist für diese Arbeit nicht mehr erforderlich.
 
-Die aktuelle Fassung 0.2.6 ist ein reparierter Zwischenstand. Sie enthält die neue Hotbar-Menüführung, Bewohnernamen mit Nummern, eine Baustellenkiste und korrigierte Bauplan-Mehrblocklogik. Diese Version ist auf einem eigenen Paper-Server verifiziert, benötigt aber noch Axons interaktive Live-Abnahme auf Paper 26.3. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
+Die Fassung 0.2.7-alpha.5 ist produktiv und von Alexander live abgenommen. In 0.2.8-alpha.1 entstehen persönliche und gemeinsame Missionen mit echtem Fortschritt, einmaliger Dorf-XP und Crossplay-Menüs. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
 
 ## 2. Verbindliche Designentscheidungen
 
@@ -45,8 +46,13 @@ Die Herrschaftskampfregel ist bewusst nicht implementiert und darf nicht versehe
 | **0.2.4-alpha.1** | Build-Flow, Pagination, Distanz 2, Directionals, Bewohnerdetails, Golem-/Gras-Fix | `c171ac6772a2525376cd5c524c64a0faf187ac87` |
 | **0.2.5-alpha.1** | Echte Job-Sites, Schmiedetisch, Bett-Y-Fix, kurze Schritt-Hinweise, Zahlenprüfung | `b0d910c27351a57b94b7ce429247f9b030cfda16` |
 | **0.2.6-alpha.1** | Hotbar-Root-Menü, Zurück/Verlassen, gesperrte Bauplaninfos, Namen/#Nummern, Tür-/Bett-Reparatur | `4c2e7879ca48c9193d799e33cb6819228b3dc045` |
+| **0.2.7-alpha.1** | Live-Feedback: Bewohneridentitäten, Verlustverwaltung, Kistenposition, Menüzugang | `6dfb654` |
+| **0.2.7-alpha.2** | Thread-sicherer Materialtransfer, Eingangskiste, Menü- und Bewohneraktionen | `6a72afa` |
+| **0.2.7-alpha.3** | Kistenschutz, Innenpositionen, Arbeiterlimit und Dorfinfos | `6a063e0` |
+| **0.2.7-alpha.4** | Direkte Lagerbedienung, korrekte Lagermeldungen, Bettscan und Arbeiterdetail | `7c6a006` |
+| **0.2.7-alpha.5** | Lagerkapazität pro Ressource, live abgenommen | `dd38b4a` |
 
-Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload direkt unter `dist/` bereit. Für die aktuelle Version ist `dist/BlockLords-0.2.6-alpha.1.jar` maßgeblich. Ältere Release-Assets können vorhanden sein, aber der direkte Repo-Download ist der zuverlässigere Testweg, wenn der Upload-Endpunkt wieder Netzwerkprobleme zeigt.
+Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload direkt unter `dist/` bereit. Für den aktuellen Produktivstand ist `dist/BlockLords-0.2.7-alpha.5.jar` maßgeblich. Nach Freigabe wird dieser Verweis auf `dist/BlockLords-0.2.8-alpha.1.jar` aktualisiert. Ältere Release-Assets können vorhanden sein, aber der direkte Repo-Download ist der zuverlässigere Testweg, wenn der Upload-Endpunkt wieder Netzwerkprobleme zeigt.
 
 ## 4. Aktuelle Architektur
 
@@ -55,10 +61,10 @@ Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload 
 - `BlockLords.java`: Plugin-Lebenszyklus, Start, Migration, Verkabelung, Backup, Reload, Diagnose.
 - `config/BlockLordsConfig.java`: vollständige Validierung der `config.yml`.
 - `database/Database.java`: kontrollierte SQLite-Verbindung, Transaktionen, WAL, Backups.
-- `database/MigrationRunner.java`: explizit versionierte Migrationen V1–V5.
-- `model/`: Dorf, ClaimRegion, Rollen, Altparzellen, Baupläne, Baustellen, Bewohner, Ressourcen, Snapshots.
+- `database/MigrationRunner.java`: explizit versionierte Migrationen V1–V7.
+- `model/`: Dorf, ClaimRegion, Rollen, Altparzellen, Baupläne, Baustellen, Bewohner, Ressourcen, Missionen und Snapshots.
 - `repository/`: SQLite-Zugriffe und Transaktionen; keine versteckte zweite Wahrheit für Kistenmaterial.
-- `service/`: Gründung, Schutz, Bau, FAWE, Produktion, Forschung, Bewohner, Hotbar-Session, Audit und Logging.
+- `service/`: Gründung, Schutz, Bau, FAWE, Produktion, Forschung, Bewohner, Missionen, Hotbar-Session, Audit und Logging.
 - `ui/`: Chest-GUI, Aktionsmenüs, Floodgate-Formulare und Menü-Listener.
 - `listener/`: Glocke, Schutz, Kiste, Hotbar, Bewohner-Lebenszyklus und Besitzer-Tracking.
 
@@ -66,7 +72,7 @@ Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload 
 
 Welt-, Block-, Inventory- und Entity-Zugriffe erfolgen im passenden Spielkontext. Datenbanken, Dateien, Berechnungen und FAWE-Queues laufen auf getrennten Executors. `TaskRunner` besitzt einen DB-Executor und einen Scan-/FAWE-Executor. Schutzentscheidungen verwenden einen Main-Thread-Cache und nicht bei jedem Event eine Datenbankabfrage. FAWE-Aktionen besitzen Aktions-ID, Chunk-Prüfung, Queue-/Flush-Logs, Timeout und genau einen Ergebnis-Callback. Der Timeout darf nach `SUCCESS` nicht mehr als `LATE_FAILURE_IGNORED` erscheinen.
 
-SQLite verwendet WAL, `foreign_keys=ON`, `busy_timeout=5000` und kontrollierte Transaktionen. Das Fat-JAR enthält den JDBC-Treiber, Linux-Natives einschließlich `aarch64` und Android-Natives für die alte Termux-Umgebung. Backups liegen unter `plugins/BlockLords/backups/`; `/bl admin backup` erzeugt ein Backup mit `VACUUM INTO`. `DECAY` verändert niemals den Schutz, sondern nur Status und zukünftige Produktionsregeln.
+SQLite verwendet WAL, `foreign_keys=ON`, `busy_timeout=5000` und kontrollierte Transaktionen. Das Fat-JAR enthält den JDBC-Treiber, Linux-Natives einschließlich `aarch64` und Android-Natives für die alte Termux-Umgebung. Backups liegen unter `plugins/BlockLords/backups/`; `/bl admin backup` erzeugt ein Backup mit `VACUUM INTO`. `DECAY` verändert niemals den Schutz, sondern nur Status und zukünftige Produktionsregeln. Missionsfortschritt und Erst-XP werden mit eindeutigen Ereignissen und Sperr-Einträgen in denselben SQLite-Transaktionen wie die jeweilige Ressourcenbewegung gebucht; keine Bukkit-Zugriffe im DB-Executor.
 
 ### 4.3 Datenbankmigrationen
 
@@ -77,8 +83,10 @@ SQLite verwendet WAL, `foreign_keys=ON`, `busy_timeout=5000` und kontrollierte T
 | **V3** | Bewohnerregister mit POI-Links und Status |
 | **V4** | Hotbar-/Platzierungs-Sessions mit serialisiertem Inventar |
 | **V5** | Persistente Bewohnernamen und fortlaufende Nummern |
+| **V6** | Verlorene Bewohner und persistente Baustellenkistenpositionen |
+| **V7** | Missionsangebote, Fortschrittsereignisse, eindeutige Verknüpfungen und Erst-XP-Zuordnungen |
 
-Bei neuen Migrationen niemals bereits veröffentlichte SQL-Versionen nachträglich verändern. Neue Regeln kommen in V6, V7 usw. Die bisherigen Dateien bleiben reproduzierbar. Besondere Schutzregeln, Claims, Zustimmungen und Audit brauchen Transaktionen und Tests, keine nachträglichen Datenbank-Hacks.
+Bei neuen Migrationen niemals bereits veröffentlichte SQL-Versionen nachträglich verändern. Neue Regeln kommen in V8 usw. Die bisherigen Dateien bleiben reproduzierbar. Besondere Schutzregeln, Claims, Zustimmungen und Audit brauchen Transaktionen und Tests, keine nachträglichen Datenbank-Hacks.
 
 ## 5. Aktuelle Spielmechaniken
 
@@ -138,37 +146,34 @@ Der aktuelle Produktionszyklus beträgt 300 Sekunden, also 12 Zyklen/Stunde. Pro
 
 ## 7. Offene Grenzen und bekannte Risiken
 
-- **0.2.6 braucht noch Axons interaktive Live-Abnahme** für Hotbar-Root, Pagination, Zurück/Verlassen, Namen/#Nummern, Feld, Türen und Betten auf Paper 26.3/Java 25.
-- Mehr-Dorf-Claims sind weiterhin gesperrt; die Fortschrittsprüfung ist lediglich vorbereitet.
-- Missionen und persönliche Parzellen sind noch nicht implementiert.
-- Physische Schematic-Dateien und Herkunftsakte sind geplant, aber der allgemeine Loader ist noch nicht fertig.
-- Arbeiter-Laufwege bleiben Vanilla-/NPC-Ambiente; es gibt noch keine eigene Navigationssimulation.
-- Bauhütte und Builder-NPC sind noch nicht implementiert.
+- Die spielerische Abnahme der 0.2.8-Missionsrunde erfolgt nach dem Produktivdeployment durch Alexander; technische Prüfung und tatsächliches Spielerfeedback sind getrennt zu dokumentieren.
+- Mehr-Dorf-Claims sind weiterhin gesperrt; die Fortschrittsprüfung ist vorbereitet.
+- Eine vollständige Mitglieder-/Rollenverwaltung und persönliche Parzellen sind noch nicht implementiert. Missionen prüfen bereits registrierte Mitglieder und respektieren Landherr/Gefolgsmann bei Dorfmissionen.
+- Einwanderung und die ausführliche Produktionsbilanz aus Konzept v0.6 fehlen noch; der vorhandene kurze Produktionsbericht beim Join bleibt davon getrennt.
+- Physische Schematic-Dateien und Herkunftsakte bleiben ein separater späterer Ausbau; die aktuellen Baupläne werden nicht in dieser Missionsrunde verändert.
+- Arbeiter-Laufwege bleiben Vanilla-/NPC-Ambiente; Bauhütte und Builder-NPC sind nicht implementiert.
 - Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen erst in den späteren Phasen.
 - Eigene NPC-Rigs sind kein aktueller Auftrag und dürfen nicht zum Pflichtbestandteil werden.
-- Release-Asset-Uploads waren zeitweise instabil; deshalb werden Test-JARs zusätzlich unter `dist/` versioniert.
-- `/tmp` und andere temporäre Bereiche werden zwischen Chats bereinigt. Arbeitsstände gehören immer in GitHub; keine lokale Datei darf die einzige Wahrheit sein.
+- Release-JARs werden zusätzlich unter `dist/` versioniert. Arbeitsstände gehören immer in GitHub; keine lokale Datei darf die einzige Wahrheit sein.
 
-## 8. Konkreter Updateplan für Kimi Code
+## 8. Konkreter Updateplan für Brix
 
-### Sofortige Reihenfolge
+### Priorität
 
-1. `KONZEPT.md`, `DEVLOG.md`, die drei Research-Dokumente und `verifier/` lesen.
-2. Repo auschecken, Java 21 einrichten und `./gradlew clean build` ausführen.
-3. Axons neuesten Live-Test zu 0.2.6 lesen; blockierende Fehler zuerst beheben.
-4. Erst danach die nächste Version implementieren.
+1. `KONZEPT.md`, `DEVLOG.md`, die Research-Dokumente und `verifier/` lesen.
+2. Aktuelle Spielrückmeldungen und blockierende Live-Fehler zuerst bearbeiten.
+3. Danach den nächsten abgegrenzten Phase-2-Schritt mit Alexander abstimmen und vollständig einschließlich Crossplay, Persistenz und Tests liefern.
 
 ### Geplante Versionen
 
 | Version | Inhalt |
 |---|---|
-| **0.2.7-alpha.1** | `.schem`-Loader, Metadatenvalidator, Anker/Rotationszentrum, Herkunftsakte, erste eigene Baupläne und Kolonie-Gründungs-/UI-Basis |
-| **0.2.8-alpha.1** | Bauhammer, manuelle Blockerkennung, atomare Reservierung und sichtbarer Fortschritt |
-| **0.2.9-alpha.1** | Bauhütte und Builder-Villager mit derselben Kiste/Warteschlange |
-| **0.3.x** | Dialog-/Quest-Grundlagen, optionale Textur-/Skin-Pakete und Bewertung von Citizens/BetonQuest |
+| **0.2.8-alpha.1** | Persönliche und gemeinsame Missionen, reale Fortschrittsbuchung, einmalige Dorf-XP, kostenloses Ersetzen, Pinnen und V7 |
+| **Nächster Kandidat** | Einwanderung und eine lesbare Produktionsbilanz; Reihenfolge nach Live-Feedback |
+| **Danach** | Mitgliederverwaltung und persönliche Parzellen; Schematic-Loader, Bauhütte und Kolonien als getrennte Research-/Ausbauthemen |
 | **Spätere Phase 3/4** | Militär, Diplomatie, reguläre Kriege und Herrschaftskampf nach stabilem Phase-2-Kern |
 
-Kolonien bleiben Verwaltungssektionen mit gemeinsamer Dorf-XP, Lager und Konto. Keine zweite Wirtschaft. Gründung ist explizit und nie automatisch bei Deko-Glocken. Eine Kolonie-Glocke liegt außerhalb des Dorf-Claims und höchstens 256 Blöcke von der Hauptglocke entfernt; darüber soll das Plugin eine neue Dorfgründung vorschlagen. Fremde Claims dürfen nicht geschnitten werden. Haupt- und Kolonie-Glocken brauchen getrennte Auflösungsregeln.
+Kolonien bleiben Verwaltungssektionen mit gemeinsamer Dorf-XP, Lager und Konto, keine zweite Wirtschaft. Gründung ist explizit und nie automatisch bei Deko-Glocken. Fremde Claims dürfen nicht geschnitten werden. Haupt- und Kolonie-Glocken brauchen getrennte Auflösungsregeln.
 
 ### Verbotene Abkürzungen
 
@@ -184,62 +189,52 @@ Kolonien bleiben Verwaltungssektionen mit gemeinsamer Dorf-XP, Lager und Konto. 
 
 ### Build
 
+Unter Windows das vorhandene JDK 21 verwenden:
+
 ```bash
-./gradlew clean build
+export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-21.0.13.10002-hotspot"
+export PATH="$JAVA_HOME/bin:$PATH"
+export GRADLE_OPTS="-Djava.net.preferIPv4Stack=true"
+./gradlew clean build --no-daemon
 ```
 
-Ergebnisse:
-
-- `build/libs/BlockLords-<version>.jar` = deploybares Fat-JAR
+- `build/libs/BlockLords-<version>.jar` = deploybares Fat-JAR, nur dieses deployen
 - `build/libs/BlockLords-<version>-thin.jar` = nur Analyse/Entwicklung, kein SQLite-Treiber
-
-### Erforderliche Laufzeit
-
-- Paper 1.21.11 oder kompatible 26.x
-- Java 21; für Paper 26.x wurde Java 25 bereits getestet
-- FAWE 2.16.3 ist Pflicht
-- Floodgate optional für native Bedrock-Formulare
-- LuckPerms optional und derzeit nicht führend für interne Rollen
+- Release-JARs wegen `.gitignore` mit `git add -f dist/...` aufnehmen; SHA256 von Release, Download und Produktiv-JAR vergleichen
+- Paper 1.21.11/Java 21 lokal, Paper 26.x/Java 25 produktiv, FAWE 2.16.3 Pflicht, Floodgate optional, LuckPerms nicht führend für interne Rollen
 
 ### Eigener Verifier
 
-- Aktuelle Kriterien: `verifier/v6/acceptance.md`; `verifier/v1/` bis `verifier/v5/` bleiben als historische Abnahmen erhalten.
-- Build-/Testskript: `verifier/v6/check.sh`
-- Protokolle: `verifier/runs/`
+- Aktuelle Kriterien: `verifier/v7/acceptance.md`; `verifier/v1/` bis `verifier/v6/` bleiben historisch erhalten.
+- Build-/Testskript: `verifier/v7/check.sh`; echte Protokolle unter `verifier/runs/`.
 - Bei geänderten Kriterien eine neue Verifier-Version anlegen, alte Kriterien nicht überschreiben.
+- Die aktuelle Missionsrunde wird mit **65 Tests ohne Fehler oder Skip**, V6→V7-Upgrade, MockBukkit-Spielerfluss und echtem Paper-/FAWE-Lauf verifiziert.
 
 ### Live-Abnahme auf dem OnePlus
 
-Der aktive Coding-/Deploy-Agent führt Deployment, Konsolenprüfung und technische Live-Tests auf dem OnePlus/Mobian-Server mit Java 25 und Paper 26.3 selbst durch. Alexander ergänzt die spielerische Abnahme:
+Brix deployt mit JAR-, Config- und DB-Backup, prüft Version, Migration, Dörfer, Bestände, TPS und Logs. Alexander übernimmt die spielerische Abnahme:
 
-1. Glocke öffnen und Hotbar-Root prüfen.
-2. Bauplan auswählen, Preview 2 Blöcke vor Spieler und sofortige Edit-Hotbar prüfen.
-3. Pagination, Zurück bis Root und Verlassen prüfen.
-4. Gesperrte Baupläne und deren Freischaltinfo prüfen.
-5. Bewohnernamen/#Nummern und Neustart-Persistenz prüfen.
-6. Baustellenkiste, Inventar-/Vorratstransfer und FAWE-Ausnahme prüfen.
-7. Feld, Türhälften und Bettkopf/-fuß prüfen.
-8. Bettzuweisung, Job-Site-Verknüpfung und kurze Hinweise prüfen.
-9. Golem-Kampf und Grasfreimachung prüfen.
-10. Logout/Tod/Serverstopp auf Inventarverlust oder Duplikate prüfen.
+1. Dorfmenü und `/bl missions`: zwei persönliche Angebote und eine Dorfmission, auch native Bedrock-Formulare prüfen.
+2. Holzmission annehmen und in Teilbeträgen 32 Holz einlagern; nur reale Annahme zählt, Abschluss gibt einmalig 20 Dorf-XP.
+3. Wiederholung abschließen: keine weitere XP und keine falsche XP-Meldung; Entnahmen und Refunds erzeugen keinen Fortschritt.
+4. Baustellenhilfe und gemeinsame Nahrungsmission mit echten Beiträgen prüfen; Dorfmission sammelt Beiträge registrierter Mitglieder.
+5. Mission kostenlos ersetzen, Warnung bei Fortschritt bestätigen und Ressourcenerhalt prüfen.
+6. Persönliche Mission anpinnen, neu einloggen und Server neu starten: Fortschritt und Erst-XP bleiben ohne Doppelung erhalten.
 
-Aktuelles Feedback kommt in #230; #210 bleibt als älterer Testverlauf erhalten, ebenso #201/#202 für Onboarding und Research. Neues Material bitte mit Schritten, Log-Aktions-ID, Screenshot und Serverversion melden.
+#230 ist abgeschlossen und bleibt historisch. Für 0.2.8 wird ein neues Bus-Thema mit Release-Nachweis und Abnahmecheckliste geführt; es bleibt bis Alexanders spielerischer Bestätigung offen.
 
 ## 10. Rollen- und Sicherheitsregeln
 
-- **Alexander:** Go/No-Go, Designentscheidungen, Prioritäten, Tokens und spielerische Abnahme.
-- **Kimi Code:** Code, Commits, Push, Releases, eigener Testserver, Verifier, Deployment, OnePlus/Mobian, MC-Panel, SSH, Konsolen- und Log-Auswertung.
+- **Alexander (Lex):** Go/No-Go, Designentscheidungen, Prioritäten, Tokens und spielerische Abnahme.
+- **Brix (Kimi Code):** Code, Tests, Commits, Push, Releases, eigener Paper-Testserver, Verifier, Deployment, OnePlus/Mobian, MC-Panel, SSH, Konsole und Log-Auswertung.
 - **Bus:** Nachrichten, Status, Abstimmung und Testfeedback. GitHub bleibt Ort für Code, JARs, Releases und Research-Dokumente.
-- **Keine Tokens** in Ticket-Texten, Git-Dateien, Logs oder diesem Handover. PAT/Bus-Token werden ausschließlich über die dafür vorgesehenen Laufzeitparameter verwendet und regelmäßig rotiert.
+- **Keine Tokens** in Ticket-Texten, Git-Dateien, Logs oder diesem Handover. PAT/Bus-Token werden ausschließlich über die vorgesehenen Laufzeitparameter verwendet und regelmäßig rotiert.
 
-## 11. Startauftrag für Kimi Code
+## 11. Startauftrag für die nächste Runde
 
-Die korrekte erste Aktion ist nicht „neue Features bauen“, sondern:
+1. Aktuellen `master` und neuesten `DEVLOG`-Eintrag lesen; keine alte 0.2.6-Checkliste als aktuellen Auftrag übernehmen.
+2. Java-21-Build und die zuletzt dokumentierten Tests bestätigen.
+3. Offene visuelle Missionsabnahme und neues Feedback von Alexander prüfen; echte Fehler zuerst reproduzieren und beheben.
+4. Erst danach den nächsten abgestimmten Phase-2-Schritt beginnen. Einwanderung/Produktionsbilanz und Mitgliederverwaltung/Parzellen sind Kandidaten, keine bereits fertigen Funktionen.
 
-1. Aktuellen Stand 0.2.6 aus GitHub ziehen.
-2. Build und 28 Tests bestätigen.
-3. Axons Live-Testergebnis in #210 prüfen.
-4. Falls kein Blocker: 0.2.7 mit Schematic-Loader und Kolonie-Gründungsbasis beginnen.
-5. Falls Blocker: Bugfix-Release mit nachvollziehbaren Tests zuerst.
-
-Damit bleibt die Projektgeschichte, die Designabsicht, die technische Architektur, die Testbarkeit und die tatsächliche Verantwortungsverteilung erhalten.
+Damit bleiben Projektgeschichte, Designabsicht, technische Architektur, Testbarkeit und die tatsächliche Verantwortungsverteilung erhalten.
