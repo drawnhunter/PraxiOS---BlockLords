@@ -441,6 +441,7 @@
 
 ### Verifikation
 
-- Einzelne Testläufe ergeben **86 bestandene Tests ohne Fehler oder Überspringungen**, darunter V7→V8-Migration, atomare Aufnahme, Tod/Retry, Identitätsvergabe #1→#2, Offline-Grenze, Ruhezustand und volle Ressourcen.
-- Finaler Java-21-Clean-Build erfolgreich in 13m 27s: **86 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. JAR-SHA256: `6d38b077a18d14062945c32b5ee1a9aa5f6c65e1438eb0d93bc347aec6085cb2`.
-- Der echte Paper-Lauf mit V8 wird gesondert protokolliert. Produktivdeployment und visuelle Abnahme folgen erst danach.
+- **86 bestandene Tests ohne Fehler oder Überspringungen**, darunter V7→V8-Migration, atomare Aufnahme, Tod/Retry, Identitätsvergabe #1→#2, Offline-Grenze, Ruhezustand und volle Ressourcen. Nach einem intermittierenden CI-Fehler wartet der Tod/Retry-Test nach Ablehnung sowohl auf den Datenbankstatus als auch auf die Entity-Entfernung im Hauptthread; die Produktivlogik blieb unverändert.
+- Erneuter Java-21-Clean-Build erfolgreich in 1m 44s: **86 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. Finales JAR-SHA256: `cb6382a1dbd659376f3c650e3e24902448d48a43e694dc243d9c362a7096734d`. Alle 372 Archiveinträge sind per CRC und Größe identisch mit dem zuvor auf Paper geprüften JAR; lediglich ZIP-Zeitstempel unterscheiden sich.
+- Echter Paper-1.21.11-/FAWE-2.16.3-Lauf: V8 migriert, `/bl immigration` und `/bl production` registriert, alle vier V8-Tabellen per SQLite nachgewiesen. Stabiler Selftest `PASTE-40a3e510` mit **99 Blöcken in 523 ms** und sauberem Shutdown. Ein erster Lauf unter Starthauptlast überschritt das 20-Sekunden-Timeout und wurde nachfolgend im Log erfasst; im stabilen Betrieb gab es keinen späten Fehler mehr. Details liegen in `verifier/runs/2026-11-26-v9-server.log`.
+- Produktivdeployment und visuelle Abnahme folgen nach Release und CI.

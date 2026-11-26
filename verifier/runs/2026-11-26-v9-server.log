@@ -1,0 +1,13 @@
+2026-11-26T22:43:45+01:00 | Paper 1.21.11 Build 132, Java 21.0.13.1, FAWE 2.16.3 | isolierter localhost-Server
+Plugin: BlockLords 0.2.9-alpha.1 aktiviert, 0 Dörfer
+Migration: V7-Datenbank auf V8__immigration_and_production_reports.sql aktualisiert; Schema-Version 8 sowie immigration_state, immigration_candidates, production_reports und production_report_resources per SQLite-Lesezugriff nachgewiesen
+RCON `bl admin list`: bestanden, keine Dörfer registriert
+RCON `bl immigration`: registriert; ohne Spieler verständlich abgelehnt
+RCON `bl production`: registriert; ohne Spieler verständlich abgelehnt
+RCON `bl admin backup`: aufgerufen
+Erster FAWE-Selftest unter starker Starthauptlast: PASTE-be37fdb4, 99 Blöcke, aber 20-Sekunden-Timeout; späterer Abschluss wurde als LATE_SUCCESS_IGNORED protokolliert
+Wiederholung im stabilen Betrieb mit unverändertem Standard-Timeout: PASTE-40a3e510, 99 Blöcke in 523 ms, SUCCESS
+Nach dem erfolgreichen Lauf mehr als 27 Sekunden gewartet: kein LATE_FAILURE_IGNORED und kein LATE_SUCCESS_IGNORED für PASTE-40a3e510, kein neuer BlockLords-Fehler
+Shutdown per RCON `stop` um 22:54:27+01:00: BlockLords deaktiviert, Java-Prozess anschließend ordnungsgemäß beendet
+JAR-SHA256: 6d38b077a18d14062945c32b5ee1a9aa5f6c65e1438eb0d93bc347aec6085cb2
+Ergebnis: V8, Befehle, stabile Produktion und sauberer Shutdown bestanden; initiale Last-Timeout-Beobachtung aus Transparenz dokumentiert

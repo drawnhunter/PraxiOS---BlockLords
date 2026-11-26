@@ -187,8 +187,11 @@ class ImmigrationServiceTest {
         assertNotEquals(oldId, newId);
         assertEquals(1, world.getEntitiesByClass(Villager.class).size());
         immigration.reject(player, village, immigrationRepository.snapshot(village.id()).waiting().orElseThrow().id(), () -> { });
-        await(() -> immigrationRepository.snapshot(village.id()).waiting().isEmpty());
-        assertEquals(0, world.getEntitiesByClass(Villager.class).size());
+        await(() -> immigrationRepository.snapshot(village.id()).waiting().isEmpty()
+                && world.getEntitiesByClass(Villager.class).isEmpty());
+        assertEquals(0, world.getEntitiesByClass(Villager.class).size(),
+                () -> "Verbleibende Wanderer: " + world.getEntitiesByClass(Villager.class).stream()
+                        .map(entity -> entity.getUniqueId().toString()).toList() + " · alt=" + oldId + " · neu=" + newId);
         assertEquals(64, storageRepository.balances(village.id()).get(ResourceType.NAHRUNG));
     }
 
