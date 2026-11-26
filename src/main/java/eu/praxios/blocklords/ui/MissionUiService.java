@@ -25,11 +25,18 @@ public final class MissionUiService {
             List<UiAction> actions = new ArrayList<>();
             for (MissionView view : views) {
                 Mission mission = view.mission();
+                boolean active = mission.status() == Mission.Status.ACTIVE;
                 String progress = mission.status() == Mission.Status.OFFERED ? "Angebot"
                         : mission.progress() + "/" + mission.target();
-                actions.add(UiAction.of(mission.personal() ? Material.PAPER : Material.BELL,
-                        mission.title() + " · " + progress,
-                        () -> openDetail(player, village, mission.id()), lore(view).toArray(new String[0])));
+                Material icon = mission.personal() ? Material.PAPER : Material.BELL;
+                String name = (active ? "Aktiv · " : "") + mission.title() + " · " + progress;
+                if (active) {
+                    actions.add(UiAction.glowing(icon, name,
+                            () -> openDetail(player, village, mission.id()), lore(view).toArray(new String[0])));
+                } else {
+                    actions.add(UiAction.of(icon, name,
+                            () -> openDetail(player, village, mission.id()), lore(view).toArray(new String[0])));
+                }
             }
             actions.add(UiAction.of(Material.BOOK, "So funktionieren Missionen", () -> { },
                     "Annehmen aktiviert den Fortschritt ab diesem Moment.",

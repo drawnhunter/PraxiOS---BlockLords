@@ -1,0 +1,10 @@
+2026-11-26T14:44:15+01:00 | Paper 1.21.11 Build 132, Java 21.0.13.1, FAWE 2.16.3 | isolierter localhost-Server
+Plugin: BlockLords 0.2.8-alpha.2 aktiviert, 0 Dörfer; bestehende V7-Datenbank ohne erneute Migration gelesen
+RCON `bl admin list`: bestanden, keine Dörfer registriert
+RCON `bl missions`: registriert; ohne Spieler verständlich abgelehnt
+RCON `bl admin selftest RATHAUS 0 80 0`: PASTE-3a945541, 99 Blöcke, 7749 ms, SUCCESS
+RCON `tps`: 19,9 / 19,9 / 19,9 zum Abrufzeitpunkt
+Nach Erfolg mehr als 27 Sekunden gewartet: kein LATE_FAILURE_IGNORED, kein LATE_SUCCESS_IGNORED, kein BlockLords-Fehler
+Shutdown per RCON `stop` um 14:47:24+01:00: BlockLords und FAWE deaktiviert, Welten gespeichert, Java-Prozess anschließend ordnungsgemäß beendet
+JAR-SHA256: f598404752077afdb211516c06ad9b644e999ca17da3863b8f367770e815f04a
+Ergebnis: bestanden

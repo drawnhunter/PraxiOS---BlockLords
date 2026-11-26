@@ -9,6 +9,8 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UiActionTest {
     @BeforeEach
@@ -39,5 +41,11 @@ class UiActionTest {
         action.forClick(true).run();
         assertEquals(1, left.get());
         assertEquals(1, right.get());
+    }
+
+    @Test
+    void glintIsOptIn() {
+        assertFalse(UiAction.of(Material.PAPER, "Angebot", () -> { }).glint());
+        assertTrue(UiAction.glowing(Material.PAPER, "Aktiv", () -> { }).glint());
     }
 }

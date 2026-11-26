@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.8-alpha.1 (Phase 2)
+## Aktueller Stand: 0.2.8-alpha.2 (Phase 2)
 
 Enthalten:
 
@@ -30,6 +30,13 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter, Forschung und Missionen.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Einwanderung, Mitgliederverwaltung, persönliche Parzellen und eine ausführliche Produktionsbilanz sind weitere Phase-2-Schritte. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.8-alpha.2 (Missions- und Lager-UX)
+
+- **Aktiv-Markierung:** Angenommene Missionen erhalten Glint auf Papier/Glocke und den eindeutigen Text „Aktiv“, sodass der Zustand auf Java und Bedrock erkennbar ist.
+- **Eigenes Inventar normal bearbeiten:** Rechtsklick/Stack teilen und untere Drags funktionieren im Lager wieder normal, ohne ungewollte Einlagerung.
+- **Gezielt einlagern:** Shift+Links auf ein eigenes Item lagert dessen Stack ein, Shift+Rechts genau ein Item. Obere Vorrat-Items bleiben Links 64 einlagern und Rechts 64 entnehmen.
+- **Schutz bleibt aktiv:** Doppelklicks und Drags in das obere Menü bleiben blockiert; Geisteritems und Duplikate werden verhindert.
 
 ### Neuerungen in 0.2.8-alpha.1 (Missionen und nächste Schritte)
 
@@ -162,8 +169,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.8-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.8-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.8-alpha.2.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.8-alpha.2-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -173,9 +180,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.8-alpha.1.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.8-alpha.2.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.8-alpha.1 aktiviert: Phase 2 ...` sowie die Migration `V7__missions.sql`.
+3. Log prüfen: `BlockLords 0.2.8-alpha.2 aktiviert: Phase 2 ...` sowie die bestehende V7-Datenbank.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 

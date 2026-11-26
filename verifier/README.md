@@ -44,3 +44,9 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Datei: `verifier/v7/acceptance.md`
 - Zweck: Persönliche und gemeinsame Missionen mit echtem Fortschritt, Erst-XP, kostenlosem Ersetzen und angepinntem nächsten Schritt.
 - Prüfungen: V6→V7-Upgrade, Lager-/Baustellenereignisse, Idempotenz, Mehrspieler, Wiederholungs-XP, Config-Defaults, MockBukkit-Menüfluss und Paper-/FAWE-Lauf.
+
+## v8 — 2026-11-26
+
+- Datei: `verifier/v8/acceptance.md`
+- Zweck: Aktiv-Markierung von Missionen und normale Bearbeitung des eigenen Inventars im Lager.
+- Prüfungen: Glint und Aktiv-Text, Bottom-Klicks/Drags, Shift-Einlagerung, obere Vorrat-Aktionen, Duplikatschutz und Paper-/FAWE-Lauf.

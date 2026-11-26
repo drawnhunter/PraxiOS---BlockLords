@@ -224,7 +224,8 @@ public final class UiService {
                         storage.withdraw(player, village, resource, 64);
                         refreshStorageView(player, village);
                     }, "Links: 64 einlagern · Rechts: 64 entnehmen",
-                    "Eigene Items: Links Stack · Rechts einzeln einlagern"));
+                    "Eigene Items normal bearbeiten",
+                    "Shift+Links: Stack · Shift+Rechts: 1 einlagern"));
         }
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
         openActions(player, "Vorrat · " + village.name(), storage.summary(village.id()), actions, "STORAGE");
@@ -470,7 +471,13 @@ public final class UiService {
         holder.inventory(inventory);
         for (int index = 0; index < actions.size(); index++) {
             UiAction action = actions.get(index);
-            inventory.setItem(index, item(action.icon(), action.name(), action.lore().toArray(new String[0])));
+            ItemStack display = item(action.icon(), action.name(), action.lore().toArray(new String[0]));
+            if (action.glint()) {
+                ItemMeta meta = display.getItemMeta();
+                meta.setEnchantmentGlintOverride(true);
+                display.setItemMeta(meta);
+            }
+            inventory.setItem(index, display);
         }
         ItemStack filler = item(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
         for (int index = actions.size(); index < size; index++) {

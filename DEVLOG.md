@@ -396,4 +396,27 @@
 - GitHub-CI `45821784009` erfolgreich; Release `v0.2.8-alpha.1` und öffentlicher Download hashgeprüft.
 - alpha.5-JAR, Config und SQLite gesichert; konsistenter Pre-Migration-Snapshot mit Integrität `ok`, zwei Dörfern und Schema V6. Nach dem Deployment bestätigt ein weiterer Snapshot Integrität `ok`, zwei Dörfer und Schema V7.
 - Auf Paper 26.3/Java 25 ist ausschließlich BlockLords 0.2.8-alpha.1 aktiv; die zunächst doppelt erkannte alpha.5-JAR wurde hashgeprüft in den Backup-Namen verschoben und der Server erneut sauber gestartet. Beide Dörfer bleiben Level 2 und aktiv, TPS 20,0/20,0/20,0, kein BlockLords-Fehler im finalen Startlog.
-- Aktuell war niemand online. Alexander prüft in **Bus #233** Missionsmenü, Teilfortschritt, echte und wiederholte XP, Baustellenhilfe, Dorfmission, kostenloses Ersetzen, Pinnen und Bedrock-Formulare. Die visuelle Abnahme bleibt bis zu seiner Bestätigung ausdrücklich offen.
+- Alexander hat die Abnahme anschließend mit **„Top“** bestätigt: Missionsannahme, STEIN_32 und HOLZ_32 mit je +20 Dorf-XP, gemeinsame NAHRUNG_120 mit +40 Dorf-XP, Banner, Sound und Wiederholung ohne weitere XP funktionieren. Kisten funktionieren durchgehend. Ein zweiter menschlicher Spieler war bei der Dorfmission nicht beteiligt; Mehrspielerbeiträge sind durch automatisierte Tests abgesichert. **Bus #233 ist abgenommen und geschlossen.**
+
+
+## 2026-11-26 — 0.2.8-alpha.2, Missions- und Lager-UX
+
+### Implementiert
+
+- **Aktiv-Markierung:** Angenommene Missionen erhalten Glint über `setEnchantmentGlintOverride(true)` und den Klartext „Aktiv“. Angebote bleiben unverändert; der Zustand ist auf Java und Bedrock verständlich.
+- **Normale Inventarbedienung:** Im Lager sind gewöhnliche untere Pickup-/Cursor-Aktionen und reine Bottom-Drags wieder erlaubt. Rechtsklick kann Stacks normal teilen, ohne ungewollt einzulagern.
+- **Gezielte Einlagerung:** Shift+Links auf ein eigenes Item lagert dessen Stack ein, Shift+Rechts genau ein Item. Obere Vorrat-Items behalten Links 64 einlagern und Rechts 64 entnehmen.
+- **Schutz:** Doppelklicks, Top-Manipulation und Drags mit oberen Slots bleiben blockiert. Keine Geisteritems oder Duplikate; keine Änderung an XP, Missionen, Wirtschaft oder Schema.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **70 Tests ohne Fehler, Fehlerfälle oder Überspringungen** erfolgreich; `git diff --check` bestanden.
+- `MenuListenerTest`: Bottom-Rechtsklick/Stack teilen, Shift+Links Stack und Shift+Rechts Einzelitem, obere Vorrat-Aktionen, Bottom-Drag sowie Doppelklick-/Top-Drag-Schutz.
+- `MissionServiceTest`: Aktiv-Text und `enchantment_glint_override=true` am tatsächlichen Missions-Item; `UiActionTest`: Glint ist nur opt-in.
+- JAR-SHA256: `f598404752077afdb211516c06ad9b644e999ca17da3863b8f367770e815f04a`.
+- Echter Paper-1.21.11-/FAWE-2.16.3-Start mit bestehender V7-Datenbank: alpha.2 aktiv, Missionsbefehl registriert, `PASTE-3a945541` mit **99 Blöcken** erfolgreich, keine späten Fehler, sauberer Shutdown.
+- Abnahmekriterien und Laufprotokolle liegen in `verifier/v8/` und `verifier/runs/`.
+
+### Offene Abnahme
+
+- Produktivdeployment und visuelle UX-Abnahme durch Alexander in **Bus #234**. Der Produktiv-Snapshot vor dem Update bestätigt bereits Integrität `ok`, zwei Dörfer und Schema V7.

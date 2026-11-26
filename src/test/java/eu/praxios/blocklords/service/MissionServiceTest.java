@@ -93,6 +93,13 @@ class MissionServiceTest {
         action("Mission annehmen").action().run();
         await(() -> mission(MissionType.HOLZ_32).status() == Mission.Status.ACTIVE);
         long acceptedId = mission(MissionType.HOLZ_32).id();
+        await(() -> action("Aktiv · Holz beisteuern") != null);
+        UiAction activeAction = action("Aktiv · Holz beisteuern");
+        assertTrue(activeAction.glint());
+        var holder = (ActionMenuHolder) player.getOpenInventory().getTopInventory().getHolder();
+        var activeItem = player.getOpenInventory().getTopInventory().getItem(holder.actions().indexOf(activeAction));
+        assertNotNull(activeItem);
+        assertTrue(activeItem.getItemMeta().hasEnchantmentGlintOverride());
 
         player.getInventory().addItem(new ItemStack(Material.OAK_LOG, 16));
         storage.deposit(player, village, ResourceType.HOLZ, 16);
@@ -100,7 +107,7 @@ class MissionServiceTest {
                 .orElseThrow().mission().progress() == 16);
         assertEquals(0, villageRepository.findById(village.id()).orElseThrow().xp());
         ui.openMissions(player, village);
-        await(() -> action("Holz beisteuern · 16/32") != null);
+        await(() -> action("Aktiv · Holz beisteuern · 16/32") != null);
 
         player.getInventory().addItem(new ItemStack(Material.OAK_LOG, 16));
         storage.deposit(player, village, ResourceType.HOLZ, 16);
