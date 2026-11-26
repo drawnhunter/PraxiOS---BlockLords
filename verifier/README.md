@@ -56,3 +56,4 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Datei: `verifier/v9/acceptance.md`
 - Zweck: Einwanderung mit persistenter Wartezeit und atomarer Aufnahme sowie strukturierte Produktionsbilanz.
 - Prüfungen: V7→V8-Upgrade, Bett-/Arbeitsplatzvoraussetzungen, Idempotenz, Tod/Retry, Identitätsvergabe, Offline-Grenze, Ruhezustand, Nahrungskapazität und Paper-/FAWE-Lauf.
+- Produktivnachweis: `verifier/runs/2026-11-26-v9-production.log`; konsistente Pre-/Post-Snapshots mit Integrität `ok`, zwei Dörfern und Schema V7→V8. Visuelle Abnahme in Bus #235 offen.

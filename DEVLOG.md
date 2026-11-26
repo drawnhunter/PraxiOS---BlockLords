@@ -444,4 +444,10 @@
 - **86 bestandene Tests ohne Fehler oder Überspringungen**, darunter V7→V8-Migration, atomare Aufnahme, Tod/Retry, Identitätsvergabe #1→#2, Offline-Grenze, Ruhezustand und volle Ressourcen. Nach einem intermittierenden CI-Fehler wartet der Tod/Retry-Test nach Ablehnung sowohl auf den Datenbankstatus als auch auf die Entity-Entfernung im Hauptthread; die Produktivlogik blieb unverändert.
 - Erneuter Java-21-Clean-Build erfolgreich in 1m 44s: **86 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. Finales JAR-SHA256: `cb6382a1dbd659376f3c650e3e24902448d48a43e694dc243d9c362a7096734d`. Alle 372 Archiveinträge sind per CRC und Größe identisch mit dem zuvor auf Paper geprüften JAR; lediglich ZIP-Zeitstempel unterscheiden sich.
 - Echter Paper-1.21.11-/FAWE-2.16.3-Lauf: V8 migriert, `/bl immigration` und `/bl production` registriert, alle vier V8-Tabellen per SQLite nachgewiesen. Stabiler Selftest `PASTE-40a3e510` mit **99 Blöcken in 523 ms** und sauberem Shutdown. Ein erster Lauf unter Starthauptlast überschritt das 20-Sekunden-Timeout und wurde nachfolgend im Log erfasst; im stabilen Betrieb gab es keinen späten Fehler mehr. Details liegen in `verifier/runs/2026-11-26-v9-server.log`.
-- Produktivdeployment und visuelle Abnahme folgen nach Release und CI.
+
+### Produktivdeployment und offene Live-Abnahme
+
+- GitHub-CI `45905799169` für Commit `12902d0` erfolgreich; Prerelease `v0.2.9-alpha.1`, öffentlicher Download und Produktiv-JAR hashgeprüft (`cb6382a1…734d`).
+- alpha.2-JAR, Config und konsistente Pre-Migration-Snapshots gesichert; unmittelbar vor dem Wechsel Integrität `ok`, zwei Dörfer und Schema V7 bestätigt. Post-Migration-Snapshot `postdeploy-v029-verified.db` bestätigt Integrität `ok`, zwei Dörfer und Schema V8.
+- Auf Paper 26.3/Java 25 wird ausschließlich BlockLords 0.2.9-alpha.1 geladen; V8 migriert, beide Dörfer aktiv, Silberbrück Level 3 und Nebelbrück Level 2. `/bl immigration` und `/bl production` registriert, TPS 20,0/20,0/20,0 und keine BlockLords-Warnungen oder -Fehler im Startlog. Details liegen in `verifier/runs/2026-11-26-v9-production.log`.
+- Die visuelle Einwanderungs- und Produktionsabnahme durch Alexander steht noch aus und wird in **Bus #235** geführt.

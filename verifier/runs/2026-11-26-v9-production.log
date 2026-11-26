@@ -1,0 +1,334 @@
+[22:43:45] [ServerMain/INFO]: [bootstrap] Running Java 25 (OpenJDK 64-Bit Server VM 25.0.5.1; Termux null) on Linux 4.9.106-perf+ (aarch64)
+[22:43:45] [ServerMain/INFO]: [bootstrap] Loading Paper 26.3-258-main@9ee1fac (2026-11-22T12:09:08Z) for Minecraft 26.3
+[22:43:45] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
+[22:43:45] [CrashReport preload thread/WARN]: [oshi.software.os.linux.LinuxOperatingSystem] Did not find udev library in operating system. Some features may not work.
+[22:43:45] [CrashReport preload thread/ERROR]: [oshi.software.os.linux.LinuxOperatingSystem] Did not JNA classes. Investigate incompatible version or missing native dll.
+[22:43:45] [CrashReport preload thread/WARN]: Failed retrieving info for group processor
+java.lang.NoClassDefFoundError: Could not initialize class com.sun.jna.Native
+	at com.sun.jna.NativeLong.<clinit>(NativeLong.java:35) ~[jna-5.17.0.jar:5.17.0 (b0)]
+	at oshi.util.FileUtil.readNativeLongFromBuffer(FileUtil.java:253) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.driver.linux.proc.Auxv.queryAuxv(Auxv.java:48) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.software.os.linux.LinuxOperatingSystem.<clinit>(LinuxOperatingSystem.java:131) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxCentralProcessor.initProcessorCounts(LinuxCentralProcessor.java:174) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.common.AbstractCentralProcessor.<init>(AbstractCentralProcessor.java:68) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxCentralProcessor.<init>(LinuxCentralProcessor.java:59) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxHardwareAbstractionLayer.createProcessor(LinuxHardwareAbstractionLayer.java:43) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.util.Memoizer$1.get(Memoizer.java:65) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.common.AbstractHardwareAbstractionLayer.getProcessor(AbstractHardwareAbstractionLayer.java:48) ~[oshi-core-6.9.0.jar:6.9.0]
+	at net.minecraft.SystemReport.lambda$putHardware$0(SystemReport.java:105) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.ignoreErrors(SystemReport.java:120) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.putHardware(SystemReport.java:105) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.lambda$new$6(SystemReport.java:67) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.ignoreErrors(SystemReport.java:120) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.<init>(SystemReport.java:67) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.CrashReport.<init>(CrashReport.java:32) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.CrashReport.preload(CrashReport.java:240) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.UnsatisfiedLinkError: /data/data/com.termux/files/home/.cache/JNA/temp/jna7037794369352855268.tmp: dlopen failed: library "libc.so.6" not found [in thread "CrashReport preload thread"]
+	at java.base/jdk.internal.loader.NativeLibraries.load(Native Method) ~[?:?]
+	at java.base/jdk.internal.loader.NativeLibraries$NativeLibraryImpl.open(NativeLibraries.java:321) ~[?:?]
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:187) ~[?:?]
+	at java.base/jdk.internal.loader.NativeLibraries.loadLibrary(NativeLibraries.java:129) ~[?:?]
+	at java.base/java.lang.ClassLoader.loadLibrary(ClassLoader.java:2245) ~[?:?]
+	at java.base/java.lang.Runtime.load0(Runtime.java:767) ~[?:?]
+	at java.base/java.lang.System.load(System.java:1647) ~[?:?]
+	at com.sun.jna.Native.loadNativeDispatchLibraryFromClasspath(Native.java:1041) ~[jna-5.17.0.jar:5.17.0 (b0)]
+	at com.sun.jna.Native.loadNativeDispatchLibrary(Native.java:1011) ~[jna-5.17.0.jar:5.17.0 (b0)]
+	at com.sun.jna.Native.<clinit>(Native.java:221) ~[jna-5.17.0.jar:5.17.0 (b0)]
+	at com.sun.jna.platform.linux.Udev.<clinit>(Udev.java:37) ~[jna-platform-5.17.0.jar:5.17.0 (b0)]
+	at oshi.software.os.linux.LinuxOperatingSystem.<clinit>(LinuxOperatingSystem.java:93) ~[oshi-core-6.9.0.jar:6.9.0]
+	... 15 more
+[22:43:45] [CrashReport preload thread/WARN]: Failed retrieving info for group memory
+java.lang.NoClassDefFoundError: Could not initialize class oshi.software.os.linux.LinuxOperatingSystem
+	at oshi.hardware.platform.linux.LinuxGlobalMemory.<clinit>(LinuxGlobalMemory.java:28) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxHardwareAbstractionLayer.createMemory(LinuxHardwareAbstractionLayer.java:38) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.util.Memoizer$1.get(Memoizer.java:65) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.common.AbstractHardwareAbstractionLayer.getMemory(AbstractHardwareAbstractionLayer.java:60) ~[oshi-core-6.9.0.jar:6.9.0]
+	at net.minecraft.SystemReport.lambda$putHardware$2(SystemReport.java:107) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.ignoreErrors(SystemReport.java:120) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.putHardware(SystemReport.java:107) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.lambda$new$6(SystemReport.java:67) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.ignoreErrors(SystemReport.java:120) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.<init>(SystemReport.java:67) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.CrashReport.<init>(CrashReport.java:32) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.CrashReport.preload(CrashReport.java:240) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: Could not initialize class com.sun.jna.Native [in thread "CrashReport preload thread"]
+	at com.sun.jna.NativeLong.<clinit>(NativeLong.java:35) ~[jna-5.17.0.jar:5.17.0 (b0)]
+	at oshi.util.FileUtil.readNativeLongFromBuffer(FileUtil.java:253) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.driver.linux.proc.Auxv.queryAuxv(Auxv.java:48) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.software.os.linux.LinuxOperatingSystem.<clinit>(LinuxOperatingSystem.java:131) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxCentralProcessor.initProcessorCounts(LinuxCentralProcessor.java:174) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.common.AbstractCentralProcessor.<init>(AbstractCentralProcessor.java:68) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxCentralProcessor.<init>(LinuxCentralProcessor.java:59) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxHardwareAbstractionLayer.createProcessor(LinuxHardwareAbstractionLayer.java:43) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.util.Memoizer$1.get(Memoizer.java:65) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.common.AbstractHardwareAbstractionLayer.getProcessor(AbstractHardwareAbstractionLayer.java:48) ~[oshi-core-6.9.0.jar:6.9.0]
+	at net.minecraft.SystemReport.lambda$putHardware$0(SystemReport.java:105) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.ignoreErrors(SystemReport.java:120) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.putHardware(SystemReport.java:105) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	... 6 more
+[22:43:45] [CrashReport preload thread/WARN]: Failed retrieving info for group software
+java.lang.NoClassDefFoundError: Could not initialize class oshi.software.os.linux.LinuxOperatingSystem
+	at oshi.SystemInfo.createOperatingSystem(SystemInfo.java:85) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.util.Memoizer$1.get(Memoizer.java:65) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.SystemInfo.getOperatingSystem(SystemInfo.java:76) ~[oshi-core-6.9.0.jar:6.9.0]
+	at net.minecraft.SystemReport.putSoftware(SystemReport.java:112) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.lambda$new$7(SystemReport.java:68) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.ignoreErrors(SystemReport.java:120) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.<init>(SystemReport.java:68) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.CrashReport.<init>(CrashReport.java:32) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.CrashReport.preload(CrashReport.java:240) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: Could not initialize class com.sun.jna.Native [in thread "CrashReport preload thread"]
+	at com.sun.jna.NativeLong.<clinit>(NativeLong.java:35) ~[jna-5.17.0.jar:5.17.0 (b0)]
+	at oshi.util.FileUtil.readNativeLongFromBuffer(FileUtil.java:253) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.driver.linux.proc.Auxv.queryAuxv(Auxv.java:48) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.software.os.linux.LinuxOperatingSystem.<clinit>(LinuxOperatingSystem.java:131) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxCentralProcessor.initProcessorCounts(LinuxCentralProcessor.java:174) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.common.AbstractCentralProcessor.<init>(AbstractCentralProcessor.java:68) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxCentralProcessor.<init>(LinuxCentralProcessor.java:59) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.platform.linux.LinuxHardwareAbstractionLayer.createProcessor(LinuxHardwareAbstractionLayer.java:43) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.util.Memoizer$1.get(Memoizer.java:65) ~[oshi-core-6.9.0.jar:6.9.0]
+	at oshi.hardware.common.AbstractHardwareAbstractionLayer.getProcessor(AbstractHardwareAbstractionLayer.java:48) ~[oshi-core-6.9.0.jar:6.9.0]
+	at net.minecraft.SystemReport.lambda$putHardware$0(SystemReport.java:105) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.ignoreErrors(SystemReport.java:120) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.putHardware(SystemReport.java:105) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.lambda$new$6(SystemReport.java:67) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.ignoreErrors(SystemReport.java:120) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.SystemReport.<init>(SystemReport.java:67) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	... 3 more
+[22:43:46] [ServerMain/INFO]: [PluginInitializerManager] Initialized 11 plugins
+[22:43:46] [ServerMain/INFO]: [PluginInitializerManager] Bukkit plugins (11):
+ - AuthMe (6.0.1-b2770), BlockLords (0.2.9-alpha.1), Essentials (2.22.0), EssentialsSpawn (2.22.0), FastAsyncWorldEdit (2.16.3+44adc13), Geyser-Spigot (2.12.1-SNAPSHOT), LuckPerms (5.5.71), ViaBackwards (5.12.3-SNAPSHOT), ViaVersion (5.12.3-SNAPSHOT), floodgate (2.2.5-SNAPSHOT (b141-81b65cc)), packetevents (2.14.0)
+[22:43:55] [DataConverter MCTypeRegistry init thread/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Initialising converters for DataConverter...
+[22:43:55] [ServerMain/INFO]: [com.destroystokyo.paper.profile.PaperServicesDiscoveryService] Environment: Environment[discoveryUrl=https://discovery.minecraftservices.com/minecraft/client, name=PROD]
+[22:43:56] [DataConverter MCTypeRegistry init thread/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Finished initialising converters for DataConverter in 1,164.2ms
+[22:44:00] [Worker-Main-1/INFO]: Loaded 1866 advancements
+[22:44:00] [Server thread/INFO]: Starting minecraft server version 26.3
+[22:44:00] [Server thread/INFO]: Loading properties
+[22:44:01] [Server thread/INFO]: This server is running Paper version 26.3-258-main@9ee1fac (2026-11-22T12:09:08Z) (Implementing API version 26.3.build.258-stable)
+[22:44:01] [Server thread/INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[22:44:01] [Server thread/INFO]: Server Ping Player Sample Count: 12
+[22:44:01] [Server thread/INFO]: Using 4 threads for Netty based IO
+[22:44:02] [Paper FMA initialiser/INFO]: [ca.spottedleaf.moonrise.common.util.FMA] FMA supported: true for all ARMv8 platforms
+[22:44:02] [Server thread/INFO]: [MoonriseCommon] Paper is using 2 worker threads, 1 I/O threads
+[22:44:02] [Server thread/INFO]: Default game type: SURVIVAL
+[22:44:02] [Server thread/INFO]: Generating keypair
+[22:44:02] [Server thread/INFO]: Starting Minecraft server on *:25565
+[22:44:02] [Server thread/INFO]: Paper: Using Java compression from Velocity.
+[22:44:02] [Server thread/INFO]: Paper: Using Java cipher from Velocity.
+[22:44:02] [Server thread/WARN]: [io.netty.util.internal.MacAddressUtil] Failed to find a usable hardware address from the network interfaces; using random bytes: c8:6d:30:61:13:0d:02:6e
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loading 15 libraries... please wait
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/ch/jalu/injector/1.0/injector-1.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/javax/inject/javax.inject/1/javax.inject-1.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/javax/annotation/javax.annotation-api/1.3.1/javax.annotation-api-1.3.1.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/net/ricecode/string-similarity/1.0.0/string-similarity-1.0.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/maxmind/geoip2/geoip2/4.3.0/geoip2-4.3.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/maxmind/db/maxmind-db/3.1.1/maxmind-db-3.1.1.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/fasterxml/jackson/core/jackson-databind/2.19.0/jackson-databind-2.19.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.19.0/jackson-datatype-jsr310-2.19.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/fasterxml/jackson/core/jackson-core/2.19.0/jackson-core-2.19.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/fasterxml/jackson/core/jackson-annotations/2.19.0/jackson-annotations-2.19.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/javatar/javatar/2.5/javatar-2.5.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/apache/commons/commons-email/1.6.0/commons-email-1.6.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/sun/mail/jakarta.mail/1.6.7/jakarta.mail-1.6.7.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/sun/activation/jakarta.activation/1.2.1/jakarta.activation-1.2.1.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/zaxxer/HikariCP/7.0.2/HikariCP-7.0.2.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/slf4j/slf4j-simple/2.0.13/slf4j-simple-2.0.13.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/ch/jalu/datasourcecolumns/0.1.2/datasourcecolumns-0.1.2.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/mysql/mysql-connector-j/9.3.0/mysql-connector-j-9.3.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/google/protobuf/protobuf-java/4.29.0/protobuf-java-4.29.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/mariadb/jdbc/mariadb-java-client/3.5.7/mariadb-java-client-3.5.7.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/postgresql/postgresql/42.7.11/postgresql-42.7.11.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/bouncycastle/bcprov-jdk18on/1.79/bcprov-jdk18on-1.79.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/com/warrenstrange/googleauth/1.5.0/googleauth-1.5.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/commons-codec/commons-codec/1.14/commons-codec-1.14.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/apache/httpcomponents/httpclient/4.5.12/httpclient-4.5.12.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/commons-logging/commons-logging/1.2/commons-logging-1.2.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/ch/jalu/configme/1.3.1/configme-1.3.1.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/yaml/snakeyaml/2.0/snakeyaml-2.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/bstats/bstats-bukkit/3.1.0/bstats-bukkit-3.1.0.jar
+[22:44:04] [Server thread/INFO]: [SpigotLibraryLoader] [AuthMe] Loaded library /data/data/com.termux/files/home/mcserver/libraries/org/bstats/bstats-base/3.1.0/bstats-base-3.1.0.jar
+[22:44:05] [Server thread/INFO]: [ViaVersion] Loading server plugin ViaVersion v5.12.3-SNAPSHOT
+[22:44:05] [Server thread/INFO]: [ViaVersion] ViaVersion 5.12.3-SNAPSHOT is now loaded. Registering protocol transformers and injecting...
+[22:44:06] [Server thread/INFO]: [ViaBackwards] Loading translations...
+[22:44:06] [Server thread/INFO]: [ViaBackwards] Registering protocols...
+[22:44:07] [Server thread/INFO]: [floodgate] Loading server plugin floodgate v2.2.5-SNAPSHOT (b141-81b65cc)
+[22:44:08] [Server thread/WARN]: [floodgate] en_ is not a supported Floodgate language.
+[22:44:08] [Server thread/INFO]: [floodgate] Took 1,381ms to boot Floodgate
+[22:44:08] [Server thread/INFO]: [LuckPerms] Loading server plugin LuckPerms v5.5.71
+[22:44:09] [Server thread/INFO]: [LuckPerms] Loading configuration...
+[22:44:09] [Server thread/INFO]: [Geyser-Spigot] Loading server plugin Geyser-Spigot v2.12.1-SNAPSHOT
+[22:44:10] [Server thread/INFO]: [Geyser-Spigot] Loading extensions...
+[22:44:10] [Server thread/INFO]: [Geyser-Spigot] Loaded 0 extension(s)
+[22:44:10] [Server thread/INFO]: [ViaBackwards] Loading server plugin ViaBackwards v5.12.3-SNAPSHOT
+[22:44:10] [Server thread/INFO]: [Essentials] Loading server plugin Essentials v2.22.0
+[22:44:10] [Server thread/INFO]: [FastAsyncWorldEdit] Loading server plugin FastAsyncWorldEdit v2.16.3+44adc13
+[22:44:11] [Server thread/INFO]: Got request to register class com.sk89q.worldedit.bukkit.BukkitServerInterface with WorldEdit [com.sk89q.worldedit.extension.platform.PlatformManager@18614fa3]
+[22:44:11] [Server thread/INFO]: [packetevents] Loading server plugin packetevents v2.14.0
+[22:44:12] [Server thread/INFO]: [packetevents] Loading packetevents...
+[22:44:15] [Server thread/INFO]: [packetevents] Loading block mappings for V_26_3/23...
+[22:44:15] [Server thread/INFO]: [packetevents] Finished loading block mappings for V_26_3/23 in 661.071302ms
+[22:44:16] [Server thread/INFO]: [packetevents] Loaded packetevents v2.14.0
+[22:44:16] [Server thread/INFO]: [EssentialsSpawn] Loading server plugin EssentialsSpawn v2.22.0
+[22:44:16] [Server thread/INFO]: [AuthMe] Loading server plugin AuthMe v6.0.1-b2770
+[22:44:16] [Server thread/INFO]: [BlockLords] Loading server plugin BlockLords v0.2.9-alpha.1
+[22:44:16] [Server thread/INFO]: [LuckPerms] Enabling LuckPerms v5.5.71
+[22:44:16] [Server thread/INFO]:         __    
+[22:44:16] [Server thread/INFO]:   |    |__)   LuckPerms v5.5.71
+[22:44:16] [Server thread/INFO]:   |___ |      Running on Bukkit - Paper
+[22:44:16] [Server thread/INFO]: 
+[22:44:17] [Server thread/INFO]: [LuckPerms] Loading storage provider... [H2]
+[22:44:18] [Server thread/INFO]: [LuckPerms] Loading internal permission managers...
+[22:44:18] [Server thread/INFO]: [LuckPerms] Performing initial data load...
+[22:44:18] [Server thread/INFO]: [LuckPerms] Successfully enabled. (took 2002ms)
+[22:44:18] [Server thread/INFO]: [FastAsyncWorldEdit] Enabling FastAsyncWorldEdit v2.16.3+44adc13
+[22:44:18] [Server thread/INFO]: [com.fastasyncworldedit.core.Fawe] LZ4 Compression Binding loaded successfully
+[22:44:18] [Server thread/INFO]: Registering commands with com.sk89q.worldedit.bukkit.BukkitServerInterface
+[22:44:18] [Server thread/INFO]: WEPIF: Using the Bukkit Permissions API.
+[22:44:19] [Server thread/INFO]: Using com.sk89q.worldedit.bukkit.adapter.impl.fawe.v26_3.PaperweightFaweAdapter as the Bukkit adapter
+[22:44:20] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[22:44:20] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[22:44:20] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[22:44:20] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[22:44:20] [Server thread/INFO]: Preparing level "world"
+[22:44:21] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:overworld'...
+[22:44:21] [Server thread/INFO]: Preparing spawn area: 100%
+[22:44:21] [Server thread/INFO]: Prepared spawn area in 3 ms
+[22:44:21] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:the_nether'...
+[22:44:21] [Server thread/INFO]: Prepared spawn area in 0 ms
+[22:44:21] [Server thread/INFO]: Loading 0 persistent chunks for level 'minecraft:the_end'...
+[22:44:21] [Server thread/INFO]: Preparing spawn area: 100%
+[22:44:21] [Server thread/INFO]: Prepared spawn area in 1 ms
+[22:44:21] [Server thread/INFO]: Done preparing level "world" (0.970s)
+[22:44:21] [Server thread/INFO]: [ViaVersion] Enabling ViaVersion v5.12.3-SNAPSHOT
+[22:44:21] [Server thread/INFO]: [ViaVersion] ViaVersion detected server version: 26.3 (777)
+[22:44:21] [Server thread/INFO]: [ViaVersion] The Vanilla protocol of Minecraft 1.20.5-1.21.4 is easily exploitable. If you don't need to support these versions, consider adding them to block-versions in the ViaVersion config: "1.20.5-1.20.6", "1.21-1.21.1", "1.21.2-1.21.3", "1.21.4"
+[22:44:21] [Server thread/INFO]: [floodgate] Enabling floodgate v2.2.5-SNAPSHOT (b141-81b65cc)
+[22:44:22] [Server thread/INFO]: [Geyser-Spigot] Enabling Geyser-Spigot v2.12.1-SNAPSHOT
+[22:44:24] [Server thread/INFO]: [ViaBackwards] Enabling ViaBackwards v5.12.3-SNAPSHOT
+[22:44:24] [Server thread/INFO]: [Essentials] Enabling Essentials v2.22.0
+[22:44:25] [Server thread/ERROR]: [Essentials] You are running an unsupported server version!
+[22:44:25] [Server thread/INFO]: [Essentials] Attempting to convert old kits in config.yml to new kits.yml
+[22:44:25] [Server thread/INFO]: [Essentials] No kits found to migrate.
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Paper Known Commands Provider as the provider for KnownCommandsProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Paper Tick Count Provider as the provider for TickCountProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Legacy Biome Name Provider as the provider for BiomeNameProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Paper Serialization Provider as the provider for SerializationProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.20.4+ Damage Event Provider as the provider for DamageEventProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Reflection Online Mode Provider as the provider for OnlineModeProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Paper 1.13+ Tile Entity Provider as the provider for TileEntityProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.21+ InventoryView Interface ABI Provider as the provider for InventoryViewProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.13+ Spawn Egg Provider as the provider for SpawnEggProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.11+ Item Unbreakable Provider as the provider for ItemUnbreakableProvider
+[22:44:25] [Server thread/INFO]: [Essentials] No provider found for BiomeKeyProvider, but it is nullable
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.21.4+ Sync Commands Provider as the provider for SyncCommandsProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.12+ Spawner Block Provider as the provider for SpawnerBlockProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Paper Container Provider as the provider for ContainerProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.12.2+ Player Locale Provider as the provider for PlayerLocaleProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Reflection Formatted Command Alias Provider as the provider for FormattedCommandAliasProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.17.1+ World Info Provider as the provider for WorldInfoProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Paper Material Tag Provider as the provider for MaterialTagProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.8.3+ Spawner Item Provider as the provider for SpawnerItemProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.14.4+ Persistent Data Container Provider as the provider for PersistentDataProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected Paper Server State Provider as the provider for ServerStateProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.20.5+ Banner Data Provider as the provider for BannerDataProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.20.6+ Potion Meta Provider as the provider for PotionMetaProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Selected 1.14+ Sign Data Provider as the provider for SignDataProvider
+[22:44:25] [Server thread/INFO]: [Essentials] Loaded 46312 items from items.json.
+[22:44:25] [Server thread/INFO]: [Essentials] Using locale en
+[22:44:26] [Server thread/INFO]: [Essentials] ServerListPingEvent: Spigot iterator API
+[22:44:26] [Server thread/INFO]: [Essentials] Starting Metrics. Opt-out using the global bStats config.
+[22:44:26] [Server thread/WARN]: [Essentials] Detected supported permissions plugin LuckPerms without Vault installed.
+[22:44:26] [Server thread/WARN]: [Essentials] Features such as chat prefixes/suffixes and group-related functionality will not work until you install Vault.
+[22:44:26] [Server thread/INFO]: [Essentials] Using superperms-based permissions.
+[22:44:26] [Server thread/INFO]: [packetevents] Enabling packetevents v2.14.0
+[22:44:26] [packetevents-update-check-thread/INFO]: [packetevents] Checking for updates, please wait...
+[22:44:26] [Server thread/INFO]: [EssentialsSpawn] Enabling EssentialsSpawn v2.22.0
+[22:44:26] [Server thread/INFO]: [EssentialsSpawn] Starting Metrics. Opt-out using the global bStats config.
+[22:44:26] [Server thread/INFO]: [AuthMe] Enabling AuthMe v6.0.1-b2770
+[22:44:26] [packetevents-update-check-thread/INFO]: [packetevents] You are running the latest release: 2.14.0
+[22:44:26] [Server thread/INFO]: [AuthMe] SQLite Setup finished
+[22:44:27] [Server thread/INFO]: [AuthMe] Hooked into LuckPerms!
+[22:44:27] [Server thread/INFO]: [AuthMe] Hooked successfully into Essentials
+[22:44:27] [Server thread/INFO]: [AuthMe] Essentials spawn file not found: '/data/data/com.termux/files/home/mcserver/plugins/Essentials/spawn.yml'
+[22:44:27] [Server thread/INFO]: [AuthMe] AuthMe 6.0.1 build n.2770 successfully enabled!
+[22:44:27] [Server thread/INFO]: [BlockLords] Enabling BlockLords v0.2.9-alpha.1
+[22:44:27] [Server thread/INFO]: [BlockLords] BlockLords-Datenbankmigration V8__immigration_and_production_reports.sql angewendet.
+[22:44:27] [Server thread/INFO]: [BlockLords] BlockLords: Bewohneridentitäten in Dorf #1 repariert.
+[22:44:27] [Server thread/INFO]: [BlockLords] BlockLords 0.2.9-alpha.1 aktiviert: Phase 2, 2 Dörfer, Java 25.0.5.1.
+[22:44:28] [Server thread/INFO]: [spark] Starting background profiler...
+[22:44:28] [Server thread/WARN]: [spark] Unable to initialise the async-profiler engine: A runtime error occurred whilst loading the native library (/data/data/com.termux/files/home/mcserver/plugins/spark/tmp/spark-1181df3a3332c-libasyncProfiler.so.tmp: dlopen failed: library "libdl.so.2" not found)
+[22:44:28] [Server thread/WARN]: [spark] Please see here for more information: https://spark.lucko.me/docs/misc/Using-async-profiler
+[22:44:28] [Server thread/INFO]: [Geyser-Spigot] ******************************************
+[22:44:28] [Server thread/INFO]: [Geyser-Spigot] 
+[22:44:28] [Server thread/INFO]: [Geyser-Spigot] Loading Geyser version 2.12.1-b1306 (git-master-cb04ea8)
+[22:44:28] [Server thread/INFO]: [Geyser-Spigot] 
+[22:44:28] [Server thread/INFO]: [Geyser-Spigot] ******************************************
+[22:44:31] [Server thread/INFO]: [Geyser-Spigot] Registered 199 custom block overrides.
+[22:44:31] [Server thread/INFO]: [Geyser-Spigot] Registered 2 custom block item overrides.
+[22:44:31] [Server thread/INFO]: [Geyser-Spigot] Registered 7 custom blocks.
+[22:44:35] [Server thread/INFO]: [Geyser-Spigot] Registered 1 custom items
+[22:44:36] [GeyserServer-4-1/INFO]: [Geyser-Spigot] Started Geyser on UDP port 19132
+[22:44:36] [Server thread/WARN]: [Geyser-Spigot] NetherNet will not start! Could not load its WebRTC native library on Linux (aarch64): Cannot identify the JVM's libc; set -Dlibdatachannel.libc=glibc or -Dlibdatachannel.libc=musl. This usually means a system library it depends on is not installed, or that it is not built for this platform.
+java.lang.UnsatisfiedLinkError: Cannot identify the JVM's libc; set -Dlibdatachannel.libc=glibc or -Dlibdatachannel.libc=musl
+	at Geyser.jar//tel.schich.libdatachannel.LinuxLibc.unidentified(LinuxLibc.java:64) ~[?:?]
+	at Geyser.jar//tel.schich.libdatachannel.LinuxLibc.fromMappings(LinuxLibc.java:60) ~[?:?]
+	at Geyser.jar//tel.schich.libdatachannel.LinuxLibc.detect(LinuxLibc.java:26) ~[?:?]
+	at Geyser.jar//tel.schich.libdatachannel.Platform.archPrefixForOs(Platform.java:79) ~[?:?]
+	at Geyser.jar//tel.schich.libdatachannel.Platform.detectArch(Platform.java:124) ~[?:?]
+	at Geyser.jar//tel.schich.libdatachannel.Platform.loadExplicitLibrary(Platform.java:150) ~[?:?]
+	at Geyser.jar//tel.schich.libdatachannel.Platform.loadNativeLibrary(Platform.java:68) ~[?:?]
+	at Geyser.jar//tel.schich.libdatachannel.LibDataChannel.initialize(LibDataChannel.java:76) ~[?:?]
+	at Geyser.jar//tel.schich.libdatachannel.LibDataChannelArchDetect.initialize(LibDataChannelArchDetect.java:12) ~[?:?]
+	at Geyser.jar//org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer.start(NetherNetServer.java:211) ~[?:?]
+	at Geyser.jar//org.geysermc.geyser.GeyserImpl.startInstance(GeyserImpl.java:532) ~[?:?]
+	at Geyser.jar//org.geysermc.geyser.GeyserImpl.initialize(GeyserImpl.java:277) ~[?:?]
+	at Geyser.jar//org.geysermc.geyser.GeyserImpl.start(GeyserImpl.java:843) ~[?:?]
+	at Geyser.jar//org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin.onGeyserEnable(GeyserSpigotPlugin.java:235) ~[?:?]
+	at Geyser.jar//org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin$1.onServerLoaded(GeyserSpigotPlugin.java:219) ~[?:?]
+	at org.bukkit.plugin.RegisteredListener.callEvent(RegisteredListener.java:71) ~[paper-api-26.3.build.258-stable.jar:?]
+	at io.papermc.paper.plugin.manager.PaperEventManager.callEvent(PaperEventManager.java:52) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at io.papermc.paper.plugin.manager.PaperPluginManagerImpl.callEvent(PaperPluginManagerImpl.java:131) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at org.bukkit.plugin.SimplePluginManager.callEvent(SimplePluginManager.java:627) ~[paper-api-26.3.build.258-stable.jar:?]
+	at net.minecraft.server.MinecraftServer.initPostWorld(MinecraftServer.java:649) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.server.dedicated.DedicatedServer.initServer(DedicatedServer.java:343) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1249) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:299) ~[paper-26.3.jar:26.3-258-9ee1fac]
+	at java.base/java.lang.Thread.run(Thread.java:1474) ~[?:?]
+[22:44:36] [Server thread/INFO]: [Geyser-Spigot] Done (7.62s)! Run /geyser help for help!
+[22:44:36] [Server thread/INFO]: Starting remote control listener
+[22:44:36] [Server thread/INFO]: Thread RCON Listener started
+[22:44:36] [Server thread/INFO]: RCON running on 0.0.0.0:25575
+[22:44:36] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[22:44:37] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[22:44:37] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[22:44:37] [Server thread/INFO]: Running delayed init tasks
+[22:44:37] [Craft Scheduler Thread - 9 - AuthMe/INFO]: [AuthMe] Downloading GEO IP database, because the old database is older than 30 days or doesn't exist
+[22:44:37] [Craft Scheduler Thread - 6 - ViaVersion/INFO]: [ViaVersion] Finished mapping loading, shutting down loader executor.
+[22:44:37] [Craft Scheduler Thread - 9 - AuthMe/WARN]: [AuthMe] No MaxMind credentials found in the configuration file! GeoIp protections will be disabled.
+[22:44:37] [Craft Scheduler Thread - 9 - AuthMe/INFO]: [AuthMe] There is no newer GEO IP database uploaded to MaxMind. Using the old one for now.
+[22:44:37] [Craft Scheduler Thread - 7 - Essentials/INFO]: [Essentials] Fetching version information...
+[22:44:37] [Craft Scheduler Thread - 9 - AuthMe/WARN]: [AuthMe] Could not download GeoLiteAPI database [FileNotFoundException]: plugins/AuthMe/GeoLite2-Country.mmdb (No such file or directory)
+[22:44:37] [Server thread/INFO]: Done (53.730s)! For help, type "help"
+[22:44:37] [Server thread/WARN]: [ViaVersion] There is a newer plugin version available: 5.12.3, you're on: 5.12.3-SNAPSHOT
+[22:44:37] [Paper Async Task Handler Thread - 1/INFO]: *** Currently you are 5 builds behind ***
+[22:44:37] [Paper Async Task Handler Thread - 1/INFO]: *** It is highly recommended to download the latest build from https://papermc.io/downloads/paper ***
+[22:45:08] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[22:45:09] [RCON Client /127.0.0.1 #2/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[22:45:14] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[22:45:14] [RCON Client /127.0.0.1 #3/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[22:45:19] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[22:45:19] [Server thread/WARN]: [BlockLords] Rcon: Diese Aktion benötigt einen Spieler.
+[22:45:20] [RCON Client /127.0.0.1 #4/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[22:45:25] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[22:45:25] [Server thread/WARN]: [BlockLords] Rcon: Diese Aktion benötigt einen Spieler.
+[22:45:25] [RCON Client /127.0.0.1 #5/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[22:45:30] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[22:45:30] [RCON Client /127.0.0.1 #6/INFO]: Thread RCON Client /127.0.0.1 shutting down
+[22:45:36] [RCON Listener #1/INFO]: Thread RCON Client /127.0.0.1 started
+[22:45:36] [Server thread/INFO]: [Essentials] Rcon issued server command: /list 
+[22:45:36] [RCON Client /127.0.0.1 #7/INFO]: Thread RCON Client /127.0.0.1 shutting down

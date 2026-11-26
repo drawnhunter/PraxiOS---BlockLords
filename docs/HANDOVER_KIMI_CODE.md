@@ -4,17 +4,17 @@
 **Von:** BLWB / Kimi, fortgeschrieben von Brix
 **Für:** Kimi Code (Brix), Alexander
 **Repo:** https://github.com/drawnhunter/PraxiOS---BlockLords
-**Aktueller Produktstand:** **0.2.8-alpha.2**
-**Release-Commit:** `709a4d4a4603460cad15d61d89a5cf0f179ed59b`
-**JAR-SHA256:** `f598404752077afdb211516c06ad9b644e999ca17da3863b8f367770e815f04a`
-**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.8-alpha.2.jar
-**Abnahme:** 0.2.8-alpha.2 durch Alexander bestätigt; 0.2.9-alpha.1 in Verifikation
+**Aktueller Produktstand:** **0.2.9-alpha.1**
+**Release-Commit:** `12902d09c01382b353e78ea82288aee165bb5039`
+**JAR-SHA256:** `cb6382a1dbd659376f3c650e3e24902448d48a43e694dc243d9c362a7096734d`
+**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.9-alpha.1.jar
+**Abnahme:** 0.2.9-alpha.1 technisch verifiziert und produktiv deployed; visuelle Abnahme durch Alexander in #235 offen
 
 ## 1. Zweck und Prioritäten
 
 BlockLords ist ein kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfplugin für den PraxiOS-Familien-SMP. Das Ziel ist kein generisches Claim-Plugin, sondern ein nachvollziehbares Dorfleben: Spieler gründen Dörfer, bauen gemeinsam, registrieren Bewohner, weisen Berufe zu und entwickeln später freiwillige Wettkämpfe und Diplomatie. Die wichtigste aktuelle Arbeitsregel lautet: **Bestehende Live-Fehler zuerst, neue Systeme erst nach stabiler Abnahme.** Alexander entscheidet über Spielregeln, Prioritäten und Go/No-Go. Brix entwickelt, testet, veröffentlicht, deployed und wertet die Konsole aus; Alexander übernimmt die spielerische Abnahme. Axon ist für diese Arbeit nicht mehr erforderlich.
 
-Die Fassung 0.2.8-alpha.1 mit Missionen und V7 ist von Alexander abgenommen und #233 ist geschlossen. Der Hotfix 0.2.8-alpha.2 ergänzt Aktiv-Glint und „Aktiv“-Text für angenommene Missionen sowie normale Inventarbedienung im Lager mit gezielter Shift-Einlagerung und ist ebenfalls visuell abgenommen; #234 ist geschlossen. Die neue Runde 0.2.9-alpha.1 ergänzt Einwanderung und Produktionsbilanz mit V8 und befindet sich in Verifikation. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
+Die Fassung 0.2.8-alpha.1 mit Missionen und V7 ist von Alexander abgenommen und #233 ist geschlossen. Der Hotfix 0.2.8-alpha.2 ergänzt Aktiv-Glint und „Aktiv“-Text für angenommene Missionen sowie normale Inventarbedienung im Lager mit gezielter Shift-Einlagerung und ist ebenfalls visuell abgenommen; #234 ist geschlossen. Die Runde 0.2.9-alpha.1 ergänzt Einwanderung und Produktionsbilanz mit V8, ist technisch verifiziert und produktiv deployed; ihre visuelle Abnahme läuft in #235. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
 
 ## 2. Verbindliche Designentscheidungen
 
@@ -172,7 +172,7 @@ Der aktuelle Produktionszyklus beträgt 300 Sekunden, also 12 Zyklen/Stunde. Pro
 | Version | Inhalt |
 |---|---|
 | **0.2.8-alpha.1** | Persönliche und gemeinsame Missionen, reale Fortschrittsbuchung, einmalige Dorf-XP, kostenloses Ersetzen, Pinnen und V7 |
-| **Nächster Kandidat** | Einwanderung und eine lesbare Produktionsbilanz; Reihenfolge nach Live-Feedback |
+| **0.2.9-alpha.1** | Einwanderung und lesbare Produktionsbilanz mit V8; produktiv deployed, visuelle Abnahme in #235 offen |
 | **Danach** | Mitgliederverwaltung und persönliche Parzellen; Schematic-Loader, Bauhütte und Kolonien als getrennte Research-/Ausbauthemen |
 | **Spätere Phase 3/4** | Militär, Diplomatie, reguläre Kriege und Herrschaftskampf nach stabilem Phase-2-Kern |
 
@@ -233,7 +233,7 @@ Brix deployt mit JAR-, Config- und DB-Backup, prüft Version, Migration, Dörfer
 14. `/bl production` zeigt geplante/akzeptierte Erträge, Nahrungsverbrauch, Lager und Pausengründe in Java und Bedrock.
 15. Vier-Stunden-Offline-Grenze und `RESTING` stoppen Produktion und Einwanderung; Reaktivierung erzeugt keine Ruhe-Nachzahlung.
 
-#230, #233 und #234 sind abgenommen und geschlossen. Die nächste Runde mit Einwanderung und Produktionsbilanz erhält nach Deployment ein neues Bus-Thema; die visuelle Abnahme wird dort geführt.
+#230, #233 und #234 sind abgenommen und geschlossen. **#235** führt die technisch verifizierte und produktiv deployed 0.2.9-alpha.1 mit Einwanderung und Produktionsbilanz; die visuelle Abnahme durch Alexander ist dort noch offen.
 
 ## 10. Rollen- und Sicherheitsregeln
 
@@ -246,7 +246,7 @@ Brix deployt mit JAR-, Config- und DB-Backup, prüft Version, Migration, Dörfer
 
 1. Aktuellen `master` und neuesten `DEVLOG`-Eintrag lesen; keine alte 0.2.6-Checkliste als aktuellen Auftrag übernehmen.
 2. Java-21-Build und die zuletzt dokumentierten Tests bestätigen.
-3. Offene visuelle Missionsabnahme und neues Feedback von Alexander prüfen; echte Fehler zuerst reproduzieren und beheben.
-4. Erst danach den nächsten abgestimmten Phase-2-Schritt beginnen. Einwanderung/Produktionsbilanz und Mitgliederverwaltung/Parzellen sind Kandidaten, keine bereits fertigen Funktionen.
+3. Offene visuelle Einwanderungs-/Produktionsabnahme in #235 und neues Feedback von Alexander prüfen; echte Fehler zuerst reproduzieren und beheben.
+4. Erst danach den nächsten abgestimmten Phase-2-Schritt beginnen. Mitgliederverwaltung/Parzellen sind Kandidaten, keine bereits fertigen Funktionen.
 
 Damit bleiben Projektgeschichte, Designabsicht, technische Architektur, Testbarkeit und die tatsächliche Verantwortungsverteilung erhalten.
