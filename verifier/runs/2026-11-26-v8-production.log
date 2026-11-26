@@ -1,0 +1,13 @@
+2026-11-26 | Produktivdeployment BlockLords 0.2.8-alpha.2 auf OnePlus/Termux, Paper 26.3, Java 25.0.5.1
+Release-Commit: 709a4d4a4603460cad15d61d89a5cf0f179ed59b
+CI: 45832855800 = success
+Release-/Download-/Remote-SHA256: f598404752077afdb211516c06ad9b644e999ca17da3863b8f367770e815f04a
+Rollback: alpha.1-JAR, Config und SQLite unter ~/mcserver/backups/blocklords-v0282-20261126/ sowie alpha.1.jar.bak-20261126-v0282
+Pre-Update-Snapshot: manual-v0282-predeploy.db | Integrität ok | 2 Dörfer | Schema V7
+Post-Update-Snapshot: postdeploy-v0282-verified.db | Integrität ok | 2 Dörfer | Schema V7
+Finales Pluginloading: ausschließlich BlockLords 0.2.8-alpha.2, keine Ambiguous-/BlockLords-Startfehler
+`bl admin list`: #1 Silberbrück Level 3 ACTIVE, #2 Nebelbrück Level 2 ACTIVE
+TPS: 20,1 / 20,1 / 20,1
+`bl missions`: Befehl registriert und verlangt korrekt einen Spieler
+Aktuell niemand online: visuelle Abnahme von Aktiv-Glint/-Text, normalem Stack-Teilen und Shift-Einlagerung durch Alexander in Bus #234 offen
+Ergebnis: technisches Deployment bestanden; visuelle UX-Abnahme nicht vorgetäuscht

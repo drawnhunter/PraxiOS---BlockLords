@@ -417,6 +417,9 @@
 - Echter Paper-1.21.11-/FAWE-2.16.3-Start mit bestehender V7-Datenbank: alpha.2 aktiv, Missionsbefehl registriert, `PASTE-3a945541` mit **99 Blöcken** erfolgreich, keine späten Fehler, sauberer Shutdown.
 - Abnahmekriterien und Laufprotokolle liegen in `verifier/v8/` und `verifier/runs/`.
 
-### Offene Abnahme
+### Produktivdeployment und offene Abnahme
 
-- Produktivdeployment und visuelle UX-Abnahme durch Alexander in **Bus #234**. Der Produktiv-Snapshot vor dem Update bestätigt bereits Integrität `ok`, zwei Dörfer und Schema V7.
+- GitHub-CI `45832855800` erfolgreich; Release `v0.2.8-alpha.2`, Download und Produktiv-JAR hashgeprüft.
+- alpha.1-JAR, Config und konsistenter Pre-Migration-Snapshot mit Integrität `ok`, zwei Dörfern und Schema V7 gesichert. Post-Migration-Snapshot bestätigt ebenfalls Integrität `ok`, zwei Dörfer und Schema V7.
+- Auf Paper 26.3/Java 25 ist ausschließlich BlockLords 0.2.8-alpha.2 aktiv; beide Dörfer bleiben erhalten, Silberbrück ist nach den Missions-XP Level 3, Nebelbrück Level 2. TPS etwa 20, kein BlockLords-Fehler im finalen Startlog.
+- Aktuell ist niemand online. Alexander prüft in **Bus #234** noch Aktiv-Glint/-Text, normales Stack-Teilen im eigenen Inventar und Shift-Einlagerung. Die visuelle UX-Abnahme bleibt bis zu seiner Bestätigung offen.

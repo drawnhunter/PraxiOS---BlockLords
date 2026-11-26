@@ -4,17 +4,17 @@
 **Von:** BLWB / Kimi, fortgeschrieben von Brix
 **Für:** Kimi Code (Brix), Alexander
 **Repo:** https://github.com/drawnhunter/PraxiOS---BlockLords
-**Aktueller Produktstand:** **0.2.8-alpha.1**
-**Release-Commit:** `c686d3177ecad19f374e3b2d0984417cdab7f9e8`
-**JAR-SHA256:** `043f1328f61fb9c77aaae31b97709099c329670cf843dd4d75f74df343562220`
-**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.8-alpha.1.jar
-**Abnahme:** Technisch produktiv bestätigt; visuelle Missionsabnahme durch Alexander in Bus #233 offen
+**Aktueller Produktstand:** **0.2.8-alpha.2**
+**Release-Commit:** `709a4d4a4603460cad15d61d89a5cf0f179ed59b`
+**JAR-SHA256:** `f598404752077afdb211516c06ad9b644e999ca17da3863b8f367770e815f04a`
+**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.8-alpha.2.jar
+**Abnahme:** Technisch produktiv bestätigt; visuelle UX-Abnahme durch Alexander in Bus #234 offen
 
 ## 1. Zweck und Prioritäten
 
 BlockLords ist ein kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfplugin für den PraxiOS-Familien-SMP. Das Ziel ist kein generisches Claim-Plugin, sondern ein nachvollziehbares Dorfleben: Spieler gründen Dörfer, bauen gemeinsam, registrieren Bewohner, weisen Berufe zu und entwickeln später freiwillige Wettkämpfe und Diplomatie. Die wichtigste aktuelle Arbeitsregel lautet: **Bestehende Live-Fehler zuerst, neue Systeme erst nach stabiler Abnahme.** Alexander entscheidet über Spielregeln, Prioritäten und Go/No-Go. Brix entwickelt, testet, veröffentlicht, deployed und wertet die Konsole aus; Alexander übernimmt die spielerische Abnahme. Axon ist für diese Arbeit nicht mehr erforderlich.
 
-Die Fassung 0.2.8-alpha.1 enthält persönliche und gemeinsame Missionen mit echtem Fortschritt, einmaliger Dorf-XP und Crossplay-Menüs. V7 ist produktiv migriert, beide Dörfer bleiben erhalten und nur die neue JAR wird geladen. Die spielerische Bestätigung der neuen Missionsmenüs und Belohnungen steht noch aus. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
+Die Fassung 0.2.8-alpha.1 mit Missionen und V7 ist von Alexander abgenommen und #233 ist geschlossen. Der Hotfix 0.2.8-alpha.2 ergänzt Aktiv-Glint und „Aktiv“-Text für angenommene Missionen sowie normale Inventarbedienung im Lager mit gezielter Shift-Einlagerung. Beide Dörfer und die V7-Daten bleiben erhalten; nur die neue JAR wird geladen. Die visuelle Bestätigung dieser beiden UX-Änderungen steht in #234 noch aus. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
 
 ## 2. Verbindliche Designentscheidungen
 
@@ -52,8 +52,9 @@ Die Herrschaftskampfregel ist bewusst nicht implementiert und darf nicht versehe
 | **0.2.7-alpha.4** | Direkte Lagerbedienung, korrekte Lagermeldungen, Bettscan und Arbeiterdetail | `7c6a006` |
 | **0.2.7-alpha.5** | Lagerkapazität pro Ressource, live abgenommen | `dd38b4a` |
 | **0.2.8-alpha.1** | Persönliche und gemeinsame Missionen, Erst-XP, Pinnen und V7 | `c686d31` |
+| **0.2.8-alpha.2** | Aktiv-Glint für Missionen und normale Inventarbedienung im Lager | `709a4d4` |
 
-Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload direkt unter `dist/` bereit. Für den aktuellen Produktivstand ist `dist/BlockLords-0.2.8-alpha.1.jar` maßgeblich. Ältere Release-Assets können vorhanden sein, aber der direkte Repo-Download ist der zuverlässigere Testweg, wenn der Upload-Endpunkt wieder Netzwerkprobleme zeigt.
+Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload direkt unter `dist/` bereit. Für den aktuellen Produktivstand ist `dist/BlockLords-0.2.8-alpha.2.jar` maßgeblich. Ältere Release-Assets können vorhanden sein, aber der direkte Repo-Download ist der zuverlässigere Testweg, wenn der Upload-Endpunkt wieder Netzwerkprobleme zeigt.
 
 ## 4. Aktuelle Architektur
 
@@ -206,10 +207,10 @@ export GRADLE_OPTS="-Djava.net.preferIPv4Stack=true"
 
 ### Eigener Verifier
 
-- Aktuelle Kriterien: `verifier/v7/acceptance.md`; `verifier/v1/` bis `verifier/v6/` bleiben historisch erhalten.
-- Build-/Testskript: `verifier/v7/check.sh`; echte Protokolle unter `verifier/runs/`.
+- Aktuelle Kriterien: `verifier/v8/acceptance.md`; `verifier/v1/` bis `verifier/v7/` bleiben historisch erhalten.
+- Build-/Testskript: `verifier/v8/check.sh`; echte Protokolle unter `verifier/runs/`.
 - Bei geänderten Kriterien eine neue Verifier-Version anlegen, alte Kriterien nicht überschreiben.
-- Die aktuelle Missionsrunde wird mit **65 Tests ohne Fehler oder Skip**, V6→V7-Upgrade, MockBukkit-Spielerfluss und echtem Paper-/FAWE-Lauf verifiziert.
+- Die Missionsrunde wird mit 65 Tests, der UX-Hotfix mit **70 Tests ohne Fehler oder Skip**, V6→V7-Upgrade, echten Inventar-Events, MockBukkit-Spielerfluss und Paper-/FAWE-Läufen verifiziert.
 
 ### Live-Abnahme auf dem OnePlus
 
@@ -221,8 +222,12 @@ Brix deployt mit JAR-, Config- und DB-Backup, prüft Version, Migration, Dörfer
 4. Baustellenhilfe und gemeinsame Nahrungsmission mit echten Beiträgen prüfen; Dorfmission sammelt Beiträge registrierter Mitglieder.
 5. Mission kostenlos ersetzen, Warnung bei Fortschritt bestätigen und Ressourcenerhalt prüfen.
 6. Persönliche Mission anpinnen, neu einloggen und Server neu starten: Fortschritt und Erst-XP bleiben ohne Doppelung erhalten.
+7. Angenommene Missionen zeigen Glint und „Aktiv“; Angebote bleiben ohne Glint.
+8. Eigenen Stack im Lager mit Rechtsklick normal teilen und untere Drags nutzen.
+9. Shift+Links lagert den gewählten Stack ein, Shift+Rechts genau ein Item; obere Vorrat-Aktionen bleiben unverändert.
+10. Doppelklick und Drag oben erzeugen keine Geisteritems oder Duplikate.
 
-#230 ist abgeschlossen und bleibt historisch. **Bus #233** führt Release-Nachweis, Produktivdeployment und die aktuelle Missions-Abnahmecheckliste; es bleibt bis Alexanders spielerischer Bestätigung offen.
+#230 und #233 sind abgenommen und geschlossen. **Bus #234** führt den UX-Hotfix, Produktivnachweis und die kurze Gegentest-Checkliste; er bleibt bis Alexanders visueller Bestätigung offen.
 
 ## 10. Rollen- und Sicherheitsregeln
 
