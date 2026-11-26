@@ -52,12 +52,25 @@ public final class UiService {
     private final ResidentService residents;
     private final PlacementModeService placement;
     private final MissionUiService missionUi;
+    private final ImmigrationUiService immigrationUi;
+    private final ProductionUiService productionUi;
 
     public UiService(Supplier<BlockLordsConfig> config, VillageService villages, FoundingService founding,
                      VillageScanner scanner, TaskRunner tasks, ConstructionService construction,
                      StorageService storage, WorkerService workers, ResearchService research,
                      ResidentService residents, PlacementModeService placement,
                      eu.praxios.blocklords.service.MissionService missions) {
+        this(config, villages, founding, scanner, tasks, construction, storage, workers, research, residents, placement,
+                missions, null, null);
+    }
+
+    public UiService(Supplier<BlockLordsConfig> config, VillageService villages, FoundingService founding,
+                     VillageScanner scanner, TaskRunner tasks, ConstructionService construction,
+                     StorageService storage, WorkerService workers, ResearchService research,
+                     ResidentService residents, PlacementModeService placement,
+                     eu.praxios.blocklords.service.MissionService missions,
+                     eu.praxios.blocklords.service.ImmigrationService immigration,
+                     eu.praxios.blocklords.service.ProductionService production) {
         this.config = config;
         this.villages = villages;
         this.founding = founding;
@@ -81,6 +94,8 @@ public final class UiService {
         }
         this.bedrock = candidate;
         this.missionUi = new MissionUiService(missions, this);
+        this.immigrationUi = new ImmigrationUiService(immigration, this);
+        this.productionUi = new ProductionUiService(production, storage, this);
     }
 
     public void openBell(Player player, Block bell) {
@@ -159,6 +174,10 @@ public final class UiService {
         actions.add(UiAction.of(Material.WRITABLE_BOOK, "Missionen", () -> openMissions(player, village),
                 "Zwei persönliche Angebote und eine Dorfmission · kein Verfall."));
         actions.add(UiAction.of(Material.VILLAGER_SPAWN_EGG, "Bewohner", () -> openWorkers(player, village)));
+        actions.add(UiAction.of(Material.POPPY, "Einwanderung", () -> openImmigration(player, village),
+                "Wanderer, Voraussetzungen und Aufnahme ab Level 2."));
+        actions.add(UiAction.of(Material.ANVIL, "Produktion", () -> openProduction(player, village),
+                "Ertrag, Verbrauch und Pausen pro Ressource."));
         actions.add(UiAction.of(Material.ENCHANTED_BOOK, "Bibliothek & Forschung", () -> openResearch(player, village)));
         actions.add(UiAction.of(Material.BOOK, "Dorf Infos", () -> openVillageInfo(player, village), levelLore(village)));
         actions.add(UiAction.of(Material.COMPASS, "Dorfmenü-Kompass", () -> Bukkit.dispatchCommand(player, "bl menu"),
@@ -170,6 +189,14 @@ public final class UiService {
 
     public void openMissions(Player player, Village village) {
         missionUi.open(player, village);
+    }
+
+    public void openImmigration(Player player, Village village) {
+        immigrationUi.open(player, village);
+    }
+
+    public void openProduction(Player player, Village village) {
+        productionUi.open(player, village);
     }
 
     public void openVillageInfo(Player player, Village village) {

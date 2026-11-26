@@ -8,13 +8,13 @@
 **Release-Commit:** `709a4d4a4603460cad15d61d89a5cf0f179ed59b`
 **JAR-SHA256:** `f598404752077afdb211516c06ad9b644e999ca17da3863b8f367770e815f04a`
 **Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.8-alpha.2.jar
-**Abnahme:** Technisch produktiv bestätigt; visuelle UX-Abnahme durch Alexander in Bus #234 offen
+**Abnahme:** 0.2.8-alpha.2 durch Alexander bestätigt; 0.2.9-alpha.1 in Verifikation
 
 ## 1. Zweck und Prioritäten
 
 BlockLords ist ein kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfplugin für den PraxiOS-Familien-SMP. Das Ziel ist kein generisches Claim-Plugin, sondern ein nachvollziehbares Dorfleben: Spieler gründen Dörfer, bauen gemeinsam, registrieren Bewohner, weisen Berufe zu und entwickeln später freiwillige Wettkämpfe und Diplomatie. Die wichtigste aktuelle Arbeitsregel lautet: **Bestehende Live-Fehler zuerst, neue Systeme erst nach stabiler Abnahme.** Alexander entscheidet über Spielregeln, Prioritäten und Go/No-Go. Brix entwickelt, testet, veröffentlicht, deployed und wertet die Konsole aus; Alexander übernimmt die spielerische Abnahme. Axon ist für diese Arbeit nicht mehr erforderlich.
 
-Die Fassung 0.2.8-alpha.1 mit Missionen und V7 ist von Alexander abgenommen und #233 ist geschlossen. Der Hotfix 0.2.8-alpha.2 ergänzt Aktiv-Glint und „Aktiv“-Text für angenommene Missionen sowie normale Inventarbedienung im Lager mit gezielter Shift-Einlagerung. Beide Dörfer und die V7-Daten bleiben erhalten; nur die neue JAR wird geladen. Die visuelle Bestätigung dieser beiden UX-Änderungen steht in #234 noch aus. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
+Die Fassung 0.2.8-alpha.1 mit Missionen und V7 ist von Alexander abgenommen und #233 ist geschlossen. Der Hotfix 0.2.8-alpha.2 ergänzt Aktiv-Glint und „Aktiv“-Text für angenommene Missionen sowie normale Inventarbedienung im Lager mit gezielter Shift-Einlagerung und ist ebenfalls visuell abgenommen; #234 ist geschlossen. Die neue Runde 0.2.9-alpha.1 ergänzt Einwanderung und Produktionsbilanz mit V8 und befindet sich in Verifikation. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
 
 ## 2. Verbindliche Designentscheidungen
 
@@ -63,7 +63,7 @@ Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload 
 - `BlockLords.java`: Plugin-Lebenszyklus, Start, Migration, Verkabelung, Backup, Reload, Diagnose.
 - `config/BlockLordsConfig.java`: vollständige Validierung der `config.yml`.
 - `database/Database.java`: kontrollierte SQLite-Verbindung, Transaktionen, WAL, Backups.
-- `database/MigrationRunner.java`: explizit versionierte Migrationen V1–V7.
+- `database/MigrationRunner.java`: explizit versionierte Migrationen V1–V8.
 - `model/`: Dorf, ClaimRegion, Rollen, Altparzellen, Baupläne, Baustellen, Bewohner, Ressourcen, Missionen und Snapshots.
 - `repository/`: SQLite-Zugriffe und Transaktionen; keine versteckte zweite Wahrheit für Kistenmaterial.
 - `service/`: Gründung, Schutz, Bau, FAWE, Produktion, Forschung, Bewohner, Missionen, Hotbar-Session, Audit und Logging.
@@ -87,8 +87,9 @@ SQLite verwendet WAL, `foreign_keys=ON`, `busy_timeout=5000` und kontrollierte T
 | **V5** | Persistente Bewohnernamen und fortlaufende Nummern |
 | **V6** | Verlorene Bewohner und persistente Baustellenkistenpositionen |
 | **V7** | Missionsangebote, Fortschrittsereignisse, eindeutige Verknüpfungen und Erst-XP-Zuordnungen |
+| **V8** | Einwanderungszustände und Kandidaten sowie strukturierte Produktionsberichte mit geplanten und akzeptierten Erträgen |
 
-Bei neuen Migrationen niemals bereits veröffentlichte SQL-Versionen nachträglich verändern. Neue Regeln kommen in V8 usw. Die bisherigen Dateien bleiben reproduzierbar. Besondere Schutzregeln, Claims, Zustimmungen und Audit brauchen Transaktionen und Tests, keine nachträglichen Datenbank-Hacks.
+Bei neuen Migrationen niemals bereits veröffentlichte SQL-Versionen nachträglich verändern. Neue Regeln kommen in V9 usw. Die bisherigen Dateien bleiben reproduzierbar. Besondere Schutzregeln, Claims, Zustimmungen und Audit brauchen Transaktionen und Tests, keine nachträglichen Datenbank-Hacks.
 
 ## 5. Aktuelle Spielmechaniken
 
@@ -207,10 +208,10 @@ export GRADLE_OPTS="-Djava.net.preferIPv4Stack=true"
 
 ### Eigener Verifier
 
-- Aktuelle Kriterien: `verifier/v8/acceptance.md`; `verifier/v1/` bis `verifier/v7/` bleiben historisch erhalten.
-- Build-/Testskript: `verifier/v8/check.sh`; echte Protokolle unter `verifier/runs/`.
+- Aktuelle Kriterien: `verifier/v9/acceptance.md`; `verifier/v1/` bis `verifier/v8/` bleiben historisch erhalten.
+- Build-/Testskript: `verifier/v9/check.sh`; echte Protokolle unter `verifier/runs/`.
 - Bei geänderten Kriterien eine neue Verifier-Version anlegen, alte Kriterien nicht überschreiben.
-- Die Missionsrunde wird mit 65 Tests, der UX-Hotfix mit **70 Tests ohne Fehler oder Skip**, V6→V7-Upgrade, echten Inventar-Events, MockBukkit-Spielerfluss und Paper-/FAWE-Läufen verifiziert.
+- Missionen und UX werden mit 65/70 Tests verifiziert; die aktuelle Einwanderungs- und Produktionsrunde mit **86 Tests ohne Fehler oder Skip**, V7→V8-Upgrade, echten Inventar-Events, echtem NPC-Spawn, MockBukkit-Spielerfluss und Paper-/FAWE-Läufen.
 
 ### Live-Abnahme auf dem OnePlus
 
@@ -226,8 +227,13 @@ Brix deployt mit JAR-, Config- und DB-Backup, prüft Version, Migration, Dörfer
 8. Eigenen Stack im Lager mit Rechtsklick normal teilen und untere Drags nutzen.
 9. Shift+Links lagert den gewählten Stack ein, Shift+Rechts genau ein Item; obere Vorrat-Aktionen bleiben unverändert.
 10. Doppelklick und Drag oben erzeugen keine Geisteritems oder Duplikate.
+11. `/bl immigration`: Wartezyklus und Voraussetzungen prüfen; anschließend genau einen Wanderer annehmen und Kosten/XP/Bett-POI kontrollieren.
+12. Ablehnung, Tod, fehlende Voraussetzungen, Doppelklick und Neustart erzeugen keine Kosten oder Duplikate.
+13. Aufgenommener und nachfolgender normaler Villager erhalten aufeinanderfolgende #Nummern und keinen doppelten Namen.
+14. `/bl production` zeigt geplante/akzeptierte Erträge, Nahrungsverbrauch, Lager und Pausengründe in Java und Bedrock.
+15. Vier-Stunden-Offline-Grenze und `RESTING` stoppen Produktion und Einwanderung; Reaktivierung erzeugt keine Ruhe-Nachzahlung.
 
-#230 und #233 sind abgenommen und geschlossen. **Bus #234** führt den UX-Hotfix, Produktivnachweis und die kurze Gegentest-Checkliste; er bleibt bis Alexanders visueller Bestätigung offen.
+#230, #233 und #234 sind abgenommen und geschlossen. Die nächste Runde mit Einwanderung und Produktionsbilanz erhält nach Deployment ein neues Bus-Thema; die visuelle Abnahme wird dort geführt.
 
 ## 10. Rollen- und Sicherheitsregeln
 

@@ -54,6 +54,14 @@ missions:
     BAUSTELLE_32: 20
     NAHRUNG_120: 40
 
+immigration:
+  wait-seconds: 300
+  retry-seconds: 60
+  food-cost: 16
+  first-xp: 30
+  repeat-xp: 5
+  check-ticks: 100
+
 economy:
   storage-base-capacity: 1728
   storage-per-warehouse: 1728

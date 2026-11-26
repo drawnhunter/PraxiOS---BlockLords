@@ -51,6 +51,12 @@ public final class WorkerService {
         return config.get().workersPerBuilding();
     }
 
+    public int freeCapacity(long villageId) {
+        return construction.buildings(villageId).stream().filter(building -> building.type().workplace())
+                .mapToInt(building -> (int) Math.max(0, capacity() - workers(villageId).stream()
+                        .filter(worker -> worker.buildingId() == building.id()).count())).sum();
+    }
+
     private boolean hasCapacity(Player player, Village village, long buildingId) {
         long assigned = workers(village.id()).stream().filter(worker -> worker.buildingId() == buildingId).count();
         if (assigned < capacity()) return true;

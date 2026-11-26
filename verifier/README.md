@@ -50,3 +50,9 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Datei: `verifier/v8/acceptance.md`
 - Zweck: Aktiv-Markierung von Missionen und normale Bearbeitung des eigenen Inventars im Lager.
 - Prüfungen: Glint und Aktiv-Text, Bottom-Klicks/Drags, Shift-Einlagerung, obere Vorrat-Aktionen, Duplikatschutz und Paper-/FAWE-Lauf.
+
+## v9 — 2026-11-26
+
+- Datei: `verifier/v9/acceptance.md`
+- Zweck: Einwanderung mit persistenter Wartezeit und atomarer Aufnahme sowie strukturierte Produktionsbilanz.
+- Prüfungen: V7→V8-Upgrade, Bett-/Arbeitsplatzvoraussetzungen, Idempotenz, Tod/Retry, Identitätsvergabe, Offline-Grenze, Ruhezustand, Nahrungskapazität und Paper-/FAWE-Lauf.

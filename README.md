@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.8-alpha.2 (Phase 2)
+## Aktueller Stand: 0.2.9-alpha.1 (Phase 2)
 
 Enthalten:
 
@@ -27,9 +27,20 @@ Enthalten:
 - Arbeiterzuweisung für Farm und Mine mit zeitbasierter Online-/Offline-Produktion,
 - Dorf-XP, Level 1–10, Bibliotheksforschung und Wohnhaus-II-Freischaltung,
 - persönliche und gemeinsame Missionen mit echtem Fortschritt und einmaliger Dorf-XP,
-- gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter, Forschung und Missionen.
+- Einwanderung mit sichtbarem Wartezyklus, bewusster Aufnahme, Bett-POI und eindeutigen Bewohneridentitäten,
+- Produktionsbilanz mit geplanten und tatsächlich akzeptierten Erträgen, Nahrungsverbrauch und Pausengründen,
+- gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter, Forschung, Missionen, Einwanderung und Produktion.
 
-**Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Einwanderung, Mitgliederverwaltung, persönliche Parzellen und eine ausführliche Produktionsbilanz sind weitere Phase-2-Schritte. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+**Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Mitgliederverwaltung und persönliche Parzellen sind weitere Phase-2-Schritte. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.9-alpha.1 (Einwanderung und Produktionsbilanz)
+
+- **Einwanderung ab Level 2:** Freies Bett, 16 Nahrung und freier Arbeitsplatz ermöglichen nach sichtbarem Zyklus einen erwachsenen Wanderer an der Glocke. Aufnahme durch Landherr/Gefolgsmann über `/bl immigration` oder gemeinsame Menüs.
+- **Sichere Aufnahme:** Erst bei Annahme werden 16 Nahrung abgebucht und Bett, Vorrat, Arbeitsplatz und Entity erneut geprüft. Aufnahme, Kosten, Kandidatenstatus, Bett-POI und XP sind atomar; Doppelklick und Retry erzeugen keine Duplikate.
+- **Persistente Wanderer:** Ablehnung ohne Töten, nachweislicher Tod ohne Kosten, keine Duplikate nach Neustart oder ungeladenen Chunks. Erste Einwanderung +30 XP, weitere +5 XP; neue Bewohner erhalten eindeutigen Namen, #Nummer und Meeting-Point.
+- **Echte Produktionsbilanz:** `/bl production` zeigt geplante und akzeptierte Erträge je Ressource, Nahrungsverbrauch, Arbeiterzahlen sowie Gründe für Pausen und volle Lager. Alter Textbericht bleibt als Fallback.
+- **Zeitgrenzen nach Konzept:** Offline-Produktion endet nach vier Stunden mit 50 %; `RESTING`/`REVIEW` stoppt Produktion und Einwanderung ohne Ruhe-Nachberechnung. Nahrungsverbrauch wird vor der Kapazitätsprüfung für neue Nahrung berücksichtigt.
+- **Migration V8:** Persistente Einwanderungszustände und Kandidaten sowie strukturierte Produktionsberichte. Keine Alt-Kandidaten, Alt-XP oder erfundenen historischen Bilanzen.
 
 ### Neuerungen in 0.2.8-alpha.2 (Missions- und Lager-UX)
 
@@ -169,8 +180,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.8-alpha.2.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.8-alpha.2-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.9-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.9-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -180,9 +191,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.8-alpha.2.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.9-alpha.1.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.8-alpha.2 aktiviert: Phase 2 ...` sowie die bestehende V7-Datenbank.
+3. Log prüfen: `BlockLords 0.2.9-alpha.1 aktiviert: Phase 2 ...` sowie die Migration `V8__immigration_and_production_reports.sql`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 
@@ -220,6 +231,7 @@ Entwicklung, Veröffentlichung, Deployment und Konsolenauswertung erfolgen über
 28. **Bewohnerdetail:** Alle registrierten Bewohner mit/ohne Bett öffnen, Anforderungen lesen, freies Bett zuweisen und Arbeitsgebäude auswählen.
 29. **P3-Texte:** Kurze Hinweise lesen und befolgen; Detailinformationen bleiben per Klick verfügbar, nicht als lange Chat-Anweisung.
 30. **Missionen:** `/bl missions` öffnet zwei persönliche Angebote und eine Dorfmission. Holzmission annehmen und in Teilbeträgen 32 Holz einlagern; Fortschritt und einmalige XP prüfen. Wiederholung gibt 0 XP. Baustellenhilfe und gemeinsame Nahrungsmission testen, Mission kostenlos ersetzen und persönliche Mission anpinnen. Neustart/Login darf weder Fortschritt noch Belohnung duplizieren; Bedrock nutzt dieselben Aktionen als Formular.
+31. **Einwanderung und Produktion:** `/bl immigration` zeigt Voraussetzungen und Wanderer. Nach dem Wartezyklus einen Wanderer annehmen: 16 Nahrung, eindeutiger Bewohner mit Bett, +30 XP beim ersten Mal und +5 bei weiteren Aufnahmen. Doppelklick, Ablehnung, Tod und Neustart erzeugen keine Duplikate oder Zusatzkosten. `/bl production` prüft geplanten/akzeptierten Ertrag, Verbrauch und Pausengründe. Offline- und Ruhegrenzen beachten.
 
 ## Befehle
 
@@ -235,6 +247,8 @@ Entwicklung, Veröffentlichung, Deployment und Konsolenauswertung erfolgen über
 | `/bl workers` | Arbeiterübersicht; `assign <Gebäude-ID>`, `unassign <Arbeiter-ID>` |
 | `/bl research` | Forschung öffnen beziehungsweise mit `start` beginnen |
 | `/bl missions` | Zwei persönliche Angebote und eine Dorfmission öffnen; `accept <ID>`, `replace <ID> [confirm]`, `pin <ID>` |
+| `/bl immigration` | Wartezyklus und Wanderer öffnen; `accept <ID>` und `reject <ID>` für Landherr/Gefolgsmann |
+| `/bl production` | Geplanter und akzeptierter Ertrag, Verbrauch, Lager und Pausengründe |
 | `/bl level` | Dorf-Level, XP und Status anzeigen |
 | `/bl admin selftest <Typ> <x> <y> <z>` | Direkten FAWE-Baupfad ohne Dorfveränderung diagnostizieren |
 | `/bl admin list` | Dorf-IDs, Level und Status anzeigen |

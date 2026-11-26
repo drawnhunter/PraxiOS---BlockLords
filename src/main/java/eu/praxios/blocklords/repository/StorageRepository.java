@@ -61,16 +61,35 @@ public final class StorageRepository {
     }
 
     public boolean consumeCost(long villageId, UUID player, Map<ResourceType, Integer> cost, String reason) throws Exception {
-        return database.inTransaction(connection -> {
-            Map<ResourceType, Integer> balances = balances(connection, villageId);
-            for (var entry : cost.entrySet()) {
-                if (balances.getOrDefault(entry.getKey(), 0) < entry.getValue()) return false;
+        return database.inTransaction(connection -> consumeCost(connection, villageId, player, cost, reason));
+    }
+
+    public boolean consumeCost(Connection connection, long villageId, UUID player,
+                               Map<ResourceType, Integer> cost, String reason) throws Exception {
+        Map<ResourceType, Integer> balances = balances(connection, villageId);
+        for (var entry : cost.entrySet()) {
+            if (balances.getOrDefault(entry.getKey(), 0) < entry.getValue()) return false;
+        }
+        for (var entry : cost.entrySet()) {
+            change(connection, villageId, entry.getKey(), -entry.getValue());
+            transaction(connection, villageId, player, entry.getKey(), -entry.getValue(), reason);
+        }
+        return true;
+    }
+
+    public void pauseProduction(long villageId, long cycleAt, String reason) throws Exception {
+        database.inTransaction(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO production_state(village_id, last_cycle_at, last_report, last_report_at) VALUES (?, ?, ?, ?) "
+                            + "ON CONFLICT(village_id) DO UPDATE SET last_cycle_at=excluded.last_cycle_at, "
+                            + "last_report=excluded.last_report, last_report_at=excluded.last_report_at")) {
+                statement.setLong(1, villageId);
+                statement.setLong(2, cycleAt);
+                statement.setString(3, reason);
+                statement.setLong(4, System.currentTimeMillis());
+                statement.executeUpdate();
             }
-            for (var entry : cost.entrySet()) {
-                change(connection, villageId, entry.getKey(), -entry.getValue());
-                transaction(connection, villageId, player, entry.getKey(), -entry.getValue(), reason);
-            }
-            return true;
+            return null;
         });
     }
 
@@ -83,6 +102,7 @@ public final class StorageRepository {
                 change(connection, villageId, ResourceType.NAHRUNG, -actualFood);
                 transaction(connection, villageId, null, ResourceType.NAHRUNG, -actualFood, "WORKER_UPKEEP");
                 totals(connection, villageId, ResourceType.NAHRUNG, 0, actualFood);
+                balances.merge(ResourceType.NAHRUNG, -actualFood, Integer::sum);
             }
             Map<ResourceType, Integer> accepted = new EnumMap<>(ResourceType.class);
             for (var entry : produced.entrySet()) {

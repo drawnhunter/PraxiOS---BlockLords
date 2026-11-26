@@ -32,6 +32,7 @@ public final class BlockLords extends JavaPlugin {
     private DecayService decay;
     private VillageScanner scanner;
     private ProductionService production;
+    private ImmigrationService immigration;
     private ResearchService research;
     private FaweBuilder faweBuilder;
     private LogService logs;
@@ -70,6 +71,9 @@ public final class BlockLords extends JavaPlugin {
             ResearchRepository researchRepository = new ResearchRepository(database);
             ResidentRepository residentRepository = new ResidentRepository(database);
             PlacementRepository placementRepository = new PlacementRepository(database);
+            ProductionReportRepository productionReports = new ProductionReportRepository(database);
+            ImmigrationRepository immigrationRepository = new ImmigrationRepository(database, villageRepository,
+                    storageRepository, residentRepository);
 
             AuditService audit = new AuditService(auditRepository, tasks, logs);
             VillageService villages = new VillageService(villageRepository, legacyRepository, tasks);
@@ -89,7 +93,7 @@ public final class BlockLords extends JavaPlugin {
             storage.loadInitial(villages.all());
             construction.loadInitial(villages.all());
             placement = new PlacementModeService(this, placementRepository, construction, tasks, logs, audit);
-            residents = new ResidentService(this, this::settings, residentRepository, villages, tasks, audit);
+            residents = new ResidentService(this, this::settings, residentRepository, villages, tasks, audit, scanner);
             residents.loadInitial(villages.all());
             WorkerService workers = new WorkerService(workerRepository, storageRepository, construction, villages, residents, tasks, audit, this::settings);
             workers.loadInitial(villages.all());
@@ -97,9 +101,11 @@ public final class BlockLords extends JavaPlugin {
                     storage, villages, construction, tasks, audit);
             research.loadInitial(villages.all());
             production = new ProductionService(this, this::settings, workerRepository, storageRepository,
-                    villages, storage, tasks);
+                    villages, storage, tasks, productionReports);
+            immigration = new ImmigrationService(this, this::settings, immigrationRepository, villages, residents,
+                    workers, storage, scanner, tasks, audit);
             UiService ui = new UiService(this::settings, villages, founding, scanner, tasks,
-                    construction, storage, workers, research, residents, placement, missions);
+                    construction, storage, workers, research, residents, placement, missions, immigration, production);
             founding.setQuestUpdateHandler(ui::handleQuestUpdate);
 
             getServer().getPluginManager().registerEvents(new BellListener(ui, founding, villages, residents), this);
@@ -110,10 +116,10 @@ public final class BlockLords extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new BuilderChestListener(construction, villages, ui), this);
             getServer().getPluginManager().registerEvents(new BuilderChestProtectionListener(construction), this);
             getServer().getPluginManager().registerEvents(new PlacementModeListener(placement), this);
-            getServer().getPluginManager().registerEvents(new ResidentLifecycleListener(residents, workers), this);
+            getServer().getPluginManager().registerEvents(new ResidentLifecycleListener(residents, workers, immigration), this);
             getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(founding, decay, production, villages, this, missions), this);
 
-            EconomyCommand economy = new EconomyCommand(villages, construction, storage, workers, research, ui, placement, missions);
+            EconomyCommand economy = new EconomyCommand(villages, construction, storage, workers, research, ui, placement, missions, immigration);
             BlockLordsCommand executor = new BlockLordsCommand(this, villages, founding, ui, protection, alt, audit,
                     tasks, villageRepository, decay, economy, guide);
             PluginCommand command = getCommand("blocklords");
@@ -126,6 +132,7 @@ public final class BlockLords extends JavaPlugin {
             production.start();
             research.start();
             residents.start();
+            immigration.start();
 
             getLogger().info("BlockLords " + getPluginMeta().getVersion()
                     + " aktiviert: Phase 2, " + villages.all().size() + " Dörfer, Java "
@@ -141,6 +148,7 @@ public final class BlockLords extends JavaPlugin {
     public void onDisable() {
         if (decay != null) decay.stop();
         if (production != null) production.stop();
+        if (immigration != null) immigration.stop();
         if (research != null) research.stop();
         if (residents != null) residents.stop();
         if (scanner != null) scanner.close();

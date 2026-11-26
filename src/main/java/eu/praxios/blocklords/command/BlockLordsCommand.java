@@ -81,7 +81,7 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
                 else Msg.error(sender, "Diese Aktion benötigt einen Spieler.");
             }
             case "found" -> found(sender, args);
-            case "build", "storage", "workers", "research", "missions", "level" -> economy.handle(sender, args);
+            case "build", "storage", "workers", "research", "missions", "immigration", "production", "level" -> economy.handle(sender, args);
             case "admin" -> admin(sender, args);
             default -> help(sender);
         }
@@ -349,7 +349,7 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
 
     private void help(CommandSender sender) {
         Msg.info(sender, "/bl menu · /bl info · /bl quest · /bl found <Name>");
-        Msg.plain(sender, "/bl storage · /bl build · /bl workers · /bl research · /bl missions · /bl level");
+        Msg.plain(sender, "/bl storage · /bl build · /bl workers · /bl research · /bl missions · /bl immigration · /bl production · /bl level");
         if (sender.hasPermission("blocklords.admin")) adminHelp(sender);
     }
 
@@ -361,12 +361,15 @@ public final class BlockLordsCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) return filter(List.of("menu", "info", "quest", "found", "build", "storage", "workers", "research", "missions", "level", "admin"), args[0]);
+        if (args.length == 1) return filter(List.of("menu", "info", "quest", "found", "build", "storage", "workers", "research", "missions", "immigration", "production", "level", "admin"), args[0]);
         if (args.length == 2 && args[0].equalsIgnoreCase("missions")) {
             return filter(List.of("list", "accept", "replace", "pin"), args[1]);
         }
         if (args.length == 4 && args[0].equalsIgnoreCase("missions") && args[1].equalsIgnoreCase("replace")) {
             return filter(List.of("confirm"), args[3]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("immigration")) {
+            return filter(List.of("list", "accept", "reject"), args[1]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("blocklords.admin")) {
             return filter(List.of("list", "reload", "backup", "decay", "audit", "auditselftest", "itemtest", "bypass", "selftest", "tp", "disband", "transfer", "alt"), args[1]);

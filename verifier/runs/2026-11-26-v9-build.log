@@ -1,0 +1,11 @@
+2026-11-26 | Finaler Befehl: `./gradlew clean build --no-daemon` mit Java 21.0.13.1 und IPv4 | Exit-Code: 0
+`git diff --check`: bestanden (nur Git-Zeilenenden-Hinweise, keine Fehler)
+Tests: 86
+Failures: 0
+Errors: 0
+Skipped: 0
+Enthalten: V7→V8-Upgrade, atomare Aufnahme, Erst-/Wiederholungs-XP, Tod/Retry, Bett-/Arbeitsplatzvoraussetzungen, Bewohneridentitäten #1→#2, Offline-Grenze, Ruhezustand, Nahrungskapazität und echte Inventar-/NPC-Events
+Finaler Build nach ausreichend Zeit für MockBukkit-Klasseninitialisierung: BUILD SUCCESSFUL in 13m 27s
+JAR: build/libs/BlockLords-0.2.9-alpha.1.jar
+SHA256: 6d38b077a18d14062945c32b5ee1a9aa5f6c65e1438eb0d93bc347aec6085cb2
+Ergebnis: bestanden

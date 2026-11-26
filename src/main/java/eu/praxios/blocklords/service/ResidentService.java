@@ -27,18 +27,25 @@ public final class ResidentService {
     private final VillageService villages;
     private final TaskRunner tasks;
     private final AuditService audit;
+    private final VillageScanner scanner;
     private final Map<Long, List<Resident>> cache = new ConcurrentHashMap<>();
     private final Map<Long, ResidentIdentityAllocator> identities = new ConcurrentHashMap<>();
     private BukkitTask task;
 
     public ResidentService(JavaPlugin plugin, Supplier<BlockLordsConfig> config, ResidentRepository repository,
                            VillageService villages, TaskRunner tasks, AuditService audit) {
+        this(plugin, config, repository, villages, tasks, audit, null);
+    }
+
+    public ResidentService(JavaPlugin plugin, Supplier<BlockLordsConfig> config, ResidentRepository repository,
+                           VillageService villages, TaskRunner tasks, AuditService audit, VillageScanner scanner) {
         this.plugin = plugin;
         this.config = config;
         this.repository = repository;
         this.villages = villages;
         this.tasks = tasks;
         this.audit = audit;
+        this.scanner = scanner;
     }
 
     public void loadInitial(List<Village> villageList) throws Exception {
@@ -156,32 +163,30 @@ public final class ResidentService {
         player.sendActionBar(Component.text("Dorfbewohner werden zur Glocke gebracht.", NamedTextColor.GOLD));
     }
 
-    public void assignBed(Player player, Village village, Resident resident) {
-        if (resident.dead()) {
-            Msg.error(player, "Verlorenen Bewohnern kann kein Bett zugewiesen werden.");
-            return;
-        }
-        World world = Bukkit.getWorld(village.region().world());
-        if (world == null) {
-            Msg.error(player, "Die Dorfwelt ist nicht geladen.");
-            return;
-        }
-        Location center = Bukkit.getEntity(resident.villager()) instanceof Villager villager
-                ? villager.getLocation() : bellLocation(village);
-        Set<String> occupied = new HashSet<>();
-        living(village.id()).forEach(other -> {
-            if (other.bed() != null) {
-                occupied.add(other.bed().world() + ":" + other.bed().x() + ":" + other.bed().y() + ":" + other.bed().z());
+    public java.util.Optional<BlockLink> freeBed(Village village) {
+        if (scanner != null && scanner.fresh(village).isPresent()) {
+            for (BlockLink candidate : scanner.fresh(village).get().bedLocations()) {
+                if (availableBed(village, candidate)) return java.util.Optional.of(candidate);
             }
-        });
+        }
+        return freeBedNear(village, bellLocation(village), 12);
+    }
+
+    private java.util.Optional<BlockLink> freeBedNear(Village village, Location center, int radius) {
+        World world = center.getWorld();
+        if (world == null) return java.util.Optional.empty();
         Block nearest = null;
         double best = Double.MAX_VALUE;
-        for (int x = -12; x <= 12; x++) {
+        for (int x = -radius; x <= radius; x++) {
             for (int y = -4; y <= 4; y++) {
-                for (int z = -12; z <= 12; z++) {
-                    Block block = world.getBlockAt(center.getBlockX() + x, center.getBlockY() + y, center.getBlockZ() + z);
-                    if (!(block.getBlockData() instanceof org.bukkit.block.data.type.Bed bed) || bed.getPart() != org.bukkit.block.data.type.Bed.Part.FOOT) continue;
-                    if (occupied.contains(block.getWorld().getUID() + ":" + block.getX() + ":" + block.getY() + ":" + block.getZ())) continue;
+                for (int z = -radius; z <= radius; z++) {
+                    int blockX = center.getBlockX() + x;
+                    int blockY = center.getBlockY() + y;
+                    int blockZ = center.getBlockZ() + z;
+                    if (!world.isChunkLoaded(blockX >> 4, blockZ >> 4)) continue;
+                    BlockLink candidate = new BlockLink(world.getUID(), blockX, blockY, blockZ);
+                    if (!availableBed(village, candidate)) continue;
+                    Block block = world.getBlockAt(candidate.x(), candidate.y(), candidate.z());
                     double distance = block.getLocation().distanceSquared(center);
                     if (distance < best) {
                         best = distance;
@@ -190,19 +195,50 @@ public final class ResidentService {
                 }
             }
         }
-        if (nearest == null) {
+        return nearest == null ? java.util.Optional.empty()
+                : java.util.Optional.of(new BlockLink(world.getUID(), nearest.getX(), nearest.getY(), nearest.getZ()));
+    }
+
+    private boolean availableBed(Village village, BlockLink candidate) {
+        World world = Bukkit.getWorld(candidate.world());
+        if (world == null || !world.isChunkLoaded(candidate.x() >> 4, candidate.z() >> 4)) return false;
+        if (!(world.getBlockAt(candidate.x(), candidate.y(), candidate.z()).getBlockData()
+                instanceof org.bukkit.block.data.type.Bed bed) || bed.getPart() != org.bukkit.block.data.type.Bed.Part.FOOT) {
+            return false;
+        }
+        return living(village.id()).stream().noneMatch(resident -> candidate.equals(resident.bed()));
+    }
+
+    public void refresh(long villageId) {
+        tasks.database(() -> repository.find(villageId), list -> {
+            cache.put(villageId, list);
+            identities.put(villageId, new ResidentIdentityAllocator(list));
+        }, error -> {
+            throw new IllegalStateException("Bewohnerregister konnte nicht aktualisiert werden", error);
+        });
+    }
+
+    public void assignBed(Player player, Village village, Resident resident) {
+        if (resident.dead()) {
+            Msg.error(player, "Verlorenen Bewohnern kann kein Bett zugewiesen werden.");
+            return;
+        }
+        Location center = Bukkit.getEntity(resident.villager()) instanceof Villager villager
+                ? villager.getLocation() : bellLocation(village);
+        java.util.Optional<BlockLink> freeBed = freeBedNear(village, center, 12);
+        if (freeBed.isEmpty()) {
             Msg.error(player, "Kein freies Bett im Umkreis von 12 Blöcken gefunden. Bitte Betten freimachen oder bauen.");
             return;
         }
-        BlockLink link = new BlockLink(world.getUID(), nearest.getX(), nearest.getY(), nearest.getZ());
+        BlockLink link = freeBed.get();
         Resident updated = new Resident(village.id(), resident.villager(), resident.status(), true, link,
                 resident.meetingPoint(), resident.firstSeen(), System.currentTimeMillis(),
                 resident.displayName(), resident.number(), resident.dead());
         if (Bukkit.getEntity(resident.villager()) instanceof Villager villager) {
-            villager.setMemory(MemoryKey.HOME, nearest.getLocation());
+            villager.setMemory(MemoryKey.HOME, new Location(Bukkit.getWorld(link.world()), link.x() + 0.5, link.y(), link.z() + 0.5));
         }
         persist(village, List.of(updated));
-        Msg.success(player, "Bett zugewiesen: " + nearest.getX() + "/" + nearest.getY() + "/" + nearest.getZ() + ".");
+        Msg.success(player, "Bett zugewiesen: " + link.x() + "/" + link.y() + "/" + link.z() + ".");
     }
 
     public void markDead(UUID villager) {
@@ -315,7 +351,7 @@ public final class ResidentService {
                 identity.name(), identity.number(), resident.dead());
     }
 
-    private static Location safeBellLocation(World world, Location bell, Set<String> occupied) {
+    static Location safeBellLocation(World world, Location bell, Set<String> occupied) {
         int[][] offsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {2, 0}, {-2, 0}, {0, 2}, {0, -2},
                 {1, 1}, {-1, 1}, {1, -1}, {-1, -1}, {2, 1}, {-2, 1}, {2, -1}, {-2, -1}};
         for (int dy = 0; dy >= -3; dy--) {

@@ -66,4 +66,29 @@ class BlockLordsConfigTest {
         yaml.set("missions.personal-offers", 0);
         assertThrows(IllegalArgumentException.class, () -> new BlockLordsConfig(yaml));
     }
+
+    @Test
+    void missingImmigrationSectionUsesDefaults() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.load(new File("src/main/resources/config.yml"));
+        yaml.set("immigration", null);
+        BlockLordsConfig config = new BlockLordsConfig(yaml);
+        assertEquals(300_000L, config.immigrationWaitMillis());
+        assertEquals(60_000L, config.immigrationRetryMillis());
+        assertEquals(16, config.immigrationFoodCost());
+        assertEquals(30, config.immigrationFirstXp());
+        assertEquals(5, config.immigrationRepeatXp());
+        assertEquals(100L, config.immigrationCheckTicks());
+    }
+
+    @Test
+    void invalidImmigrationValuesAreRejected() throws Exception {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.load(new File("src/main/resources/config.yml"));
+        yaml.set("immigration.food-cost", 0);
+        assertThrows(IllegalArgumentException.class, () -> new BlockLordsConfig(yaml));
+        yaml.set("immigration.food-cost", 16);
+        yaml.set("immigration.wait-seconds", 1);
+        assertThrows(IllegalArgumentException.class, () -> new BlockLordsConfig(yaml));
+    }
 }

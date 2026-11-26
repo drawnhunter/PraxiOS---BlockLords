@@ -92,8 +92,9 @@ public final class VillageScanner {
                         .filter(entity -> entity instanceof Villager)
                         .filter(entity -> village.region().contains(world.getUID(), entity.getLocation().getX(), entity.getLocation().getZ()))
                         .count();
-                tasks.scan(() -> countBeds(snapshots, world.getMinHeight(), world.getMaxHeight(), village.region()), bedCount -> {
-                    VillageStats stats = new VillageStats(villagers, bedCount, loaded[0], positions.size(), System.currentTimeMillis());
+                tasks.scan(() -> countBeds(snapshots, world.getMinHeight(), world.getMaxHeight(), village.region()), bedScan -> {
+                    VillageStats stats = new VillageStats(villagers, bedScan.count(), loaded[0], positions.size(),
+                            System.currentTimeMillis(), bedScan.locations());
                     cache.put(village.id(), stats);
                     List<Consumer<VillageStats>> done = callbacks.remove(village.id());
                     if (done != null) {
@@ -118,8 +119,9 @@ public final class VillageScanner {
                 + " geladene Chunks" + (stats.complete() ? "." : " (Ergebnis unvollständig).")));
     }
 
-    private int countBeds(List<SnapshotWithPosition> snapshots, int minHeight, int maxHeight, ClaimRegion region) {
-        int bedBlocks = 0;
+    private BedScan countBeds(List<SnapshotWithPosition> snapshots, int minHeight, int maxHeight, ClaimRegion region) {
+        int count = 0;
+        List<eu.praxios.blocklords.model.BlockLink> locations = new ArrayList<>();
         for (SnapshotWithPosition entry : snapshots) {
             ChunkSnapshot snapshot = entry.snapshot();
             for (int x = 0; x < 16; x++) {
@@ -128,15 +130,15 @@ public final class VillageScanner {
                     int worldZ = entry.position().z() * 16 + z;
                     if (!region.contains(region.world(), worldX, worldZ)) continue;
                     for (int y = minHeight; y < maxHeight; y++) {
-                        Material material = snapshot.getBlockType(x, y, z);
-                        if (Tag.BEDS.isTagged(material)) {
-                            bedBlocks++;
+                        if (Tag.BEDS.isTagged(snapshot.getBlockType(x, y, z))) {
+                            locations.add(new eu.praxios.blocklords.model.BlockLink(region.world(), worldX, y, worldZ));
+                            count++;
                         }
                     }
                 }
             }
         }
-        return bedBlocks / 2;
+        return new BedScan(count / 2, locations);
     }
 
     private List<ChunkPosition> chunkPositions(Village village) {
@@ -157,6 +159,9 @@ public final class VillageScanner {
         running.values().forEach(BukkitRunnable::cancel);
         running.clear();
         callbacks.clear();
+    }
+
+    private record BedScan(int count, List<eu.praxios.blocklords.model.BlockLink> locations) {
     }
 
     private record ChunkPosition(int x, int z) {

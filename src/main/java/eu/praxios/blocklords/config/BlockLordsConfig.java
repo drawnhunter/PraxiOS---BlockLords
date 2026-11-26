@@ -42,6 +42,12 @@ public final class BlockLordsConfig {
     private final int missionVillageOffers;
     private final long missionOfferRefreshMillis;
     private final List<MissionDefinition> missionDefinitions;
+    private final long immigrationWaitMillis;
+    private final long immigrationRetryMillis;
+    private final int immigrationFoodCost;
+    private final int immigrationFirstXp;
+    private final int immigrationRepeatXp;
+    private final long immigrationCheckTicks;
     private final String logLevel;
     private final long actionTimeoutTicks;
     private final boolean debug;
@@ -96,6 +102,12 @@ public final class BlockLordsConfig {
             definitions.add(new MissionDefinition(type, target, xp));
         }
         missionDefinitions = List.copyOf(definitions);
+        immigrationWaitMillis = positiveOrDefault(config, "immigration.wait-seconds", 30, 86_400, 300) * 1000L;
+        immigrationRetryMillis = positiveOrDefault(config, "immigration.retry-seconds", 10, 86_400, 60) * 1000L;
+        immigrationFoodCost = positiveOrDefault(config, "immigration.food-cost", 1, 100_000, 16);
+        immigrationFirstXp = positiveOrDefault(config, "immigration.first-xp", 0, 100_000, 30);
+        immigrationRepeatXp = positiveOrDefault(config, "immigration.repeat-xp", 0, 100_000, 5);
+        immigrationCheckTicks = positiveOrDefault(config, "immigration.check-ticks", 20, 72_000, 100);
         logLevel = config.getString("logging.level", "INFO").toUpperCase(java.util.Locale.ROOT);
         if (!logLevel.equals("INFO") && !logLevel.equals("DEBUG")) {
             throw new IllegalArgumentException("logging.level muss INFO oder DEBUG sein.");
@@ -174,6 +186,12 @@ public final class BlockLordsConfig {
     public int missionVillageOffers() { return missionVillageOffers; }
     public long missionOfferRefreshMillis() { return missionOfferRefreshMillis; }
     public List<MissionDefinition> missionDefinitions() { return missionDefinitions; }
+    public long immigrationWaitMillis() { return immigrationWaitMillis; }
+    public long immigrationRetryMillis() { return immigrationRetryMillis; }
+    public int immigrationFoodCost() { return immigrationFoodCost; }
+    public int immigrationFirstXp() { return immigrationFirstXp; }
+    public int immigrationRepeatXp() { return immigrationRepeatXp; }
+    public long immigrationCheckTicks() { return immigrationCheckTicks; }
     public String logLevel() { return logLevel; }
     public long actionTimeoutTicks() { return actionTimeoutTicks; }
     public boolean debug() { return debug; }

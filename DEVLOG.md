@@ -422,4 +422,25 @@
 - GitHub-CI `45832855800` erfolgreich; Release `v0.2.8-alpha.2`, Download und Produktiv-JAR hashgeprüft.
 - alpha.1-JAR, Config und konsistenter Pre-Migration-Snapshot mit Integrität `ok`, zwei Dörfern und Schema V7 gesichert. Post-Migration-Snapshot bestätigt ebenfalls Integrität `ok`, zwei Dörfer und Schema V7.
 - Auf Paper 26.3/Java 25 ist ausschließlich BlockLords 0.2.8-alpha.2 aktiv; beide Dörfer bleiben erhalten, Silberbrück ist nach den Missions-XP Level 3, Nebelbrück Level 2. TPS etwa 20, kein BlockLords-Fehler im finalen Startlog.
-- Aktuell ist niemand online. Alexander prüft in **Bus #234** noch Aktiv-Glint/-Text, normales Stack-Teilen im eigenen Inventar und Shift-Einlagerung. Die visuelle UX-Abnahme bleibt bis zu seiner Bestätigung offen.
+- Alexander hat den UX-Hotfix anschließend mit **„Stark! Anpassungen sind da!“** bestätigt: Aktiv-Glint/-Text und die normale Inventarbedienung im Lager sind live abgenommen. **Bus #234 ist geschlossen.** Der nächste Phase-2-Schritt ist 0.2.9 mit Einwanderung und Produktionsbilanz.
+
+
+## 2026-11-26 — 0.2.9-alpha.1, Einwanderung und Produktionsbilanz
+
+### Implementiert
+
+- **Einwanderung ab Level 2:** Freies physisches Bett, 16 Nahrung und freier Arbeitsplatz werden vor Ankunft und erneut vor Aufnahme geprüft. Der sichtbare Wartezyklus bleibt persistent. Erwachsener Wanderer an sicherem Glockenplatz, ohne Änderung von Spielerblöcken oder Abhängigkeit vom NPC-Pathfinding.
+- **Bewusste Entscheidung:** `/bl immigration` und gemeinsame Java-/Bedrock-Menüs zeigen Wartezeit, fehlende Gründe und Kandidaten. Landherr/Gefolgsmann kann aufnehmen oder ablehnen; Ablehnung entfernt ohne Töten und ohne Kosten.
+- **Atomare Aufnahme:** Nahrungkosten, Kandidatenstatus, bestätigter Bewohner mit Bett-POI und XP werden in einer SQLite-Transaktion gebucht. Doppelklick, Retry und Reload erzeugen keine Duplikate oder Zusatzkosten. Erste Aufnahme +30, weitere +5 Dorf-XP.
+- **Persistente Lebenszyklen:** Wartezeit, Kandidaten-UUID, Entscheidung und Retry bleiben nach Neustart erhalten. Nachweislicher Tod wird von ungeladenen Chunks unterschieden und erzeugt weder Kosten noch einen zweiten gleichzeitigen Kandidaten.
+- **Bewohneridentitäten:** Eindeutiger Name/#Nummer, Bett und Glocken-Meeting-Point. Bewohnernummern werden in derselben Transaktion aus dem Dorfmaximum +1 vergeben; Register und Identity-Allocator werden nach Aufnahme aktualisiert, sodass normale spätere Villager die nächste freie Nummer erhalten.
+- **Produktionsbilanz:** `/bl production` zeigt echte geplante und akzeptierte Erträge je Ressource, Nahrungsverbrauch, Arbeiterzahlen, Bestand/Limit und Pausengründe. Alte Textberichte bleiben als Fallback erhalten.
+- **Zeitgrenzen:** Offline-Gutschrift nur innerhalb von vier Stunden mit 50 %, danach keine weiteren Erträge. `RESTING`/`REVIEW` stoppt Produktion und Einwanderung ohne Ruhe-Nachberechnung.
+- **Kapazität nach Verbrauch:** Nahrungsverbrauch wird vor der Prüfung neuer Nahrung auf das Lagerlimit berücksichtigt; volle Ressourcen pausieren nur ihre eigene Produktionslinie.
+- **Migration V8:** Einwanderungszustände, Kandidaten und strukturierte Produktionsberichte. Keine Alt-Kandidaten, Alt-XP oder erfundenen historischen Bilanzen.
+
+### Verifikation
+
+- Einzelne Testläufe ergeben **86 bestandene Tests ohne Fehler oder Überspringungen**, darunter V7→V8-Migration, atomare Aufnahme, Tod/Retry, Identitätsvergabe #1→#2, Offline-Grenze, Ruhezustand und volle Ressourcen.
+- Finaler Java-21-Clean-Build erfolgreich in 13m 27s: **86 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. JAR-SHA256: `6d38b077a18d14062945c32b5ee1a9aa5f6c65e1438eb0d93bc347aec6085cb2`.
+- Der echte Paper-Lauf mit V8 wird gesondert protokolliert. Produktivdeployment und visuelle Abnahme folgen erst danach.

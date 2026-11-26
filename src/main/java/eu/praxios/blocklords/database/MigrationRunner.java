@@ -22,7 +22,8 @@ public final class MigrationRunner {
             "V4__placement_sessions.sql",
             "V5__resident_names.sql",
             "V6__resident_loss_and_chest_locations.sql",
-            "V7__missions.sql");
+            "V7__missions.sql",
+            "V8__immigration_and_production_reports.sql");
     private final Database database;
     private final Logger logger;
 
