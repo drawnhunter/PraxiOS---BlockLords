@@ -1,0 +1,14 @@
+2026-11-26 | Produktivdeployment BlockLords 0.2.8-alpha.1 auf OnePlus/Termux, Paper 26.3, Java 25.0.5.1
+Release-Commit: c686d3177ecad19f374e3b2d0984417cdab7f9e8
+CI: 45821784009 = success
+Release-/Download-/Remote-SHA256: 043f1328f61fb9c77aaae31b97709099c329670cf843dd4d75f74df343562220
+Rollback: alpha.5-JAR, Config und DB unter ~/mcserver/backups/blocklords-v028-20261126/ sowie alpha.5.jar.bak-20261126-v028
+Pre-Migration-Snapshot: manual-v028-predeploy-verified.db | Integrität ok | 2 Dörfer | Schema V6
+Post-Migration-Snapshot: postdeploy-v028-verified.db | Integrität ok | 2 Dörfer | Schema V7
+Startlog: V7__missions.sql migriert; alpha.5 zunächst doppelt erkannt, hashgeprüft in Backup-Namen verschoben und erneut gestartet
+Finales Pluginloading: ausschließlich BlockLords 0.2.8-alpha.1, keine BlockLords-Ambiguous-/Startfehler
+`bl admin list`: #1 Silberbrück Level 2 ACTIVE, #2 Nebelbrück Level 2 ACTIVE
+TPS: 20,0 / 20,0 / 20,0
+`bl missions`: Befehl registriert und verlangt korrekt einen Spieler
+Aktuell niemand online: visuelle Missions-/Bedrock-/Belohnungsabnahme durch Alexander in Bus #233 weiterhin offen
+Ergebnis: technisches Deployment bestanden; spielerische Abnahme nicht vorgetäuscht

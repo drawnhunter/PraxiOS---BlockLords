@@ -391,7 +391,9 @@
 - Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: V7 aktiv, Missionsbefehl registriert, Selftest RATHAUS mit `PASTE-00a04a1b` und **99 Blöcken** erfolgreich. Nach mehr als 27 Sekunden kein `LATE_FAILURE`/`LATE_SUCCESS`; BlockLords und FAWE sauber beendet.
 - Abnahmekriterien und Laufprotokolle liegen in `verifier/v7/` und `verifier/runs/`.
 
-### Offene Live-Abnahme
+### Produktivdeployment und offene Live-Abnahme
 
-- Produktivdeployment mit alpha.5-JAR-, Config- und DB-Backup, Remote-SHA und Versions-/Migrationsprüfung.
-- Alexander prüft Missionsmenü, Teilfortschritt, echte und wiederholte XP, Baustellenhilfe, Dorfmission, kostenloses Ersetzen, Pinnen und Bedrock-Formulare. Ohne tatsächlichen Spielertest bleibt die visuelle Abnahme offen.
+- GitHub-CI `45821784009` erfolgreich; Release `v0.2.8-alpha.1` und öffentlicher Download hashgeprüft.
+- alpha.5-JAR, Config und SQLite gesichert; konsistenter Pre-Migration-Snapshot mit Integrität `ok`, zwei Dörfern und Schema V6. Nach dem Deployment bestätigt ein weiterer Snapshot Integrität `ok`, zwei Dörfer und Schema V7.
+- Auf Paper 26.3/Java 25 ist ausschließlich BlockLords 0.2.8-alpha.1 aktiv; die zunächst doppelt erkannte alpha.5-JAR wurde hashgeprüft in den Backup-Namen verschoben und der Server erneut sauber gestartet. Beide Dörfer bleiben Level 2 und aktiv, TPS 20,0/20,0/20,0, kein BlockLords-Fehler im finalen Startlog.
+- Aktuell war niemand online. Alexander prüft in **Bus #233** Missionsmenü, Teilfortschritt, echte und wiederholte XP, Baustellenhilfe, Dorfmission, kostenloses Ersetzen, Pinnen und Bedrock-Formulare. Die visuelle Abnahme bleibt bis zu seiner Bestätigung ausdrücklich offen.

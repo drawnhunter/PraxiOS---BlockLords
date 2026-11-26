@@ -4,17 +4,17 @@
 **Von:** BLWB / Kimi, fortgeschrieben von Brix
 **Für:** Kimi Code (Brix), Alexander
 **Repo:** https://github.com/drawnhunter/PraxiOS---BlockLords
-**Aktueller Produktstand:** **0.2.7-alpha.5**
-**Release-Commit:** `dd38b4a259394bbd208b5f50c389845dcb50101d`
-**JAR-SHA256:** `c53af908faaeb6e1e8ca7ba5aa0ea195654572362914419f86e7682cb28986d0`
-**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.7-alpha.5.jar
-**Entwicklungsziel:** **0.2.8-alpha.1**, Missionen und nächste Schritte
+**Aktueller Produktstand:** **0.2.8-alpha.1**
+**Release-Commit:** `c686d3177ecad19f374e3b2d0984417cdab7f9e8`
+**JAR-SHA256:** `043f1328f61fb9c77aaae31b97709099c329670cf843dd4d75f74df343562220`
+**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.8-alpha.1.jar
+**Abnahme:** Technisch produktiv bestätigt; visuelle Missionsabnahme durch Alexander in Bus #233 offen
 
 ## 1. Zweck und Prioritäten
 
 BlockLords ist ein kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfplugin für den PraxiOS-Familien-SMP. Das Ziel ist kein generisches Claim-Plugin, sondern ein nachvollziehbares Dorfleben: Spieler gründen Dörfer, bauen gemeinsam, registrieren Bewohner, weisen Berufe zu und entwickeln später freiwillige Wettkämpfe und Diplomatie. Die wichtigste aktuelle Arbeitsregel lautet: **Bestehende Live-Fehler zuerst, neue Systeme erst nach stabiler Abnahme.** Alexander entscheidet über Spielregeln, Prioritäten und Go/No-Go. Brix entwickelt, testet, veröffentlicht, deployed und wertet die Konsole aus; Alexander übernimmt die spielerische Abnahme. Axon ist für diese Arbeit nicht mehr erforderlich.
 
-Die Fassung 0.2.7-alpha.5 ist produktiv und von Alexander live abgenommen. In 0.2.8-alpha.1 entstehen persönliche und gemeinsame Missionen mit echtem Fortschritt, einmaliger Dorf-XP und Crossplay-Menüs. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
+Die Fassung 0.2.8-alpha.1 enthält persönliche und gemeinsame Missionen mit echtem Fortschritt, einmaliger Dorf-XP und Crossplay-Menüs. V7 ist produktiv migriert, beide Dörfer bleiben erhalten und nur die neue JAR wird geladen. Die spielerische Bestätigung der neuen Missionsmenüs und Belohnungen steht noch aus. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
 
 ## 2. Verbindliche Designentscheidungen
 
@@ -51,8 +51,9 @@ Die Herrschaftskampfregel ist bewusst nicht implementiert und darf nicht versehe
 | **0.2.7-alpha.3** | Kistenschutz, Innenpositionen, Arbeiterlimit und Dorfinfos | `6a063e0` |
 | **0.2.7-alpha.4** | Direkte Lagerbedienung, korrekte Lagermeldungen, Bettscan und Arbeiterdetail | `7c6a006` |
 | **0.2.7-alpha.5** | Lagerkapazität pro Ressource, live abgenommen | `dd38b4a` |
+| **0.2.8-alpha.1** | Persönliche und gemeinsame Missionen, Erst-XP, Pinnen und V7 | `c686d31` |
 
-Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload direkt unter `dist/` bereit. Für den aktuellen Produktivstand ist `dist/BlockLords-0.2.7-alpha.5.jar` maßgeblich. Nach Freigabe wird dieser Verweis auf `dist/BlockLords-0.2.8-alpha.1.jar` aktualisiert. Ältere Release-Assets können vorhanden sein, aber der direkte Repo-Download ist der zuverlässigere Testweg, wenn der Upload-Endpunkt wieder Netzwerkprobleme zeigt.
+Zusätzliche Artefakt-Commits stellen JARs bei blockiertem Release-Asset-Upload direkt unter `dist/` bereit. Für den aktuellen Produktivstand ist `dist/BlockLords-0.2.8-alpha.1.jar` maßgeblich. Ältere Release-Assets können vorhanden sein, aber der direkte Repo-Download ist der zuverlässigere Testweg, wenn der Upload-Endpunkt wieder Netzwerkprobleme zeigt.
 
 ## 4. Aktuelle Architektur
 
@@ -221,7 +222,7 @@ Brix deployt mit JAR-, Config- und DB-Backup, prüft Version, Migration, Dörfer
 5. Mission kostenlos ersetzen, Warnung bei Fortschritt bestätigen und Ressourcenerhalt prüfen.
 6. Persönliche Mission anpinnen, neu einloggen und Server neu starten: Fortschritt und Erst-XP bleiben ohne Doppelung erhalten.
 
-#230 ist abgeschlossen und bleibt historisch. Für 0.2.8 wird ein neues Bus-Thema mit Release-Nachweis und Abnahmecheckliste geführt; es bleibt bis Alexanders spielerischer Bestätigung offen.
+#230 ist abgeschlossen und bleibt historisch. **Bus #233** führt Release-Nachweis, Produktivdeployment und die aktuelle Missions-Abnahmecheckliste; es bleibt bis Alexanders spielerischer Bestätigung offen.
 
 ## 10. Rollen- und Sicherheitsregeln
 

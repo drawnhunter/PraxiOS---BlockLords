@@ -1,0 +1,8 @@
+2026-11-26 | Commit: c686d3177ecad19f374e3b2d0984417cdab7f9e8
+GitHub-CI: Run 45821784009, status completed, conclusion success
+CI-URL: https://github.com/drawnhunter/PraxiOS---BlockLords/actions/runs/45821784009
+Release: https://github.com/drawnhunter/PraxiOS---BlockLords/releases/tag/v0.2.8-alpha.1 (Prerelease)
+Release-JAR: dist/BlockLords-0.2.8-alpha.1.jar
+SHA256: 043f1328f61fb9c77aaae31b97709099c329670cf843dd4d75f74df343562220
+Öffentlicher Download aus master/dist: heruntergeladen und SHA256-identisch mit Clean-Build und dist-JAR
+Ergebnis: bestanden
