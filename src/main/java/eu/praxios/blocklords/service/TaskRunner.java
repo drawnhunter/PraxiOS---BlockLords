@@ -31,6 +31,11 @@ public final class TaskRunner implements AutoCloseable {
         plugin.getServer().getScheduler().runTask(plugin, action);
     }
 
+    public void syncLater(Runnable action, long delayTicks) {
+        if (!plugin.isEnabled()) return;
+        plugin.getServer().getScheduler().runTaskLater(plugin, action, delayTicks);
+    }
+
     public <T> void database(Callable<T> action, Consumer<T> success, Consumer<Throwable> failure) {
         databaseExecutor.execute(() -> {
             try {

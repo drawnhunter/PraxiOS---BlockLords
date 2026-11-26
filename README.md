@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.7-alpha.3 (Phase 2)
+## Aktueller Stand: 0.2.7-alpha.4 (Phase 2)
 
 Enthalten:
 
@@ -29,6 +29,14 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.7-alpha.4 (Lager und Dorfinfos)
+
+- **Korrekte Lagermeldungen:** Voller Vorrat und leere Entnahme melden Fehler mit Lösung statt Erfolg `0`; alle Items werden erstattet.
+- **Direkte Lagerbedienung:** Links 64 einlagern, rechts 64 entnehmen; eigene Items per Linksklick als Stack oder Rechtsklick einzeln einlagern.
+- **Sichtbarer Bestand:** Ressourcenname, Bestand und beide Klickaktionen im Itemtext; Ansicht aktualisiert sich nach der Transaktion.
+- **Bettscan:** Fehlende Vermessung zeigt „Vermessung läuft …“ und aktualisiert die Dorfinfos automatisch mit der echten Zahl.
+- **Arbeiterverwaltung:** Arbeiter-Items öffnen wieder das Bewohnerdetail statt sofort die Zuweisung zu lösen; Baustellenkiste „Schließen“ schließt nur das Fenster.
 
 ### Neuerungen in 0.2.7-alpha.3 (Schutz, Dorfinfos und Arbeiterlimit)
 
@@ -139,8 +147,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.7-alpha.3.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.7-alpha.3-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.7-alpha.4.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.7-alpha.4-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -150,7 +158,7 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.7-alpha.3.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.7-alpha.4.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
 3. Log prüfen: `BlockLords 0.2.7-alpha.3 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.

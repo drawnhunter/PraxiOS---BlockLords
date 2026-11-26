@@ -26,3 +26,9 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Datei: `verifier/v4/acceptance.md`
 - Zweck: Kistenschutz und bewusster Abbruch, Kiste innen, Komposter-/Job-Site-Position, Arbeiterlimit und Dorfinfos/XP.
 - Prüfungen: Schutz und Itemrückgabe, Rotation, Arbeiterlimit, alte Config ohne Limit, vollständiger Build und Paper-/FAWE-Lauf.
+
+## v5 — 2026-11-26
+
+- Datei: `verifier/v5/acceptance.md`
+- Zweck: Lagerlogik und direkte Lagerbedienung, Bettscan, Arbeiterdetail und Kisten-Zurück.
+- Prüfungen: voller/leerer/normaler Lagerpfad, Links-/Rechtsklick-Mapping, vollständiger Build und Paper-/FAWE-Lauf.

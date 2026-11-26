@@ -330,3 +330,22 @@
 - JAR-SHA256: `4b80c3c96d95a2e5b9acb629e32d81d8ccc18092d31fe33f57f64d941a9dd4dc`.
 - Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: BlockLords 0.2.7-alpha.3 aktiviert; Selftest RATHAUS mit `PASTE-024a7dfa` und **99 Blöcken** erfolgreich.
 - Abnahmekriterien und Laufprotokolle liegen in `verifier/v4/` und `verifier/runs/`.
+
+
+## 2026-11-26 — 0.2.7-alpha.4, Lager und Dorfinfos
+
+### Implementiert
+
+- **Lagermeldungen:** Voller Vorrat und leere Entnahme melden Fehler mit Lösung statt Erfolg `0`; betroffene Items werden vollständig erstattet.
+- **Direkte Lagerbedienung:** Ressourcen mit Links 64 einlagern und Rechts 64 entnehmen. Eigene Items mit Links als Stack oder Rechts einzeln einlagern. Bestand und beide Aktionen stehen im Itemtext; nur die geöffnete Vorratsansicht wird nach der Transaktion aktualisiert.
+- **Bettscan:** Fehlende oder alte Vermessung zeigt „Vermessung läuft …“ und öffnet nach Abschluss automatisch die aktualisierte Dorfinfo mit echter Zahl statt `0`.
+- **Arbeiter und Baustelle:** Arbeiter-Items öffnen wieder das Bewohnerdetail statt sofort die Zuweisung zu lösen. „Schließen“ an der Baustellenkiste schließt nur das Fenster.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **52 Tests ohne Fehler, Fehlerfälle oder Überspringungen** erfolgreich.
+- `StorageServiceTest`: voller Vorrat erstattet und meldet Fehler, leere Entnahme meldet Fehler, normale Ein-/Auslagerung funktioniert.
+- `UiActionTest`: Standardaktion und getrennte Rechtsklick-Aktion funktionieren.
+- JAR-SHA256: `ab76d0b181bca16bd1199314f28687a214ed24c1550d3246815d542da59502a8`.
+- Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: BlockLords 0.2.7-alpha.4 aktiviert; Selftest RATHAUS mit `PASTE-8f27b841` und **99 Blöcken** erfolgreich.
+- Abnahmekriterien und Laufprotokolle liegen in `verifier/v5/` und `verifier/runs/`.

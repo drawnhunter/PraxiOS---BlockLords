@@ -177,9 +177,18 @@ public final class UiService {
                 () -> openWorkers(player, village), residents.confirmed(village.id()) + " bestätigt · "
                 + residents.unconfirmed(village.id()) + " unbestätigt"));
         long homeless = residents.living(village.id()).stream().filter(resident -> !resident.hasBed()).count();
-        long beds = scanner.fresh(village).map(stats -> (long) stats.beds()).orElse(0L);
+        if (scanner.fresh(village).isEmpty()) {
+            scanner.request(village, stats -> {
+                if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                        .serialize(player.getOpenInventory().title()).startsWith("Dorf Infos · ")) {
+                    openVillageInfo(player, village);
+                }
+            });
+        }
+        long beds = scanner.fresh(village).map(stats -> (long) stats.beds()).orElse(-1L);
+        String bedText = beds < 0 ? "Vermessung läuft …" : beds + " Betten";
         actions.add(UiAction.of(Material.RED_BED, "Betten & Obdachlose", () -> { },
-                beds + " Betten · " + homeless + " Bewohner ohne Bett"));
+                bedText + " · " + homeless + " Bewohner ohne Bett"));
         actions.add(UiAction.of(Material.CHEST, "Dorfvorrat", () -> openStorage(player, village), storage.summary(village.id())));
         for (BlueprintType type : BlueprintType.values()) {
             actions.add(UiAction.of(Material.OAK_PLANKS, type.displayName() + " · +" + type.xp() + " Dorf-XP",
@@ -192,15 +201,24 @@ public final class UiService {
 
     public void openStorage(Player player, Village village) {
         java.util.List<UiAction> actions = new java.util.ArrayList<>();
-        actions.add(UiAction.of(Material.HOPPER, "Alles einlagern", () -> storage.depositAll(player, village),
-                "Nimmt nur eindeutig zugeordnete Ressourcen aus deinem Inventar."));
+        actions.add(UiAction.of(Material.HOPPER, "Alles einlagern", () -> {
+            storage.depositAll(player, village);
+            refreshStorageView(player, village);
+        }, "Nimmt nur eindeutig zugeordnete Ressourcen aus deinem Inventar."));
         for (ResourceType resource : ResourceType.values()) {
             int balance = storage.balances(village.id()).getOrDefault(resource, 0);
-            actions.add(UiAction.of(resource.canonicalItem(), resource.displayName() + " · " + balance,
-                    () -> storage.withdraw(player, village, resource, 64), "64 abheben; Bestand und Kapazität werden geprüft."));
+            actions.add(UiAction.of(resource.canonicalItem(), resource.displayName() + " · Bestand: " + balance,
+                    () -> {
+                        storage.deposit(player, village, resource, 64);
+                        refreshStorageView(player, village);
+                    }, () -> {
+                        storage.withdraw(player, village, resource, 64);
+                        refreshStorageView(player, village);
+                    }, "Links: 64 einlagern · Rechts: 64 entnehmen",
+                    "Eigene Items: Links Stack · Rechts einzeln einlagern"));
         }
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
-        openActions(player, "Vorrat · " + village.name(), storage.summary(village.id()), actions);
+        openActions(player, "Vorrat · " + village.name(), storage.summary(village.id()), actions, "STORAGE");
     }
 
     public void openBuild(Player player, Village village) {
@@ -277,7 +295,7 @@ public final class UiService {
             player.closeInventory();
             construction.cancelSite(player, village, site.id());
         }, "Gibt das gesamte Kistenmaterial zurück und entfernt die Baustelle."));
-        actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openSites(player, village)));
+        actions.add(UiAction.of(Material.ARROW, "Schließen", player::closeInventory));
         int required = site.required().values().stream().mapToInt(Integer::intValue).sum();
         int supplied = site.contributed().values().stream().mapToInt(Integer::intValue).sum();
         openActions(player, "Baustelle #" + site.id(), site.type().displayName()
@@ -307,9 +325,15 @@ public final class UiService {
             actions.add(UiAction.of(Material.SKELETON_SKULL, "Verlorene · " + residents.dead(village.id()).size(),
                     () -> openDeadResidents(player, village), "Verlorene Bewohner anzeigen und entfernen."));
         }
-        workers.workers(village.id()).forEach(worker -> actions.add(UiAction.of(Material.NAME_TAG,
-                "Arbeiter #" + worker.id() + " entfernen", () -> workers.unassign(player, village, worker.id()),
-                worker.job() + " · Gebäude #" + worker.buildingId())));
+        workers.workers(village.id()).forEach(worker -> {
+            Resident resident = residents.living(village.id()).stream()
+                    .filter(candidate -> candidate.villager().equals(worker.villager())).findFirst().orElse(null);
+            if (resident != null) {
+                actions.add(UiAction.of(Material.NAME_TAG, resident.displayLabel() + " · Arbeiter",
+                        () -> openResident(player, village, resident),
+                        "Arbeiter #" + worker.id() + " · " + worker.job() + " · Gebäude #" + worker.buildingId()));
+            }
+        });
         actions.add(UiAction.of(Material.BELL, "Versammlung läuten", () -> residents.assemble(player, village),
                 "Bestätigt Anwesende und meldet neue sowie bettlose Bewohner."));
         actions.add(UiAction.of(Material.ARROW, "Zurück", () -> openVillage(player, village)));
@@ -423,12 +447,16 @@ public final class UiService {
     }
 
     public void openActions(Player player, String title, String content, java.util.List<UiAction> actions) {
+        openActions(player, title, content, actions, "GENERIC");
+    }
+
+    public void openActions(Player player, String title, String content, java.util.List<UiAction> actions, String menuId) {
         if (bedrockAvailable(player)) {
             bedrock.openActions(player, title, content, actions);
             return;
         }
         int size = Math.max(9, Math.min(54, ((actions.size() + 8) / 9) * 9));
-        ActionMenuHolder holder = new ActionMenuHolder(actions);
+        ActionMenuHolder holder = new ActionMenuHolder(actions, menuId);
         Inventory inventory = Bukkit.createInventory(holder, size, Component.text(title));
         holder.inventory(inventory);
         for (int index = 0; index < actions.size(); index++) {
@@ -440,6 +468,31 @@ public final class UiService {
             inventory.setItem(index, filler);
         }
         player.openInventory(inventory);
+    }
+
+    public void handleStorageItemClick(Player player, ItemStack clicked, boolean rightClick) {
+        if (clicked == null) return;
+        Village village = villages.at(player.getLocation()).orElse(null);
+        if (village == null) {
+            Msg.error(player, "Du befindest dich in keinem BlockLords-Dorf.");
+            return;
+        }
+        ResourceType resource = ResourceType.from(clicked.getType()).orElse(null);
+        if (resource == null) {
+            Msg.error(player, "Dieses Item kann nicht im Dorfvorrat eingelagert werden.");
+            return;
+        }
+        storage.deposit(player, village, resource, rightClick ? 1 : clicked.getAmount());
+        refreshStorageView(player, village);
+    }
+
+    private void refreshStorageView(Player player, Village village) {
+        tasks.syncLater(() -> {
+            if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                    .serialize(player.getOpenInventory().title()).startsWith("Vorrat · ")) {
+                openStorage(player, village);
+            }
+        }, 4L);
     }
 
     private String remaining(BuildSite site) {

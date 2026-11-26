@@ -1,0 +1,10 @@
+2026-11-26T08:30:00+01:00 | Kommando: `./gradlew clean build --no-daemon` mit Java 21.0.13.1 und IPv4 | Exit-Code: 0
+`git diff --check`: bestanden
+Tests: 52
+Failures: 0
+Errors: 0
+Skipped: 0
+Enthalten: voller/leerer/normaler Lagerpfad, Links-/Rechtsklick-Mapping, Kistenschutz, Dorfinfos und alle bisherigen Tests
+JAR: build/libs/BlockLords-0.2.7-alpha.4.jar
+SHA256: ab76d0b181bca16bd1199314f28687a214ed24c1550d3246815d542da59502a8
+Ergebnis: bestanden

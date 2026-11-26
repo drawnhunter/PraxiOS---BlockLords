@@ -92,6 +92,8 @@ Die Gründungsquest verlangt Bett, Nahrungsquelle und Arbeitsblock und gibt gena
 
 Nach Preview-Confirm entsteht eine echte Kiste im hinteren Innenraum des Bauplans `(2, 1, 3)`, außerhalb von Türweg, Betten und Arbeitsblöcken. Sie kann nicht versehentlich abgebaut, explodiert, verbrannt oder per Kolben verschoben werden; der bewusste Abbruch erfolgt über `/bl build cancel <ID>` oder das Baustellenmenü und gibt alle Items zurück. Rechtsklick öffnet das Auftragsmenü, Sneak + Rechtsklick das reale Inventar. Inventar- und Rathausvorratstransfers landen als echte Items in der Kiste; der reale Bestand wird ausschließlich im Hauptthread gelesen. `reconcileFromChest` leitet den Status aus diesen erfassten Zahlen ab. Beim Bau wird Material committet; normale Fehler geben es zurück, Timeouts lassen es sicher reserviert. FAWE überspringt die gespeicherte Kistenposition. Nach Abschluss bleibt die Kiste als Informations- und Restmaterialpunkt erhalten; ihre Koordinaten werden auch in das Gebäude übernommen.
 
+Der Dorfvorrat nutzt echte Items und klare Fehlermeldungen: voller Vorrat und leere Entnahme sind kein Erfolg `0`, sondern werden mit Lösung und vollständiger Erstattung gemeldet. Ressourcen: Linksklick 64 einlagern, Rechtsklick 64 entnehmen. Eigene Items: Linksklick Stack, Rechtsklick einzeln. Bestand und Aktionen stehen im Itemtext; die Ansicht wird nach der Transaktion aktualisiert. Dorfinfos starten bei fehlender/alter Vermessung einen Bettscan und zeigen danach die echte Zahl. Arbeiter-Items öffnen das Bewohnerdetail statt sofort die Zuweisung zu lösen; „Schließen“ an der Baustellenkiste schließt nur das Fenster.
+
 Die Startbaupläne umfassen Rathaus, Wohnhaus, Farm, Mine, Lagerhaus, Bibliothek, Schmiede und Wohnhaus II. Die Mine besitzt eine echte Schmiedetafel. Das Bauernhaus besitzt ein Bett und ein Feld außerhalb der Hütte. Türen besitzen genau eine `half=bottom` und eine `half=top`, Betten genau einen `part=foot` und einen `part=head`. Directional Blockdaten rotieren mit. Diese Regeln wurden nicht nur kompiliert, sondern per echtem Server-`execute if block` nachgewiesen.
 
 ### 5.3 Bewohner und Arbeit
@@ -201,8 +203,8 @@ Ergebnisse:
 
 ### Eigener Verifier
 
-- Aktuelle Kriterien: `verifier/v4/acceptance.md`; `verifier/v1/`, `verifier/v2/` und `verifier/v3/` bleiben als historische Abnahmen erhalten.
-- Build-/Testskript: `verifier/v4/check.sh`
+- Aktuelle Kriterien: `verifier/v5/acceptance.md`; `verifier/v1/` bis `verifier/v4/` bleiben als historische Abnahmen erhalten.
+- Build-/Testskript: `verifier/v5/check.sh`
 - Protokolle: `verifier/runs/`
 - Bei geänderten Kriterien eine neue Verifier-Version anlegen, alte Kriterien nicht überschreiben.
 

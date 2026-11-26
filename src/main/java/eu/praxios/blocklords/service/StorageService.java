@@ -86,6 +86,10 @@ public final class StorageService {
             return accepted;
         }, accepted -> {
             refundMissing(player, removed, accepted);
+            if (accepted.isEmpty()) {
+                Msg.error(player, "Der Dorfvorrat ist voll oder diese Items werden nicht akzeptiert. Entnimm zuerst Ressourcen.");
+                return;
+            }
             refresh(village.id());
             villagesActivity(village, player);
             int count = accepted.values().stream().mapToInt(Integer::intValue).sum();
@@ -104,6 +108,11 @@ public final class StorageService {
             return;
         }
         tasks.database(() -> repository.deposit(village.id(), player.getUniqueId(), resource, removed, capacity(village.id())), actual -> {
+            if (actual <= 0) {
+                give(player, resource, removed);
+                Msg.error(player, "Der Dorfvorrat ist voll. Entnimm zuerst Ressourcen.");
+                return;
+            }
             if (actual < removed) give(player, resource, removed - actual);
             refresh(village.id());
             villagesActivity(village, player);
@@ -117,6 +126,10 @@ public final class StorageService {
 
     public void withdraw(Player player, Village village, ResourceType resource, int amount) {
         tasks.database(() -> repository.withdraw(village.id(), player.getUniqueId(), resource, amount), actual -> {
+            if (actual <= 0) {
+                Msg.error(player, "Diese Ressource ist nicht im Dorfvorrat.");
+                return;
+            }
             if (actual > 0) give(player, resource, actual);
             refresh(village.id());
             villagesActivity(village, player);
