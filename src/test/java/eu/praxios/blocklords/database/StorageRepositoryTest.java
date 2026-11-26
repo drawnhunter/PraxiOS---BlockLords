@@ -39,8 +39,9 @@ class StorageRepositoryTest {
     @Test
     void depositStopsAtCapacityWithoutLoss() throws Exception {
         assertEquals(10, storage.deposit(village.id(), player, ResourceType.HOLZ, 20, 10));
-        assertEquals(0, storage.deposit(village.id(), player, ResourceType.STEIN, 5, 10));
+        assertEquals(5, storage.deposit(village.id(), player, ResourceType.STEIN, 5, 10));
         assertEquals(10, storage.balances(village.id()).get(ResourceType.HOLZ));
+        assertEquals(5, storage.balances(village.id()).get(ResourceType.STEIN));
         assertEquals(4, storage.withdraw(village.id(), player, ResourceType.HOLZ, 4));
         assertEquals(6, storage.balances(village.id()).get(ResourceType.HOLZ));
     }
@@ -55,11 +56,11 @@ class StorageRepositoryTest {
     }
 
     @Test
-    void productionNeverOverfillsStorage() throws Exception {
+    void productionUsesPerResourceCapacity() throws Exception {
         storage.deposit(village.id(), player, ResourceType.HOLZ, 8, 10);
         StorageRepository.ProductionResult result = storage.applyProduction(village.id(),
                 Map.of(ResourceType.WEIZEN, 5), 0, 10, 1L, "Test");
-        assertEquals(2, result.accepted().get(ResourceType.WEIZEN));
-        assertEquals(10, storage.balances(village.id()).values().stream().mapToInt(Integer::intValue).sum());
+        assertEquals(5, result.accepted().get(ResourceType.WEIZEN));
+        assertEquals(13, storage.balances(village.id()).values().stream().mapToInt(Integer::intValue).sum());
     }
 }

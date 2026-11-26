@@ -32,3 +32,9 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Datei: `verifier/v5/acceptance.md`
 - Zweck: Lagerlogik und direkte Lagerbedienung, Bettscan, Arbeiterdetail und Kisten-Zurück.
 - Prüfungen: voller/leerer/normaler Lagerpfad, Links-/Rechtsklick-Mapping, vollständiger Build und Paper-/FAWE-Lauf.
+
+## v6 — 2026-11-26
+
+- Datei: `verifier/v6/acceptance.md`
+- Zweck: Kapazität pro Ressource statt globalem Gesamtlimit.
+- Prüfungen: getrennte Einlagerungs-/Produktionskapazitäten, voller/leerer/normaler Lagerpfad, vollständiger Build und Paper-/FAWE-Lauf.

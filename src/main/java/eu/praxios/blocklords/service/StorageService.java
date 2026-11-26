@@ -64,7 +64,8 @@ public final class StorageService {
     }
 
     public String summary(long villageId) {
-        StringBuilder text = new StringBuilder("Vorrat ").append(total(villageId)).append('/').append(capacity(villageId)).append(": ");
+        StringBuilder text = new StringBuilder("Vorrat ").append(total(villageId))
+                .append(" · Limit ").append(capacity(villageId)).append(" pro Ressource: ");
         for (ResourceType resource : ResourceType.values()) {
             text.append(resource.displayName()).append(' ').append(balances(villageId).getOrDefault(resource, 0)).append(" · ");
         }

@@ -349,3 +349,22 @@
 - JAR-SHA256: `ab76d0b181bca16bd1199314f28687a214ed24c1550d3246815d542da59502a8`.
 - Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: BlockLords 0.2.7-alpha.4 aktiviert; Selftest RATHAUS mit `PASTE-8f27b841` und **99 Blöcken** erfolgreich.
 - Abnahmekriterien und Laufprotokolle liegen in `verifier/v5/` und `verifier/runs/`.
+
+
+## 2026-11-26 — 0.2.7-alpha.5, Kapazität pro Ressource
+
+### Implementiert
+
+- **Limit pro Ressource:** `deposit` berechnet freien Platz aus dem Bestand derselben Ressource statt aus dem Gesamtbestand aller Ressourcen.
+- **Produktion:** `applyProduction` begrenzt jede produzierte Ressource separat; Nahrungspflege beeinflusst keine fremden Kapazitäten.
+- **Anzeige:** Der Vorrat erklärt das Limit ausdrücklich als „Limit pro Ressource“, während der Gesamtbestand nur Information bleibt.
+- Volle Ressourcen blockieren andere Ressourcen nicht; Partial-Refunds, Audit und bestehende Bestände bleiben erhalten.
+
+### Verifiziert
+
+- Java-21-Clean-Build und **52 Tests ohne Fehler, Fehlerfälle oder Überspringungen** erfolgreich.
+- `StorageRepositoryTest`: getrennte Einlagerungs- und Produktionskapazitäten, volle Ressource A blockiert Ressource B nicht.
+- Voller/leerer/normaler Lagerpfad und Links-/Rechtsklick-Mapping bleiben bestehen.
+- JAR-SHA256: `c53af908faaeb6e1e8ca7ba5aa0ea195654572362914419f86e7682cb28986d0`.
+- Echter Paper-1.21.11-Start mit Java 21 und FAWE 2.16.3: BlockLords 0.2.7-alpha.5 aktiviert; Selftest RATHAUS mit `PASTE-6f5e5311` und **99 Blöcken** erfolgreich.
+- Abnahmekriterien und Laufprotokolle liegen in `verifier/v6/` und `verifier/runs/`.

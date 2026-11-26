@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.7-alpha.4 (Phase 2)
+## Aktueller Stand: 0.2.7-alpha.5 (Phase 2)
 
 Enthalten:
 
@@ -29,6 +29,12 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter und Forschung.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Missionen und persönliche Parzellen sind der nächste Phase-2-Folgeschritt. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.7-alpha.5 (Kapazität pro Ressource)
+
+- **Limit pro Ressource:** Holz, Stein, Nahrung und jede andere Ressource haben ihr eigenes Lagerlimit statt eines gemeinsamen Gesamtlimits.
+- **Keine Blockade durch Masse:** Eine volle Ressource verhindert nicht mehr die Einlagerung anderer Ressourcen; Produktion und Partial-Refunds bleiben erhalten.
+- **Klare Anzeige:** Der Vorrat zeigt Gesamtbestand und erklärt das Limit ausdrücklich als „Limit pro Ressource“.
 
 ### Neuerungen in 0.2.7-alpha.4 (Lager und Dorfinfos)
 
@@ -147,8 +153,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.7-alpha.4.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.7-alpha.4-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.7-alpha.5.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.7-alpha.5-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -158,7 +164,7 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.7-alpha.4.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.7-alpha.5.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
 3. Log prüfen: `BlockLords 0.2.7-alpha.3 aktiviert: Phase 2 ...`.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.

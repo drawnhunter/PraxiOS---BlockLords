@@ -23,8 +23,7 @@ public final class StorageRepository {
 
     public int deposit(long villageId, UUID player, ResourceType resource, int amount, int capacity) throws Exception {
         return database.inTransaction(connection -> {
-            int total = balances(connection, villageId).values().stream().mapToInt(Integer::intValue).sum();
-            int actual = Math.max(0, Math.min(amount, capacity - total));
+            int actual = Math.max(0, Math.min(amount, capacity - balances(connection, villageId).getOrDefault(resource, 0)));
             if (actual <= 0) return 0;
             change(connection, villageId, resource, actual);
             transaction(connection, villageId, player, resource, actual, "DEPOSIT");
@@ -61,23 +60,21 @@ public final class StorageRepository {
                                             int foodConsumed, int capacity, long cycleAt, String report) throws Exception {
         return database.inTransaction(connection -> {
             Map<ResourceType, Integer> balances = balances(connection, villageId);
-            int total = balances.values().stream().mapToInt(Integer::intValue).sum();
             int actualFood = Math.min(foodConsumed, balances.getOrDefault(ResourceType.NAHRUNG, 0));
             if (actualFood > 0) {
                 change(connection, villageId, ResourceType.NAHRUNG, -actualFood);
-                total -= actualFood;
                 transaction(connection, villageId, null, ResourceType.NAHRUNG, -actualFood, "WORKER_UPKEEP");
                 totals(connection, villageId, ResourceType.NAHRUNG, 0, actualFood);
             }
             Map<ResourceType, Integer> accepted = new EnumMap<>(ResourceType.class);
             for (var entry : produced.entrySet()) {
-                int actual = Math.max(0, Math.min(entry.getValue(), capacity - total));
+                int actual = Math.max(0, Math.min(entry.getValue(),
+                        capacity - balances.getOrDefault(entry.getKey(), 0)));
                 if (actual <= 0) continue;
                 change(connection, villageId, entry.getKey(), actual);
                 transaction(connection, villageId, null, entry.getKey(), actual, "PRODUCTION");
                 totals(connection, villageId, entry.getKey(), actual, 0);
                 accepted.put(entry.getKey(), actual);
-                total += actual;
             }
             long now = System.currentTimeMillis();
             try (PreparedStatement statement = connection.prepareStatement(
