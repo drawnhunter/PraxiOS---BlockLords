@@ -4,7 +4,7 @@ Kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfsystem
 
 Die verbindliche Spiel- und Architekturentscheidung steht in [KONZEPT.md](KONZEPT.md) **v0.6**. Änderungen und der tatsächliche Verifizierungsstand stehen in [DEVLOG.md](DEVLOG.md).
 
-## Aktueller Stand: 0.2.9-alpha.1 (Phase 2)
+## Aktueller Stand: 0.2.9-alpha.2 (Phase 2)
 
 Enthalten:
 
@@ -32,6 +32,13 @@ Enthalten:
 - gemeinsame Aktionsmenüs für Lager, Baupläne, Baustellen, Arbeiter, Forschung, Missionen, Einwanderung und Produktion.
 
 **Bewusste Grenzen:** Mehr-Dorf-Claims bleiben vorerst gesperrt. Mitgliederverwaltung und persönliche Parzellen sind weitere Phase-2-Schritte. Militär, Diplomatie, reguläre Kriege und der bestätigte Herrschaftskampf folgen in Phasen 3–4.
+
+### Neuerungen in 0.2.9-alpha.2 (Retry- und Produktions-UX)
+
+- **Atomare Folgezustände:** Aufnahme, Ablehnung und Tod schreiben Kandidatenstatus und nächsten Wandererzyklus in derselben SQLite-Transaktion. Ein paralleler regulärer Prüflauf kann den 60-Sekunden-Retry nicht mehr auf 300 Sekunden verlängern.
+- **Lesbare Produktionsbilanz:** Geplante, eingelagerte und nicht eingelagerte Mengen sowie echter Lagerbestand werden getrennt erklärt. Nahrung zeigt zusätzlich die Netto-Veränderung aus Einlagerung und Verbrauch.
+- **Alte Berichte bleiben kompatibel:** Bestehende V8-Berichte werden ohne Migration mit eindeutigen Kapazitätsgründen dargestellt.
+- **Login-Bericht nachvollziehbar:** Derselbe Dorfbericht erscheint beim Spieler und als erkennbarer Plugin-Eintrag in der Konsole.
 
 ### Neuerungen in 0.2.9-alpha.1 (Einwanderung und Produktionsbilanz)
 
@@ -180,8 +187,8 @@ gradlew.bat build
 
 Ergebnisse in `build/libs/`:
 
-- `BlockLords-0.2.9-alpha.1.jar` — **deploybares Fat-JAR**, diese Datei verwenden
-- `BlockLords-0.2.9-alpha.1-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
+- `BlockLords-0.2.9-alpha.2.jar` — **deploybares Fat-JAR**, diese Datei verwenden
+- `BlockLords-0.2.9-alpha.2-thin.jar` — nur für Analyse/Entwicklung, enthält keinen SQLite-Treiber
 
 Tests ausführen:
 
@@ -191,9 +198,9 @@ Tests ausführen:
 
 ## Installation auf dem Testserver
 
-1. Release-JAR nach `plugins/BlockLords-0.2.9-alpha.1.jar` kopieren.
+1. Release-JAR nach `plugins/BlockLords-0.2.9-alpha.2.jar` kopieren.
 2. Server vollständig stoppen und wieder starten.
-3. Log prüfen: `BlockLords 0.2.9-alpha.1 aktiviert: Phase 2 ...` sowie die Migration `V8__immigration_and_production_reports.sql`.
+3. Log prüfen: `BlockLords 0.2.9-alpha.2 aktiviert: Phase 2 ...` sowie das vorhandene Schema V8.
 4. Daten und Migrationen liegen unter `plugins/BlockLords/`.
 5. Vor manuellen Eingriffen `/bl admin backup` ausführen. Backups liegen unter `plugins/BlockLords/backups/`.
 

@@ -35,21 +35,23 @@ public final class ImmigrationRepository {
     }
 
     public ImmigrationState state(long villageId, long nextArrivalAt, String reason) throws Exception {
-        return database.inTransaction(connection -> {
-            ImmigrationState previous = state(connection, villageId);
-            if (previous.nextArrivalAt() == nextArrivalAt && Objects.equals(previous.reason(), reason)) return previous;
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO immigration_state(village_id, next_arrival_at, reason, updated_at) VALUES (?, ?, ?, ?) "
-                            + "ON CONFLICT(village_id) DO UPDATE SET next_arrival_at=excluded.next_arrival_at, "
-                            + "reason=excluded.reason, updated_at=excluded.updated_at")) {
-                statement.setLong(1, villageId);
-                statement.setLong(2, nextArrivalAt);
-                statement.setString(3, reason);
-                statement.setLong(4, System.currentTimeMillis());
-                statement.executeUpdate();
-            }
-            return new ImmigrationState(villageId, nextArrivalAt, reason);
-        });
+        return database.inTransaction(connection -> state(connection, villageId, nextArrivalAt, reason));
+    }
+
+    private ImmigrationState state(Connection connection, long villageId, long nextArrivalAt, String reason) throws Exception {
+        ImmigrationState previous = state(connection, villageId);
+        if (previous.nextArrivalAt() == nextArrivalAt && Objects.equals(previous.reason(), reason)) return previous;
+        try (PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO immigration_state(village_id, next_arrival_at, reason, updated_at) VALUES (?, ?, ?, ?) "
+                        + "ON CONFLICT(village_id) DO UPDATE SET next_arrival_at=excluded.next_arrival_at, "
+                        + "reason=excluded.reason, updated_at=excluded.updated_at")) {
+            statement.setLong(1, villageId);
+            statement.setLong(2, nextArrivalAt);
+            statement.setString(3, reason);
+            statement.setLong(4, System.currentTimeMillis());
+            statement.executeUpdate();
+        }
+        return new ImmigrationState(villageId, nextArrivalAt, reason);
     }
 
     public ImmigrationCandidate createCandidate(long villageId, UUID villagerId, long now) throws Exception {
@@ -70,6 +72,7 @@ public final class ImmigrationRepository {
                     id = keys.getLong(1);
                 }
             }
+            state(connection, villageId, 0L, "Wanderer wartet an der Glocke auf Aufnahme");
             return new ImmigrationCandidate(id, villageId, villagerId, ImmigrationCandidate.Status.WAITING, now, 0L, 0);
         });
     }
@@ -78,15 +81,16 @@ public final class ImmigrationRepository {
         return database.read(connection -> waitingById(connection, villageId, candidateId));
     }
 
-    public Optional<ImmigrationCandidate> reject(long villageId, long candidateId, long now) throws Exception {
-        return completeWaiting(villageId, candidateId, ImmigrationCandidate.Status.REJECTED, now);
+    public Optional<ImmigrationCandidate> reject(long villageId, long candidateId, long now,
+                                                  long retryAt, String reason) throws Exception {
+        return completeWaiting(villageId, candidateId, ImmigrationCandidate.Status.REJECTED, now, retryAt, reason);
     }
 
     public Optional<ImmigrationCandidate> cancel(long villageId, long candidateId, long now) throws Exception {
-        return completeWaiting(villageId, candidateId, ImmigrationCandidate.Status.CANCELLED, now);
+        return completeWaiting(villageId, candidateId, ImmigrationCandidate.Status.CANCELLED, now, 0L, null);
     }
 
-    public Optional<ImmigrationCandidate> markLost(UUID villagerId, long now) throws Exception {
+    public Optional<ImmigrationCandidate> markLost(UUID villagerId, long now, long retryAt, String reason) throws Exception {
         return database.inTransaction(connection -> {
             Optional<ImmigrationCandidate> found = waitingByVillager(connection, villagerId);
             if (found.isEmpty()) return Optional.empty();
@@ -97,13 +101,14 @@ public final class ImmigrationRepository {
                 statement.setLong(2, candidate.id());
                 if (statement.executeUpdate() != 1) return Optional.empty();
             }
+            state(connection, candidate.villageId(), retryAt, reason);
             return Optional.of(new ImmigrationCandidate(candidate.id(), candidate.villageId(), candidate.villagerId(),
                     ImmigrationCandidate.Status.LOST, candidate.createdAt(), now, 0));
         });
     }
 
     public Acceptance accept(long villageId, long candidateId, Resident newcomer, int foodCost,
-                             int firstXp, int repeatXp, long now) throws Exception {
+                             int firstXp, int repeatXp, long now, long nextArrivalAt, String reason) throws Exception {
         return database.inTransaction(connection -> {
             ImmigrationCandidate candidate = waitingById(connection, villageId, candidateId)
                     .orElseThrow(() -> new IllegalArgumentException("Dieser Wanderer ist nicht mehr verfügbar."));
@@ -126,6 +131,7 @@ public final class ImmigrationRepository {
                     throw new IllegalStateException("Der Wanderer wurde bereits entschieden.");
                 }
             }
+            state(connection, villageId, nextArrivalAt, reason);
             ImmigrationCandidate accepted = new ImmigrationCandidate(candidateId, villageId, candidate.villagerId(),
                     ImmigrationCandidate.Status.ACCEPTED, candidate.createdAt(), now, xp);
             return new Acceptance(accepted, identified, updatedVillage);
@@ -181,7 +187,8 @@ public final class ImmigrationRepository {
     }
 
     private Optional<ImmigrationCandidate> completeWaiting(long villageId, long candidateId,
-                                                           ImmigrationCandidate.Status target, long now) throws Exception {
+                                                           ImmigrationCandidate.Status target, long now,
+                                                           long nextArrivalAt, String reason) throws Exception {
         return database.inTransaction(connection -> {
             Optional<ImmigrationCandidate> candidate = waitingById(connection, villageId, candidateId);
             if (candidate.isEmpty()) return Optional.empty();
@@ -192,6 +199,7 @@ public final class ImmigrationRepository {
                 statement.setLong(3, candidateId);
                 if (statement.executeUpdate() != 1) return Optional.empty();
             }
+            if (reason != null) state(connection, villageId, nextArrivalAt, reason);
             ImmigrationCandidate current = candidate.get();
             return Optional.of(new ImmigrationCandidate(candidateId, villageId, current.villagerId(), target,
                     current.createdAt(), now, 0));

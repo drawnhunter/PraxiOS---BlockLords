@@ -182,17 +182,30 @@ class ImmigrationServiceTest {
         await(() -> immigrationRepository.snapshot(village.id()).state().nextArrivalAt() > clock.get());
         clock.set(immigrationRepository.snapshot(village.id()).state().nextArrivalAt());
         immigration.runVillage(village);
-        await(() -> immigrationRepository.snapshot(village.id()).waiting().isPresent());
+        await(() -> world.getEntitiesByClass(Villager.class).size() == 1);
+        awaitDatabase(() -> immigrationRepository.snapshot(village.id()).waiting().isPresent());
         UUID newId = immigrationRepository.snapshot(village.id()).waiting().orElseThrow().villagerId();
         assertNotEquals(oldId, newId);
         assertEquals(1, world.getEntitiesByClass(Villager.class).size());
+        long retryAt = clock.get() + 60_000L;
         immigration.reject(player, village, immigrationRepository.snapshot(village.id()).waiting().orElseThrow().id(), () -> { });
         await(() -> immigrationRepository.snapshot(village.id()).waiting().isEmpty()
-                && world.getEntitiesByClass(Villager.class).isEmpty());
+                && world.getEntitiesByClass(Villager.class).isEmpty()
+                && immigrationRepository.snapshot(village.id()).state().nextArrivalAt() == retryAt,
+                () -> " · erwarteterRetry=" + retryAt + " · Snapshot=" + immigrationRepository.snapshot(village.id())
+                        + " · NPCs=" + world.getEntitiesByClass(Villager.class).stream()
+                        .map(entity -> entity.getUniqueId().toString()).toList());
         assertEquals(0, world.getEntitiesByClass(Villager.class).size(),
                 () -> "Verbleibende Wanderer: " + world.getEntitiesByClass(Villager.class).stream()
                         .map(entity -> entity.getUniqueId().toString()).toList() + " · alt=" + oldId + " · neu=" + newId);
         assertEquals(64, storageRepository.balances(village.id()).get(ResourceType.NAHRUNG));
+        assertTrue(immigrationRepository.snapshot(village.id()).state().reason().contains("abgelehnt"));
+
+        immigration.runVillage(village);
+        settleDatabase();
+        assertEquals(retryAt, immigrationRepository.snapshot(village.id()).state().nextArrivalAt());
+        assertTrue(immigrationRepository.snapshot(village.id()).state().reason().contains("abgelehnt"));
+        assertTrue(immigrationRepository.snapshot(village.id()).waiting().isEmpty());
     }
 
     @Test
@@ -219,16 +232,46 @@ class ImmigrationServiceTest {
         });
     }
 
+    private void settleDatabase() throws Exception {
+        for (int pass = 0; pass < 2; pass++) {
+            AtomicLong completed = new AtomicLong();
+            tasks.database(() -> null, ignored -> completed.set(1), error -> {
+                throw new AssertionError(error);
+            });
+            await(() -> completed.get() == 1);
+        }
+    }
+
+    private void awaitDatabase(CheckedCondition condition) throws Exception {
+        for (int attempt = 0; attempt < 200; attempt++) {
+            if (condition.getAsBoolean()) return;
+            Thread.sleep(25);
+        }
+        fail("Datenbankzustand wurde nicht erreicht · Snapshot=" + immigrationRepository.snapshot(village.id())
+                + " · NPCs=" + world.getEntitiesByClass(Villager.class).stream()
+                .map(entity -> entity.getUniqueId().toString()).toList());
+    }
+
     private void await(CheckedCondition condition) throws Exception {
+        await(condition, () -> " · Snapshot=" + immigrationRepository.snapshot(village.id())
+                + " · NPCs=" + world.getEntitiesByClass(Villager.class).stream()
+                .map(entity -> entity.getUniqueId().toString()).toList());
+    }
+
+    private void await(CheckedCondition condition, CheckedSupplier<String> details) throws Exception {
         for (int attempt = 0; attempt < 200; attempt++) {
             server.getScheduler().performTicks(1);
             if (condition.getAsBoolean()) return;
             Thread.sleep(25);
         }
-        fail("Asynchrone Einwanderungsaktion wurde nicht abgeschlossen");
+        fail("Asynchrone Einwanderungsaktion wurde nicht abgeschlossen" + details.get());
     }
 
     private interface CheckedCondition {
         boolean getAsBoolean() throws Exception;
+    }
+
+    private interface CheckedSupplier<T> {
+        T get() throws Exception;
     }
 }

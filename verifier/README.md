@@ -57,3 +57,9 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Zweck: Einwanderung mit persistenter Wartezeit und atomarer Aufnahme sowie strukturierte Produktionsbilanz.
 - Prüfungen: V7→V8-Upgrade, Bett-/Arbeitsplatzvoraussetzungen, Idempotenz, Tod/Retry, Identitätsvergabe, Offline-Grenze, Ruhezustand, Nahrungskapazität und Paper-/FAWE-Lauf.
 - Produktivnachweis: `verifier/runs/2026-11-26-v9-production.log`; konsistente Pre-/Post-Snapshots mit Integrität `ok`, zwei Dörfern und Schema V7→V8. Visuelle Abnahme in Bus #235 offen.
+
+## v10 — 2026-11-27
+
+- Datei: `verifier/v10/acceptance.md`
+- Zweck: Atomarer Retry nach Ablehnung/Tod, verständliche Produktionswerte inklusive Nahrungs-Netto und Konsolenspiegelung des Login-Berichts.
+- Prüfungen: Snapshot-Atomarität, regulärer Prüflauf während Retry, vollständige/teilweise/fehlende Einlagerung, alte V8-Pausentexte, Spieler-/Logger-Gleichheit, vollständiger Build und Paper-/FAWE-Lauf.

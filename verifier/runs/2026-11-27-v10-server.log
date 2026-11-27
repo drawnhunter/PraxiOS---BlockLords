@@ -1,0 +1,22 @@
+2026-11-27 — BlockLords 0.2.9-alpha.2 echter Paper-/FAWE-Lauf
+
+Build: Java 21, `./gradlew clean build --no-daemon`, BUILD SUCCESSFUL in 6m 58s
+Testsuite: 89 Tests, 0 Failures, 0 Errors, 0 Skipped; XML-Ergebnisse aus build/test-results/test/
+JAR-SHA256: 31969bdfc1c61d8efea89281aff2b9b3d30f2efd70023bc57f00d058d05b9d65
+build/libs und dist sind hashgleich; dieselbe Datei wurde als plugins/BlockLords.jar im separaten lokalen Testserver verwendet.
+
+Baseline: bestehender lokaler V8-Datenbankstand vor dem Start konsistent gesichert; `pre-v0292.db` mit Integrität `ok`, 0 Dörfern und Schema-Version 8.
+Server: Paper 1.21.11 Build 132, Java 21.0.13.1, FAWE 2.16.3+44adc13.
+Start: Plugin erfolgreich remapped; BlockLords 0.2.9-alpha.2 aktiviert, 0 Dörfer erwartungsgemäß. Weltstart auf diesem Laptop dauerte 393,547 s; kein Timeout oder Pluginfehler.
+
+Echte RCON-Aufrufe nach Serverbereitschaft:
+- `bl admin list` → „Noch keine Dörfer registriert.“
+- `bl immigration` → registriert; ohne Spieler verständlich abgelehnt.
+- `bl production` → registriert; ohne Spieler verständlich abgelehnt.
+- `bl admin selftest RATHAUS 0 120 0` → echter FAWE-Baupfad.
+- `tps` → 18,9/18,9/18,9 während des langsamen Starts.
+
+FAWE: PASTE-f036c769, CHUNK_CHECK 1/1, QUEUED 99 Blöcke, FLUSH_DONE, SUCCESS mit 99 Blöcken in 5830 ms bei Standard-Timeout 20 s.
+Nach SUCCESS mehr als 27 Sekunden gewartet: kein LATE_FAILURE_IGNORED und kein LATE_SUCCESS_IGNORED, kein neuer BlockLords-Fehler.
+Danach `bl immigration`, `bl production` und `bl admin list` separat erneut erfolgreich aufgerufen.
+Shutdown per RCON `stop`: BlockLords und FAWE deaktiviert, alle Dimensionen gespeichert, Java-Prozess Exitcode 0.

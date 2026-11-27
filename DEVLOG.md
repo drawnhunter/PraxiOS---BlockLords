@@ -451,3 +451,30 @@
 - alpha.2-JAR, Config und konsistente Pre-Migration-Snapshots gesichert; unmittelbar vor dem Wechsel Integrität `ok`, zwei Dörfer und Schema V7 bestätigt. Post-Migration-Snapshot `postdeploy-v029-verified.db` bestätigt Integrität `ok`, zwei Dörfer und Schema V8.
 - Auf Paper 26.3/Java 25 wird ausschließlich BlockLords 0.2.9-alpha.1 geladen; V8 migriert, beide Dörfer aktiv, Silberbrück Level 3 und Nebelbrück Level 2. `/bl immigration` und `/bl production` registriert, TPS 20,0/20,0/20,0 und keine BlockLords-Warnungen oder -Fehler im Startlog. Details liegen in `verifier/runs/2026-11-26-v9-production.log`.
 - Die visuelle Einwanderungs- und Produktionsabnahme durch Alexander steht noch aus und wird in **Bus #235** geführt.
+
+
+## 2026-11-27 — 0.2.9-alpha.2, Retry- und Produktions-UX
+
+### Live-Befund aus alpha.1
+
+- Der kontrollierte Neustart mit zwei wartenden Wanderern ist bestanden: Silberbrück #3 und Nebelbrück #2 behielten Kandidaten-ID und Entity-UUID; beide reale NPCs wurden nach dem Neustart per `data get entity` nachgewiesen. Pro Dorf wartet weiterhin höchstens ein Kandidat.
+- Die Ablehnung von Silberbrück #3 entfernte den NPC ohne Tod und ohne Kosten. Nahrung blieb 1728, Silberbrück blieb Level 4 mit 500 XP. Audit `b1a58090` bestätigt `IMMIGRATION_REJECTED`.
+- Der Livetest fand einen echten Retry-Fehler: Ein regulärer asynchroner `runVillage`-Zyklus überschrieb den 60-Sekunden-Retry rund acht Sekunden später mit `Wanderer erwartet` und rund 300 Sekunden. Ursache war der getrennte Schreibzugriff auf Kandidatenentscheidung und Folgezustand.
+- Screenshots aus `/bl production` zeigten außerdem eine echte UX-Schwäche: `308/768` bedeutet eingelagert/geplant, während `1728/1728` der tatsächliche Bestand ist. Der Pausentext `Lager voll (308/768)` vermischte diese Bedeutungen. Produktions- und Lagerlogik selbst bleiben unverändert.
+
+### Implementiert
+
+- **Atomare Lebenszyklen:** Registrierung, Ablehnung, Tod und Aufnahme schreiben Kandidatenstatus und Folgezustand nun jeweils in derselben SQLite-Transaktion. Kein später Ankunfts-Callback setzt eine bereits erfolgte Entscheidung mehr auf `nextArrivalAt = 0` zurück; die separaten nachträglichen `setState`-Aufrufe entfallen. Der Regressionstest erzwingt eine Ablehnung nach dem Kandidaten-Commit und vor einem möglichen alten Ankunfts-Callback.
+- **Verständliche Ressourcenwerte:** `/bl production` unterscheidet geplant, eingelagert, nicht eingelagert und echten Bestand/Limit. Vollständige, teilweise und fehlende Einlagerung werden korrekt bezeichnet.
+- **Eindeutige Kapazitätsgründe:** Neue Texte nennen die nicht eingelagerte Menge, beispielsweise `460 von 768 nicht eingelagert – Lager voll`. Auch alte strukturierte V8-Pausentexte werden bei der Anzeige aus den gespeicherten Zahlen korrekt abgeleitet; keine Migration und keine Änderung historischer Daten.
+- **Nahrungs-Netto:** Ein eigener Bilanzeintrag zeigt eingelagerte Nahrung, Arbeiterverbrauch und Netto-Veränderung mit Vorzeichen. Das Referenzbeispiel `308 - 192` ergibt `+116`.
+- **Konsolenspiegelung:** `sendJoinReport` sendet denselben Bericht an Spieler und Plugin-Log mit Spieler-/Dorfbezug. Keine zweite Produktionsberechnung; kein Log ohne Bericht oder nach einem Logout vor dem Callback.
+- Version **0.2.9-alpha.2**, weiterhin Schema V8 und dieselben Java-/Bedrock-Aktionsmenüs. Keine neuen Abhängigkeiten oder Spielregeländerungen.
+
+### Verifikation
+
+- Gezielte Einwanderungs-Repository-/Service-Tests erfolgreich, einschließlich atomarem Snapshot, Retry-Erhalt während `runVillage`, Kosten-, Tod-, Identitäts- und Rollback-Fällen.
+- Gezielte Produktionstests erfolgreich: vollständige/teilweise/fehlende Einlagerung und alter V8-Pausentext am tatsächlich geöffneten MockBukkit-Inventar; Nahrungsbilanz `+116`; identischer Spieler-/Konsolentext und kein Log ohne Bericht.
+- Vollständiger Java-21-Clean-Build erfolgreich in 6m 58s: **89 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. JAR-SHA256: `31969bdfc1c61d8efea89281aff2b9b3d30f2efd70023bc57f00d058d05b9d65`.
+- Echter Paper-1.21.11-/FAWE-2.16.3-Lauf mit bestehendem V8-Stand: alpha.2 aktiviert, `/bl immigration` und `/bl production` separat per RCON bestätigt. Selftest `PASTE-f036c769` mit **99 Blöcken in 5830 ms**, mehr als 27 Sekunden ohne späten Fehler und sauberer Shutdown mit Exitcode 0. Details in `verifier/runs/2026-11-27-v10-server.log`.
+- Release und Produktivdeployment folgen nach Commit und grüner CI; die visuelle Abnahme bleibt in #235 offen.

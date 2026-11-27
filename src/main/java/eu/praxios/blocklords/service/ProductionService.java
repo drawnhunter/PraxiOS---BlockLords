@@ -106,8 +106,9 @@ public final class ProductionService {
             List<ProductionReport.Entry> entries = new ArrayList<>();
             plan.produced().forEach((resource, planned) -> {
                 int accepted = result.accepted().getOrDefault(resource, 0);
-                entries.add(new ProductionReport.Entry(resource, planned, accepted));
-                if (accepted < planned) pauses.add(resource.displayName() + ": Lager voll (" + accepted + "/" + planned + ")");
+                ProductionReport.Entry entry = new ProductionReport.Entry(resource, planned, accepted);
+                entries.add(entry);
+                if (accepted < planned) pauses.add(capacityPause(entry));
             });
             reports.save(new ProductionReport(village.id(), now, now, active, plan.effectiveCycles(), farmers, miners,
                     result.foodConsumed(), pauses, entries));
@@ -127,12 +128,36 @@ public final class ProductionService {
 
     public void sendJoinReport(Player player, Village village) {
         report(village.id(), view -> {
-            if (view.current() != null) {
-                Msg.info(player, "Dorfbericht '" + village.name() + "': " + describe(view.current()));
-            } else if (view.legacyText() != null) {
-                Msg.info(player, "Dorfbericht '" + village.name() + "': " + view.legacyText());
-            }
+            if (!player.isOnline()) return;
+            String details;
+            if (view.current() != null) details = describe(view.current());
+            else if (view.legacyText() != null) details = view.legacyText();
+            else return;
+            String message = "Dorfbericht '" + village.name() + "': " + details;
+            Msg.info(player, message);
+            plugin.getLogger().info("DORFBERICHT | " + player.getName() + " | " + message);
         });
+    }
+
+    public List<String> pauseLines(ProductionReport report) {
+        List<String> lines = new ArrayList<>();
+        report.pauses().stream().filter(reason -> !isCapacityPause(reason)).forEach(lines::add);
+        report.resources().forEach(entry -> {
+            if (entry.accepted() < entry.planned()) lines.add(capacityPause(entry));
+        });
+        return lines;
+    }
+
+    private boolean isCapacityPause(String reason) {
+        for (ResourceType resource : ResourceType.values()) {
+            if (reason.startsWith(resource.displayName() + ":") && reason.contains("Lager voll")) return true;
+        }
+        return false;
+    }
+
+    private String capacityPause(ProductionReport.Entry entry) {
+        return entry.resource().displayName() + ": " + (entry.planned() - entry.accepted()) + " von " + entry.planned()
+                + " nicht eingelagert – Lager voll";
     }
 
     private void pause(Village village, long now, boolean active, int farmers, int miners, String reason) throws Exception {
@@ -147,8 +172,9 @@ public final class ProductionService {
         report.resources().forEach(entry -> text.append('+').append(entry.accepted()).append(' ')
                 .append(entry.resource().displayName()).append(", "));
         if (report.foodConsumed() > 0) text.append('-').append(report.foodConsumed()).append(" Nahrung, ");
-        if (!report.pauses().isEmpty()) text.append(String.join(", ", report.pauses())).append(", ");
-        if (report.resources().isEmpty() && report.pauses().isEmpty()) text.append("keine Produktion, ");
+        List<String> pauses = pauseLines(report);
+        if (!pauses.isEmpty()) text.append(String.join(", ", pauses)).append(", ");
+        if (report.resources().isEmpty() && pauses.isEmpty()) text.append("keine Produktion, ");
         return text.substring(0, text.length() - 2);
     }
 

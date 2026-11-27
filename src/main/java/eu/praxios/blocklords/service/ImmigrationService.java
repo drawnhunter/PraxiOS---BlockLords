@@ -123,11 +123,13 @@ public final class ImmigrationService {
                 Msg.error(player, "Das freie Bett wurde inzwischen belegt oder entfernt.");
                 return;
             }
+            long decidedAt = clock.getAsLong();
             Resident newcomer = new Resident(village.id(), candidate.villagerId(), Resident.Status.CONFIRMED, true,
-                    bed, bellLink(village), candidate.createdAt(), clock.getAsLong(), null, 0, false);
+                    bed, bellLink(village), candidate.createdAt(), decidedAt, null, 0, false);
             tasks.database(() -> repository.accept(village.id(), candidateId, newcomer,
                             config.get().immigrationFoodCost(), config.get().immigrationFirstXp(),
-                            config.get().immigrationRepeatXp(), clock.getAsLong()),
+                            config.get().immigrationRepeatXp(), decidedAt,
+                            decidedAt + config.get().immigrationWaitMillis(), "Nächster Wartezyklus läuft"),
                     acceptance -> completeAcceptance(player, village, villager, acceptance, reopened),
                     error -> Msg.error(player, "Aufnahme fehlgeschlagen; keine Nahrung wurde abgebucht: " + error.getMessage()));
         }, error -> Msg.error(player, "Wanderer konnte nicht geprüft werden: " + error.getMessage()));
@@ -135,7 +137,9 @@ public final class ImmigrationService {
 
     public void reject(Player player, Village village, long candidateId, Runnable reopened) {
         if (!canManage(player, village)) return;
-        tasks.database(() -> repository.reject(village.id(), candidateId, clock.getAsLong()), rejected -> {
+        long decidedAt = clock.getAsLong();
+        tasks.database(() -> repository.reject(village.id(), candidateId, decidedAt,
+                decidedAt + config.get().immigrationRetryMillis(), "Wanderer abgelehnt; neuer Versuch nach kurzer Pause"), rejected -> {
             if (rejected.isEmpty()) {
                 Msg.error(player, "Dieser Wanderer ist nicht mehr verfügbar.");
                 return;
@@ -143,19 +147,18 @@ public final class ImmigrationService {
             ImmigrationCandidate candidate = rejected.get();
             if (Bukkit.getEntity(candidate.villagerId()) instanceof Villager villager) villager.remove();
             audit.log(player, "IMMIGRATION_REJECTED", "Wanderer #" + candidate.id() + " ohne Nahrungkosten");
-            setState(village.id(), clock.getAsLong() + config.get().immigrationRetryMillis(),
-                    "Wanderer abgelehnt; neuer Versuch nach kurzer Pause");
             Msg.success(player, "Wanderer ohne Nahrungkosten abgelehnt.");
             reopened.run();
         }, error -> Msg.error(player, "Wanderer konnte nicht abgelehnt werden: " + error.getMessage()));
     }
 
     public void onDeath(java.util.UUID villagerId) {
-        tasks.database(() -> repository.markLost(villagerId, clock.getAsLong()), lost -> lost.ifPresent(candidate -> {
-            setState(candidate.villageId(), clock.getAsLong() + config.get().immigrationRetryMillis(),
-                    "Wanderer verstorben; neuer Versuch nach kurzer Pause");
-            plugin.getLogger().info("BlockLords: Wanderer #" + candidate.id() + " verstorben; keine Nahrung berechnet.");
-        }), error -> fail("Wanderertod konnte nicht gespeichert werden", error));
+        long decidedAt = clock.getAsLong();
+        tasks.database(() -> repository.markLost(villagerId, decidedAt,
+                decidedAt + config.get().immigrationRetryMillis(), "Wanderer verstorben; neuer Versuch nach kurzer Pause"),
+                lost -> lost.ifPresent(candidate -> plugin.getLogger().info("BlockLords: Wanderer #" + candidate.id()
+                        + " verstorben; keine Nahrung berechnet.")),
+                error -> fail("Wanderertod konnte nicht gespeichert werden", error));
     }
 
     public long remainingSeconds(ImmigrationState state) {
@@ -212,7 +215,6 @@ public final class ImmigrationService {
         villager.customName(Component.text("Wanderer · " + village.name()));
         villager.setCustomNameVisible(true);
         tasks.database(() -> repository.createCandidate(village.id(), villager.getUniqueId(), clock.getAsLong()), candidate -> {
-            setState(village.id(), 0L, "Wanderer wartet an der Glocke auf Aufnahme");
             villages.membersOf(village.id()).keySet().forEach(playerId -> {
                 Player player = Bukkit.getPlayer(playerId);
                 if (player != null) Msg.info(player, "Ein Wanderer ist an der Glocke von '" + village.name()
@@ -242,7 +244,6 @@ public final class ImmigrationService {
         audit.log(player, "IMMIGRATION_ACCEPTED", "Wanderer #" + acceptance.candidate().id() + " als "
                 + resident.displayLabel() + " · -" + config.get().immigrationFoodCost() + " Nahrung · +"
                 + acceptance.candidate().xpAwarded() + " XP");
-        setState(village.id(), clock.getAsLong() + config.get().immigrationWaitMillis(), "Nächster Wartezyklus läuft");
         Msg.success(player, resident.displayLabel() + " ist eingewandert: -" + config.get().immigrationFoodCost()
                 + " Nahrung · +" + acceptance.candidate().xpAwarded() + " Dorf-XP.");
         Msg.info(player, "Nächster Schritt: /bl workers öffnen und einen Arbeitsplatz zuweisen.");
