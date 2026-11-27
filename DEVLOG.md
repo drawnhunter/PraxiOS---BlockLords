@@ -509,4 +509,10 @@
 - Gezielte Tests für atomare Entscheidungen, kontrollierten Scan-Ablauf, Retry-Erhalt und anschließende Ankunft sowie Netto-/Zyklus-/Konsolentexte erfolgreich.
 - Vollständiger Java-21-Clean-Build erfolgreich in 5m 7s: **90 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. JAR-SHA256: `22e6f7eff7e17c1b3fedb96e49e460daa912449928f10951dbe85d6b89cbd874`.
 - Echter Paper-1.21.11-/FAWE-2.16.3-Lauf mit V8: alpha.3 aktiviert, `/bl immigration` und `/bl production` registriert, Selftest `PASTE-6a0e9442` mit **99 Blöcken in 16512 ms** innerhalb des 20-Sekunden-Limits. Nach mehr als 27 Sekunden kein spätes Ergebnis oder BlockLords-Fehler; sauberer Shutdown mit Exitcode 0. Details in `verifier/runs/2026-11-27-v11-server.log`.
-- Release und Deployment folgen nach grüner CI. #235 bleibt bis zur finalen visuellen Abnahme offen.
+### Release und Produktivdeployment
+
+- GitHub-CI `46077094135` für Commit `b6fc940` erfolgreich; Prerelease `v0.2.9-alpha.3`, Download und Produktiv-JAR hashgeprüft (`22e6f7ef…d874`).
+- alpha.2-JAR, Config und Pre-Deploy-Snapshot gesichert (`ok`, zwei Dörfer, V8). `postdeploy-v0293-verified.db` bestätigt ebenfalls Integrität `ok`, zwei Dörfer und V8.
+- Auf Paper 26.3/Java 25 wird ausschließlich 0.2.9-alpha.3 geladen; Silberbrück Level 4 und Nebelbrück Level 2 bleiben aktiv, TPS 20,0/20,0/20,0. Keine unerwarteten BlockLords-Warnungen oder Fehler. Details in `verifier/runs/2026-11-27-v11-production.log`.
+- Wanderer #8 bleibt `WAITING` mit unveränderter UUID. Beim technischen Check war niemand online; die nicht geladene Entity wird nicht als Verlust gewertet und wird nach Lex’ Reconnect separat geprüft.
+- Offen in **#235**: Ablehnung #8 mit echtem 60-Sekunden-Retry trotz möglicher Scan-Abläufe, folgende +5-XP-Aufnahme und visuelle Java-/Bedrock-Bewertung der Netto-/Zyklusdarstellung.

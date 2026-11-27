@@ -1,0 +1,19 @@
+2026-11-27 — BlockLords 0.2.9-alpha.3 Produktivnachweis (ohne IP-Adressen oder Zugangsdaten)
+
+Commit: b6fc940e7277b53c10a63a7ec0cdd52c982cbfc2
+GitHub-CI: 46077094135, success.
+Prerelease: v0.2.9-alpha.3; Tag zeigt auf b6fc940e7277b53c10a63a7ec0cdd52c982cbfc2.
+SHA256 von dist, öffentlichem Download und Produktiv-JAR: 22e6f7eff7e17c1b3fedb96e49e460daa912449928f10951dbe85d6b89cbd874
+
+Vor Deployment: alpha.2-JAR und Config gesichert; `manual-v0293-predeploy.db` mit Integrität `ok`, zwei Dörfern und Schema V8. alpha.2 zusätzlich als `BlockLords-0.2.9-alpha.2.jar.bak-20261127-v0293` erhalten.
+Upload zunächst als `.uploading`, Remote-Hash geprüft, dann Dateiwechsel und Panel-Neustart.
+
+Nach Deployment:
+- Ausschließlich BlockLords 0.2.9-alpha.3 wird geladen; Aktivierung mit zwei Dörfern.
+- `/bl admin list`: Silberbrück Level 4 ACTIVE, Nebelbrück Level 2 ACTIVE.
+- `/bl immigration` und `/bl production` registriert; RCON-Spielerzwang erwartungsgemäß.
+- TPS 20,0/20,0/20,0. Keine unerwarteten BlockLords-Warnungen oder Fehler; nur erwartete RCON-Spielerzwang-Meldungen.
+- Wanderer #8 bleibt in SQLite `WAITING` mit unveränderter UUID. Beim technischen Check war niemand online; `No entity was found` bedeutet hier nicht nachweisbar geladener Chunk und wird nicht als Entity-Verlust gewertet. Der reale NPC wird nach Lex’ Reconnect erneut geprüft.
+- `postdeploy-v0293-verified.db`: Integrität `ok`, zwei Dörfer, Schema V8.
+
+Offen in #235: realer NPC nach Reconnect, Ablehnung #8 mit 60-Sekunden-Retry trotz möglicherweise abgelaufener Vermessung, anschließende +5-XP-Aufnahme sowie visuelle Java-/Bedrock-Abnahme der Netto-/Zyklusdarstellung. Keine vollständige visuelle Abnahme behauptet.

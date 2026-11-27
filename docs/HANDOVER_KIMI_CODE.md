@@ -4,17 +4,17 @@
 **Von:** BLWB / Kimi, fortgeschrieben von Brix
 **Für:** Kimi Code (Brix), Alexander
 **Repo:** https://github.com/drawnhunter/PraxiOS---BlockLords
-**Aktueller Produktstand:** **0.2.9-alpha.2**
-**Release-Commit:** `ca1ba608a97f2f43736a792abb5b299553917fd1`
-**JAR-SHA256:** `31969bdfc1c61d8efea89281aff2b9b3d30f2efd70023bc57f00d058d05b9d65`
-**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.9-alpha.2.jar
-**Abnahme:** 0.2.9-alpha.2 technisch verifiziert und produktiv deployed; visuelle Restabnahme durch Alexander in #235 offen
+**Aktueller Produktstand:** **0.2.9-alpha.3**
+**Release-Commit:** `b6fc940e7277b53c10a63a7ec0cdd52c982cbfc2`
+**JAR-SHA256:** `22e6f7eff7e17c1b3fedb96e49e460daa912449928f10951dbe85d6b89cbd874`
+**Direkter Download:** https://raw.githubusercontent.com/drawnhunter/PraxiOS---BlockLords/master/dist/BlockLords-0.2.9-alpha.3.jar
+**Abnahme:** 0.2.9-alpha.3 technisch verifiziert und produktiv deployed; visuelle Restabnahme durch Alexander in #235 offen
 
 ## 1. Zweck und Prioritäten
 
 BlockLords ist ein kooperatives Dorf-Aufbau-, Claim-, Wirtschafts-, Diplomatie- und Wettkampfplugin für den PraxiOS-Familien-SMP. Das Ziel ist kein generisches Claim-Plugin, sondern ein nachvollziehbares Dorfleben: Spieler gründen Dörfer, bauen gemeinsam, registrieren Bewohner, weisen Berufe zu und entwickeln später freiwillige Wettkämpfe und Diplomatie. Die wichtigste aktuelle Arbeitsregel lautet: **Bestehende Live-Fehler zuerst, neue Systeme erst nach stabiler Abnahme.** Alexander entscheidet über Spielregeln, Prioritäten und Go/No-Go. Brix entwickelt, testet, veröffentlicht, deployed und wertet die Konsole aus; Alexander übernimmt die spielerische Abnahme. Axon ist für diese Arbeit nicht mehr erforderlich.
 
-Die Fassung 0.2.8-alpha.1 mit Missionen und V7 ist von Alexander abgenommen und #233 ist geschlossen. Der Hotfix 0.2.8-alpha.2 ergänzt Aktiv-Glint und „Aktiv“-Text für angenommene Missionen sowie normale Inventarbedienung im Lager mit gezielter Shift-Einlagerung und ist ebenfalls visuell abgenommen; #234 ist geschlossen. Die Runde 0.2.9-alpha.1 ergänzte Einwanderung und Produktionsbilanz mit V8. Der Hotfix 0.2.9-alpha.2 macht Ankunft, Aufnahme, Ablehnung und Tod samt Folgezustand atomar, klärt die Produktionswerte inklusive Nahrungs-Netto und spiegelt den Login-Bericht in die Konsole. Er ist technisch verifiziert und produktiv deployed; die visuelle Restabnahme läuft in #235. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
+Die Fassung 0.2.8-alpha.1 mit Missionen und V7 ist von Alexander abgenommen und #233 ist geschlossen. Der Hotfix 0.2.8-alpha.2 ergänzte Aktiv-Glint und normale Lagerbedienung; #234 ist geschlossen. Die Runde 0.2.9-alpha.1 ergänzte Einwanderung und Produktionsbilanz mit V8. Der Hotfix 0.2.9-alpha.2 machte Ankunft und Entscheidungen samt Folgezustand atomar. Die aktuelle 0.2.9-alpha.3 verhindert zusätzlich, dass eine abgelaufene Dorfvermessung den Retry verändert, und zeigt Netto-Bilanz sowie Arbeitszyklus-Erklärung für alle Ressourcen. Sie ist technisch verifiziert und produktiv deployed; die visuelle Restabnahme läuft in #235. Keine noch nicht implementierte Funktion darf als vorhanden angenommen werden. Die verbindliche Spielvision bleibt `KONZEPT.md` v0.6; der tatsächliche Änderungs- und Testverlauf steht in `DEVLOG.md`.
 
 ## 2. Verbindliche Designentscheidungen
 
@@ -173,7 +173,8 @@ Der aktuelle Produktionszyklus beträgt 300 Sekunden, also 12 Zyklen/Stunde. Pro
 |---|---|
 | **0.2.8-alpha.1** | Persönliche und gemeinsame Missionen, reale Fortschrittsbuchung, einmalige Dorf-XP, kostenloses Ersetzen, Pinnen und V7 |
 | **0.2.9-alpha.1** | Einwanderung und Produktionsbilanz mit V8 |
-| **0.2.9-alpha.2** | Atomare Wanderer-Lebenszyklen, klare Produktionswerte, Nahrungs-Netto und Login-Konsolenlog; produktiv deployed, visuelle Restabnahme in #235 offen |
+| **0.2.9-alpha.2** | Atomare Wanderer-Lebenszyklen, klare Produktionswerte, Nahrungs-Netto und Login-Konsolenlog |
+| **0.2.9-alpha.3** | Scan-sicherer Retry, Netto-Bilanz und Arbeitszyklus-Erklärung für alle Ressourcen; produktiv deployed, visuelle Restabnahme in #235 offen |
 | **Danach** | Mitgliederverwaltung und persönliche Parzellen; Schematic-Loader, Bauhütte und Kolonien als getrennte Research-/Ausbauthemen |
 | **Spätere Phase 3/4** | Militär, Diplomatie, reguläre Kriege und Herrschaftskampf nach stabilem Phase-2-Kern |
 
@@ -209,10 +210,10 @@ export GRADLE_OPTS="-Djava.net.preferIPv4Stack=true"
 
 ### Eigener Verifier
 
-- Aktuelle Kriterien: `verifier/v10/acceptance.md`; `verifier/v1/` bis `verifier/v9/` bleiben historisch erhalten.
-- Build-/Testskript: `verifier/v10/check.sh`; echte Protokolle unter `verifier/runs/`.
+- Aktuelle Kriterien: `verifier/v11/acceptance.md`; `verifier/v1/` bis `verifier/v10/` bleiben historisch erhalten.
+- Build-/Testskript: `verifier/v11/check.sh`; echte Protokolle unter `verifier/runs/`.
 - Bei geänderten Kriterien eine neue Verifier-Version anlegen, alte Kriterien nicht überschreiben.
-- Missionen und UX wurden mit 65/70 Tests verifiziert; die aktuelle Einwanderungs-/Produktionsrunde mit **89 Tests ohne Fehler oder Skip**, V7→V8-Upgrade, atomaren Ankunfts-/Entscheidungs-Snapshots, echten Inventar-Events, NPC-Spawns, MockBukkit-Spielerflüssen, Logger-/Spielertext-Gleichheit und Paper-/FAWE-Läufen.
+- Missionen und UX wurden mit 65/70 Tests verifiziert; die aktuelle Einwanderungs-/Produktionsrunde mit **90 Tests ohne Fehler oder Skip**, V7→V8-Upgrade, atomaren Ankunfts-/Entscheidungs-Snapshots, kontrolliertem Scan-Ablauf, Netto-/Zyklusdarstellung, Logger-/Spielertext-Gleichheit und Paper-/FAWE-Läufen.
 
 ### Live-Abnahme auf dem OnePlus
 
@@ -234,7 +235,7 @@ Brix deployt mit JAR-, Config- und DB-Backup, prüft Version, Migration, Dörfer
 14. `/bl production` zeigt geplante/akzeptierte Erträge, Nahrungsverbrauch, Lager und Pausengründe in Java und Bedrock.
 15. Vier-Stunden-Offline-Grenze und `RESTING` stoppen Produktion und Einwanderung; Reaktivierung erzeugt keine Ruhe-Nachzahlung.
 
-#230, #233 und #234 sind abgenommen und geschlossen. **#235** führt die technisch verifizierte und produktiv deployed 0.2.9-alpha.2 mit atomaren Wanderer-Lebenszyklen und verbesserter Produktionsbilanz; der 60-Sekunden-Retry nach Ablehnung, die zweite Aufnahme und die visuelle Java-/Bedrock-Abnahme durch Alexander sind dort noch offen.
+#230, #233 und #234 sind abgenommen und geschlossen. **#235** führt die technisch verifizierte und produktiv deployed 0.2.9-alpha.3 mit scan-sicherem Retry sowie Netto-/Zyklusdarstellung für alle Ressourcen; die Ablehnung von #8, die folgende +5-XP-Aufnahme und die visuelle Java-/Bedrock-Abnahme durch Alexander sind dort noch offen.
 
 ## 10. Rollen- und Sicherheitsregeln
 
