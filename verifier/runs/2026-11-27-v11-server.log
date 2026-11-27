@@ -1,0 +1,20 @@
+2026-11-27 — BlockLords 0.2.9-alpha.3 echter Paper-/FAWE-Lauf
+
+Build: Java 21, `./gradlew clean build --no-daemon`, BUILD SUCCESSFUL in 5m 7s.
+Testsuite: 90 Tests, 0 Failures, 0 Errors, 0 Skipped; XML-Ergebnisse aus build/test-results/test/.
+JAR-SHA256: 22e6f7eff7e17c1b3fedb96e49e460daa912449928f10951dbe85d6b89cbd874. build/libs, dist und lokales Testserver-JAR sind hashgleich.
+
+Server: Paper 1.21.11 Build 132, Java 21.0.13.1, FAWE 2.16.3+44adc13. Bestehender V8-Teststand, 0 Dörfer erwartungsgemäß.
+Start: BlockLords 0.2.9-alpha.3 aktiviert; Serverstart auf dem Laptop 334,943 s, kein Pluginfehler.
+
+Echte RCON-Aufrufe:
+- `bl admin list` → „Noch keine Dörfer registriert.“
+- `bl immigration` → registriert; ohne Spieler verständlich abgelehnt.
+- `bl production` → registriert; ohne Spieler verständlich abgelehnt.
+- `bl admin selftest RATHAUS 0 130 0` → echter FAWE-Baupfad.
+- `tps` → 17,8/17,8/17,8 während des langsamen Starts.
+
+FAWE: PASTE-6a0e9442, CHUNK_CHECK 1/1, QUEUED 99 Blöcke, FLUSH_DONE, SUCCESS mit 99 Blöcken in 16512 ms bei unverändertem Standard-Timeout 20 s.
+Nach SUCCESS zusätzlich mehr als 27 Sekunden gewartet: kein LATE_FAILURE_IGNORED, kein LATE_SUCCESS_IGNORED und kein neuer BlockLords-Fehler.
+Shutdown per RCON `stop`: BlockLords und FAWE deaktiviert, alle Dimensionen gespeichert, Java-Prozess Exitcode 0.
+Die allgemeine Servermeldung „Failed to flush log messages before plugin unload“ beim Shutdown ist nicht BlockLords zugeordnet; es gibt keine BlockLords-Exception oder einen verspäteten Baufehler.

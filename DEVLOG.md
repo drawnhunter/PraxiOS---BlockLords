@@ -477,6 +477,7 @@
 - Gezielte Produktionstests erfolgreich: vollständige/teilweise/fehlende Einlagerung und alter V8-Pausentext am tatsächlich geöffneten MockBukkit-Inventar; Nahrungsbilanz `+116`; identischer Spieler-/Konsolentext und kein Log ohne Bericht.
 - Vollständiger Java-21-Clean-Build erfolgreich in 6m 58s: **89 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. JAR-SHA256: `31969bdfc1c61d8efea89281aff2b9b3d30f2efd70023bc57f00d058d05b9d65`.
 - Echter Paper-1.21.11-/FAWE-2.16.3-Lauf mit bestehendem V8-Stand: alpha.2 aktiviert, `/bl immigration` und `/bl production` separat per RCON bestätigt. Selftest `PASTE-f036c769` mit **99 Blöcken in 5830 ms**, mehr als 27 Sekunden ohne späten Fehler und sauberer Shutdown mit Exitcode 0. Details in `verifier/runs/2026-11-27-v10-server.log`.
+
 ### Release und Produktivdeployment
 
 - GitHub-CI `46067863420` für Commit `ca1ba60` erfolgreich; Prerelease `v0.2.9-alpha.2`, öffentlicher Download und Produktiv-JAR hashgeprüft (`31969bdf…9d65`).
@@ -484,3 +485,28 @@
 - Auf Paper 26.3/Java 25 wird ausschließlich 0.2.9-alpha.2 geladen; Silberbrück Level 4 und Nebelbrück Level 2 bleiben aktiv. Beide wartenden Wanderer #4/#2 behalten ihre UUIDs und werden als reale NPCs gefunden. TPS nach dem Start 18,6/19,0/19,0; keine unerwarteten BlockLords-Warnungen oder Fehler. Details in `verifier/runs/2026-11-27-v10-production.log`.
 - Der echte Reconnect erzeugt `DORFBERICHT | HazeHunter | Dorfbericht 'Silberbrück' …` und verwendet dabei bereits die klaren Kapazitätstexte `6 von 8` beziehungsweise `12 von 12` nicht eingelagert. Spieler- und Konsolentext sind damit auch live nachgewiesen.
 - Weiterhin offen in **#235**: Retry nach Ablehnung von #4, anschließende +5-XP-Aufnahme, Doppelklick/Arbeitsplatz sowie die visuelle Java-/Bedrock-Bewertung der Produktionsbilanz.
+
+
+## 2026-11-27 — 0.2.9-alpha.3, Scan-sicherer Retry und Netto überall
+
+### Weiterer Live-Befund aus alpha.2
+
+- Ablehnung #4 und #6 blieben kostenlos und entfernten die NPCs. Aufnahmen #5/Clemens #16 und #7/Bernd #19 gaben jeweils +5 XP und buchten je 16 Nahrung; Silberbrück steht danach bei 510 XP. Der von Lex ausgeführte Doppelklick erzeugte keine Zusatzkosten oder Bewohner.
+- Clemens #16 wurde Farm #11 und Ursa #12 Mine #7 zugewiesen. Ingrid #7 und Margarete #9 sind persistent `dead=1` und haben keinen Arbeitereintrag mehr.
+- Die neue Java-Produktionsansicht wurde per Screenshots kontrolliert: geplant/eingelagert/nicht eingelagert, echter Bestand und `+15 netto` aus `20 - 5` werden korrekt dargestellt.
+- Der erste Retry nach #4 betrug dennoch rund 309,6 Sekunden; nach #6 waren es korrekt 61,5 Sekunden. Die Vermessungsdaten sind standardmäßig 60 Sekunden gültig. Eine abgelaufene Vermessung konnte als fehlende Voraussetzung den Retry auf 0 setzen, woraus anschließend der reguläre 300-Sekunden-Zyklus wurde. Dies erklärt den intermittierenden Unterschied.
+
+### Implementiert
+
+- **Scan nie als Fristfehler:** `runVillage` startet bei fehlender/abgelaufener Vermessung einen Scan und erhält den bisherigen `nextArrivalAt`-Wert. Erst echte fehlende Voraussetzungen setzen den Zustand zurück. Nach Scanabschluss kann eine fällige Ankunft sofort erfolgen.
+- **Kontrollierbare Scanner-Zeit:** `VillageScanner` besitzt eine optionale Zeitquelle wie die anderen Services; produktiv bleibt `System.currentTimeMillis`, Tests verwenden dieselbe kontrollierte Uhr wie die Einwanderung.
+- **Netto bei allen Ressourcen:** Titel wie `Nahrung · +116 netto (+308/-192)` gelten auch für Weizen, Stein und übrige Ressourcen mit Verbrauch 0. Geplant, eingelagert, Verbrauch, nicht eingelagert und Bestand bleiben separat in der Lore. Der zusätzliche Nahrungsbilanz-Doppeleintrag entfällt.
+- **Arbeitszyklus erklärt:** Die gemeinsame Produktionsansicht nennt `1 Arbeitszyklus = 300 Sekunden · Offline-Ertrag 50 %`. Login-Bericht und Konsole verwenden dieselbe Netto-Aufschlüsselung.
+- Weiterhin Schema V8, keine Wirtschafts-/Schutzänderung und keine neue Abhängigkeit. Holzfällerhütte, Holz-/Bretter-Modi und eigene Gebäude-Menüs mit Kapazitätsanzeige sind separat zu planende Folgefeatures.
+
+### Verifikation
+
+- Gezielte Tests für atomare Entscheidungen, kontrollierten Scan-Ablauf, Retry-Erhalt und anschließende Ankunft sowie Netto-/Zyklus-/Konsolentexte erfolgreich.
+- Vollständiger Java-21-Clean-Build erfolgreich in 5m 7s: **90 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. JAR-SHA256: `22e6f7eff7e17c1b3fedb96e49e460daa912449928f10951dbe85d6b89cbd874`.
+- Echter Paper-1.21.11-/FAWE-2.16.3-Lauf mit V8: alpha.3 aktiviert, `/bl immigration` und `/bl production` registriert, Selftest `PASTE-6a0e9442` mit **99 Blöcken in 16512 ms** innerhalb des 20-Sekunden-Limits. Nach mehr als 27 Sekunden kein spätes Ergebnis oder BlockLords-Fehler; sauberer Shutdown mit Exitcode 0. Details in `verifier/runs/2026-11-27-v11-server.log`.
+- Release und Deployment folgen nach grüner CI. #235 bleibt bis zur finalen visuellen Abnahme offen.

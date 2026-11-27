@@ -166,12 +166,24 @@ public final class ProductionService {
                 List.of(reason), List.of()));
     }
 
+    public String cycleInfo() {
+        return "1 Arbeitszyklus = " + config.get().productionCycleSeconds() + " Sekunden · Offline-Ertrag "
+                + Math.round(config.get().offlineRate() * 100) + " %";
+    }
+
+    private String signed(int amount) {
+        return amount > 0 ? "+" + amount : Integer.toString(amount);
+    }
+
     private String describe(ProductionReport report) {
         StringBuilder text = new StringBuilder(String.format("%.1f Zyklen (%s): ",
                 report.effectiveCycles(), report.active() ? "aktiv" : "offline"));
-        report.resources().forEach(entry -> text.append('+').append(entry.accepted()).append(' ')
-                .append(entry.resource().displayName()).append(", "));
-        if (report.foodConsumed() > 0) text.append('-').append(report.foodConsumed()).append(" Nahrung, ");
+        report.resources().forEach(entry -> {
+            int consumed = entry.resource() == ResourceType.NAHRUNG ? report.foodConsumed() : 0;
+            int net = entry.accepted() - consumed;
+            text.append(entry.resource().displayName()).append(' ').append(signed(net)).append(" netto (")
+                    .append(signed(entry.accepted())).append("/-").append(consumed).append("), ");
+        });
         List<String> pauses = pauseLines(report);
         if (!pauses.isEmpty()) text.append(String.join(", ", pauses)).append(", ");
         if (report.resources().isEmpty() && pauses.isEmpty()) text.append("keine Produktion, ");

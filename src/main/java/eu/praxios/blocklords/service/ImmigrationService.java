@@ -78,8 +78,15 @@ public final class ImmigrationService {
     public void runVillage(Village village) {
         tasks.database(() -> repository.snapshot(village.id()), snapshot -> {
             if (snapshot.waiting().isPresent()) return;
-            String missing = missingRequirement(village);
             ImmigrationState current = snapshot.state();
+            if (scanner.fresh(village).isEmpty()) {
+                if (!"Dorfvermessung für freie Betten läuft.".equals(current.reason())) {
+                    setState(village.id(), current.nextArrivalAt(), "Dorfvermessung für freie Betten läuft.");
+                }
+                scanner.request(village, ignored -> { });
+                return;
+            }
+            String missing = missingRequirement(village);
             if (missing != null) {
                 if (current.nextArrivalAt() != 0 || !missing.equals(current.reason())) {
                     setState(village.id(), 0L, missing);
@@ -179,10 +186,6 @@ public final class ImmigrationService {
     private String missingRequirement(Village village) {
         if (village.level() < 2) return "Einwanderung wird mit Dorf-Level 2 freigeschaltet.";
         if (village.status() != VillageStatus.ACTIVE) return "Das Dorf ruht; Einwanderung ist pausiert.";
-        if (scanner.fresh(village).isEmpty()) {
-            scanner.request(village, ignored -> { });
-            return "Dorfvermessung für freie Betten läuft.";
-        }
         if (residents.freeBed(village).isEmpty()) return "Kein freies Bett im geladenen Dorfbereich.";
         int food = storage.balances(village.id()).getOrDefault(ResourceType.NAHRUNG, 0);
         if (food < config.get().immigrationFoodCost()) {

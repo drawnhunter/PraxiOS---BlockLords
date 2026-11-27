@@ -162,30 +162,28 @@ class ProductionServiceTest {
         storageRepository.deposit(village.id(), village.owner(), ResourceType.STEIN, 64, 1_728);
         storageService.loadInitial(java.util.List.of(village));
         ui.openProduction(player, village);
-        await(() -> action("Nahrung · 308 eingelagert") != null);
+        await(() -> action("Nahrung · +116 netto") != null);
 
-        UiAction food = action("Nahrung · 308 eingelagert");
-        assertTrue(food.lore().containsAll(List.of("Geplant: 768", "Eingelagert: 308", "Nicht eingelagert: 460",
-                "Bestand: 1728/1728 pro Ressource", "Teilweise eingelagert – Lager voll.")));
+        UiAction food = action("Nahrung · +116 netto");
+        assertTrue(food.lore().containsAll(List.of("Geplant: 768", "Eingelagert: +308", "Verbrauch: -192",
+                "Nicht eingelagert: 460", "Bestand: 1728/1728 pro Ressource", "Teilweise eingelagert – Lager voll.")));
         var holder = (ActionMenuHolder) player.getOpenInventory().getTopInventory().getHolder();
         var foodItem = player.getOpenInventory().getTopInventory().getItem(holder.actions().indexOf(food));
         assertNotNull(foodItem);
         assertNotNull(foodItem.getItemMeta().displayName());
         assertTrue(PlainTextComponentSerializer.plainText().serialize(foodItem.getItemMeta().displayName())
-                .contains("Nahrung · 308 eingelagert"));
+                .contains("Nahrung · +116 netto (+308/-192)"));
 
-        UiAction wheat = action("Weizen · 0 eingelagert");
+        UiAction wheat = action("Weizen · 0 netto (0/-0)");
         assertNotNull(wheat);
         assertTrue(wheat.lore().contains("Nichts eingelagert – Lager voll."));
         assertFalse(wheat.lore().contains("Nur teilweise eingelagert; Lagergrund prüfen."));
-        UiAction stone = action("Stein · 64 eingelagert");
+        UiAction stone = action("Stein · +64 netto (+64/-0)");
         assertNotNull(stone);
         assertTrue(stone.lore().contains("Vollständig eingelagert."));
+        assertNull(action("Nahrungsbilanz"));
+        assertEquals("1 Arbeitszyklus = 300 Sekunden · Offline-Ertrag 50 %", production.cycleInfo());
 
-        UiAction balance = action("Nahrungsbilanz · +116 netto");
-        assertNotNull(balance);
-        assertTrue(balance.lore().containsAll(List.of("Eingelagert: +308", "Verbrauch: -192",
-                "Netto = eingelagert - Verbrauch")));
         UiAction pauses = action("Pausen und Gründe");
         assertNotNull(pauses);
         assertEquals(3, pauses.lore().size());
@@ -225,7 +223,7 @@ class ProductionServiceTest {
             assertNotNull(playerMessage);
             assertTrue(PlainTextComponentSerializer.plainText().serialize(playerMessage).endsWith(consoleText));
             assertTrue(consoleText.contains("Dorfbericht 'Produktionsdorf':"));
-            assertTrue(consoleText.contains("+308 Nahrung"));
+            assertTrue(consoleText.contains("Nahrung +116 netto (+308/-192)"));
 
             logs.clear();
             player.disconnect();

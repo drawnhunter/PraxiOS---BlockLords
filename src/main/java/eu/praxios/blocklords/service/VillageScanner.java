@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 /** Explizite, gestaffelte Scans nur auf Anfrage; keine periodischen Vollscans im Tick. */
@@ -29,19 +30,25 @@ public final class VillageScanner {
     private final JavaPlugin plugin;
     private final Supplier<BlockLordsConfig> config;
     private final TaskRunner tasks;
+    private final LongSupplier clock;
     private final Map<Long, VillageStats> cache = new ConcurrentHashMap<>();
     private final Map<Long, List<Consumer<VillageStats>>> callbacks = new ConcurrentHashMap<>();
     private final Map<Long, BukkitRunnable> running = new ConcurrentHashMap<>();
 
     public VillageScanner(JavaPlugin plugin, Supplier<BlockLordsConfig> config, TaskRunner tasks) {
+        this(plugin, config, tasks, System::currentTimeMillis);
+    }
+
+    public VillageScanner(JavaPlugin plugin, Supplier<BlockLordsConfig> config, TaskRunner tasks, LongSupplier clock) {
         this.plugin = plugin;
         this.config = config;
         this.tasks = tasks;
+        this.clock = clock;
     }
 
     public Optional<VillageStats> fresh(Village village) {
         VillageStats stats = cache.get(village.id());
-        if (stats == null || System.currentTimeMillis() - stats.scannedAt() > config.get().scanCacheMillis()) {
+        if (stats == null || clock.getAsLong() - stats.scannedAt() > config.get().scanCacheMillis()) {
             return Optional.empty();
         }
         return Optional.of(stats);
@@ -94,7 +101,7 @@ public final class VillageScanner {
                         .count();
                 tasks.scan(() -> countBeds(snapshots, world.getMinHeight(), world.getMaxHeight(), village.region()), bedScan -> {
                     VillageStats stats = new VillageStats(villagers, bedScan.count(), loaded[0], positions.size(),
-                            System.currentTimeMillis(), bedScan.locations());
+                            clock.getAsLong(), bedScan.locations());
                     cache.put(village.id(), stats);
                     List<Consumer<VillageStats>> done = callbacks.remove(village.id());
                     if (done != null) {

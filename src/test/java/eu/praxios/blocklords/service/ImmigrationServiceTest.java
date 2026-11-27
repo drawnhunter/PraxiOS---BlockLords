@@ -33,8 +33,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class ImmigrationServiceTest {
     @TempDir Path temp;
     private ServerMock server;
+    private PluginMock plugin;
     private TaskRunner tasks;
     private Database database;
+    private BlockLordsConfig settings;
+    private AuditService audit;
     private VillageRepository villageRepository;
     private ResidentRepository residentRepository;
     private StorageRepository storageRepository;
@@ -42,6 +45,8 @@ class ImmigrationServiceTest {
     private ResidentService residents;
     private StorageService storage;
     private VillageScanner scanner;
+    private VillageService villages;
+    private WorkerService workers;
     private ImmigrationService immigration;
     private Village village;
     private PlayerMock player;
@@ -51,14 +56,15 @@ class ImmigrationServiceTest {
     @BeforeEach
     void setup() throws Exception {
         server = MockBukkit.mock();
-        PluginMock plugin = MockBukkit.createMockPlugin();
+        plugin = MockBukkit.createMockPlugin();
         tasks = new TaskRunner(plugin);
         database = new Database(temp.resolve("immigration-service.db"));
         new MigrationRunner(database, Logger.getLogger("test")).migrate();
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.load(new File("src/main/resources/config.yml"));
-        BlockLordsConfig settings = new BlockLordsConfig(yaml);
-        AuditService audit = new AuditService(new AuditRepository(database), tasks,
+        yaml.set("ui.scan-cache-seconds", 10);
+        settings = new BlockLordsConfig(yaml);
+        audit = new AuditService(new AuditRepository(database), tasks,
                 new LogService(Logger.getLogger("test"), () -> settings));
         clock = new AtomicLong(1_000_000L);
 
@@ -69,7 +75,7 @@ class ImmigrationServiceTest {
         village = villageRepository.createVillage("Einwanderungsdorf", player.getUniqueId(),
                 new ClaimRegion(world.getUID(), 0, 64, 0, 48), 4, 20, false, 21);
         village = villageRepository.addXp(village.id(), 100);
-        VillageService villages = new VillageService(villageRepository, new LegacyRepository(database), tasks);
+        villages = new VillageService(villageRepository, new LegacyRepository(database), tasks);
         villages.loadInitial();
         residentRepository = new ResidentRepository(database);
         scanner = new VillageScanner(plugin, () -> settings, tasks);
@@ -84,7 +90,7 @@ class ImmigrationServiceTest {
                 new LogService(Logger.getLogger("test"), () -> settings), () -> settings), tasks, audit);
         createFarm();
         construction.loadInitial(villages.all());
-        WorkerService workers = new WorkerService(new WorkerRepository(database), storageRepository, construction,
+        workers = new WorkerService(new WorkerRepository(database), storageRepository, construction,
                 villages, residents, tasks, audit, () -> settings);
         workers.loadInitial(villages.all());
         immigrationRepository = new ImmigrationRepository(database, villageRepository, storageRepository, residentRepository);
@@ -206,6 +212,32 @@ class ImmigrationServiceTest {
         assertEquals(retryAt, immigrationRepository.snapshot(village.id()).state().nextArrivalAt());
         assertTrue(immigrationRepository.snapshot(village.id()).state().reason().contains("abgelehnt"));
         assertTrue(immigrationRepository.snapshot(village.id()).waiting().isEmpty());
+    }
+
+    @Test
+    void staleScanPreservesRetryAndAllowsArrivalAfterRefresh() throws Exception {
+        VillageScanner controlledScanner = new VillageScanner(plugin, () -> settings, tasks, clock::get);
+        controlledScanner.request(village, ignored -> { });
+        await(() -> controlledScanner.fresh(village).isPresent());
+        ImmigrationService controlled = new ImmigrationService(plugin, () -> settings, immigrationRepository,
+                villages, residents, workers, storage, controlledScanner, tasks, audit, clock::get);
+        long retryAt = clock.get() + 60_000L;
+        immigrationRepository.state(village.id(), retryAt, "Wanderer abgelehnt; neuer Versuch nach kurzer Pause");
+        clock.set(retryAt + 1_000L);
+        assertTrue(controlledScanner.fresh(village).isEmpty());
+
+        controlled.runVillage(village);
+        await(() -> immigrationRepository.snapshot(village.id()).state().reason().contains("Dorfvermessung"));
+        settleDatabase();
+        assertEquals(retryAt, immigrationRepository.snapshot(village.id()).state().nextArrivalAt());
+        assertTrue(immigrationRepository.snapshot(village.id()).waiting().isEmpty());
+        assertEquals(0, world.getEntitiesByClass(Villager.class).size());
+
+        await(() -> controlledScanner.fresh(village).isPresent());
+        controlled.runVillage(village);
+        await(() -> immigrationRepository.snapshot(village.id()).waiting().isPresent());
+        assertEquals(1, world.getEntitiesByClass(Villager.class).size());
+        assertEquals(64, storageRepository.balances(village.id()).get(ResourceType.NAHRUNG));
     }
 
     @Test

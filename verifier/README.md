@@ -64,3 +64,9 @@ Dieser Index ist append-only. Jede Version erhält eigene Kriterien und reproduz
 - Zweck: Atomarer Retry nach Ablehnung/Tod, verständliche Produktionswerte inklusive Nahrungs-Netto und Konsolenspiegelung des Login-Berichts.
 - Prüfungen: Snapshot-Atomarität, regulärer Prüflauf während Retry, vollständige/teilweise/fehlende Einlagerung, alte V8-Pausentexte, Spieler-/Logger-Gleichheit, vollständiger Build und Paper-/FAWE-Lauf.
 - Laufprotokolle: `verifier/runs/2026-11-27-v10-server.log` und `2026-11-27-v10-production.log`; 89 Tests ohne Failure/Error/Skip, CI `46067863420`, Release-/Produktiv-Hash und konsistente V8-Snapshots geprüft. Visuelle Restabnahme in #235 offen.
+
+## v11 — 2026-11-27
+
+- Datei: `verifier/v11/acceptance.md`
+- Zweck: Abgelaufene Dorfvermessung darf den 60-Sekunden-Retry nicht verändern; Netto-Aufschlüsselung und Arbeitszyklus-Erklärung gelten für alle Ressourcen.
+- Prüfungen: Kontrollierte Scanner-Uhr, erhaltener Retry und Ankunft nach Refresh, atomare Entscheidungen, Netto bei Nahrung/Weizen/Stein, Login-/Logger-Text, vollständiger Build und Paper-/FAWE-Lauf.
