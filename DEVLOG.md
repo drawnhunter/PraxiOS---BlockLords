@@ -477,4 +477,10 @@
 - Gezielte Produktionstests erfolgreich: vollständige/teilweise/fehlende Einlagerung und alter V8-Pausentext am tatsächlich geöffneten MockBukkit-Inventar; Nahrungsbilanz `+116`; identischer Spieler-/Konsolentext und kein Log ohne Bericht.
 - Vollständiger Java-21-Clean-Build erfolgreich in 6m 58s: **89 Tests, 0 Failures, 0 Errors, 0 Skipped**; `git diff --check` bestanden. JAR-SHA256: `31969bdfc1c61d8efea89281aff2b9b3d30f2efd70023bc57f00d058d05b9d65`.
 - Echter Paper-1.21.11-/FAWE-2.16.3-Lauf mit bestehendem V8-Stand: alpha.2 aktiviert, `/bl immigration` und `/bl production` separat per RCON bestätigt. Selftest `PASTE-f036c769` mit **99 Blöcken in 5830 ms**, mehr als 27 Sekunden ohne späten Fehler und sauberer Shutdown mit Exitcode 0. Details in `verifier/runs/2026-11-27-v10-server.log`.
-- Release und Produktivdeployment folgen nach Commit und grüner CI; die visuelle Abnahme bleibt in #235 offen.
+### Release und Produktivdeployment
+
+- GitHub-CI `46067863420` für Commit `ca1ba60` erfolgreich; Prerelease `v0.2.9-alpha.2`, öffentlicher Download und Produktiv-JAR hashgeprüft (`31969bdf…9d65`).
+- alpha.1-JAR, Config und konsistenter Pre-Deploy-Snapshot gesichert (`ok`, zwei Dörfer, V8). `postdeploy-v0292-verified.db` bestätigt ebenfalls Integrität `ok`, zwei Dörfer und Schema V8.
+- Auf Paper 26.3/Java 25 wird ausschließlich 0.2.9-alpha.2 geladen; Silberbrück Level 4 und Nebelbrück Level 2 bleiben aktiv. Beide wartenden Wanderer #4/#2 behalten ihre UUIDs und werden als reale NPCs gefunden. TPS nach dem Start 18,6/19,0/19,0; keine unerwarteten BlockLords-Warnungen oder Fehler. Details in `verifier/runs/2026-11-27-v10-production.log`.
+- Der echte Reconnect erzeugt `DORFBERICHT | HazeHunter | Dorfbericht 'Silberbrück' …` und verwendet dabei bereits die klaren Kapazitätstexte `6 von 8` beziehungsweise `12 von 12` nicht eingelagert. Spieler- und Konsolentext sind damit auch live nachgewiesen.
+- Weiterhin offen in **#235**: Retry nach Ablehnung von #4, anschließende +5-XP-Aufnahme, Doppelklick/Arbeitsplatz sowie die visuelle Java-/Bedrock-Bewertung der Produktionsbilanz.

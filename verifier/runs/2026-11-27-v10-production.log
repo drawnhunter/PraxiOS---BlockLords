@@ -1,0 +1,20 @@
+2026-11-27 — BlockLords 0.2.9-alpha.2 Produktivnachweis (ohne IP-Adressen oder Zugangsdaten)
+
+Commit: ca1ba608a97f2f43736a792abb5b299553917fd1
+GitHub-CI: 46067863420, success; test-and-build erfolgreich.
+Prerelease: v0.2.9-alpha.2; Tag zeigt auf ca1ba608a97f2f43736a792abb5b299553917fd1.
+SHA256 von dist, öffentlichem Download und Produktiv-JAR: 31969bdfc1c61d8efea89281aff2b9b3d30f2efd70023bc57f00d058d05b9d65
+
+Vor Deployment: alpha.1-JAR und Config gesichert; konsistenter Snapshot `manual-v0292-predeploy.db` mit Integrität `ok`, zwei Dörfern und Schema V8. alpha.1 zusätzlich als `BlockLords-0.2.9-alpha.1.jar.bak-20261127-v0292` erhalten.
+Upload zunächst als `.uploading`; Remote-SHA256 geprüft, danach Dateiwechsel und Panel-Neustart.
+
+Nach Deployment:
+- Pluginliste und Aktivierungslog enthalten ausschließlich BlockLords 0.2.9-alpha.2.
+- `/bl admin list`: Silberbrück Level 4 ACTIVE, Nebelbrück Level 2 ACTIVE.
+- `/bl immigration` und `/bl production` registriert; RCON meldet erwartungsgemäß den Spielerzwang.
+- Silberbrück-Kandidat #4 und Nebelbrück-Kandidat #2 bleiben `WAITING` mit unveränderten Entity-UUIDs. Beide reale NPCs werden nach dem Neustart per `data get entity` gefunden.
+- `postdeploy-v0292-verified.db`: Integrität `ok`, zwei Dörfer, Schema V8.
+- TPS nach dem Start 18,6/19,0/19,0; keine unerwarteten BlockLords-Warnungen oder Fehler. Die beiden vorhandenen BlockLords-RCON-Warnungen sind die absichtlichen Spielerzwang-Meldungen.
+- Beim echten Reconnect erscheint `DORFBERICHT | HazeHunter | Dorfbericht 'Silberbrück'` im Serverlog. Die alten V8-Kapazitätstexte werden dabei korrekt als `Nahrung: 6 von 8 nicht eingelagert – Lager voll` und `Weizen: 12 von 12 nicht eingelagert – Lager voll` ausgegeben.
+
+Noch offen in #235: 60-Sekunden-Retry nach Ablehnung von #4, folgende +5-XP-Aufnahme, Doppelklick/Arbeitsplatz und Lex’ visuelle Java-/Bedrock-Abnahme der Produktionsdarstellung. Keine vollständige visuelle Abnahme behauptet.
